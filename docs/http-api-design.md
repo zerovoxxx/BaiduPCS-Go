@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 2 日。状态：待评审的设计稿。
+日期：2026 年 11 月 2 日。状态：P0公共协议及覆盖基线已建立；P1完成运行基础和12个系统/配置操作；P2内部最小链路已有受控上游验证，公网操作尚未开放。P2先验证账号、单文件传输、取消和重启恢复，额外管理能力后置。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -8,8 +8,12 @@
 
 配套文档：
 
+- [从P2继续的工程交接清单](http-api-handoff.md)
 - [分阶段实施计划](http-api-implementation-plan.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
+- [OpenAPI 3.1.1 契约与全部示例](../api/openapi/README.md)
+- [P0 核对与行为基线报告](http-api-p0-baseline.md)
+- [服务启动指南](http-api-server.md)、[P1实施验证](http-api-p1-verification.md)与[P2最小链路验证](http-api-p2-verification.md)
 
 ## 1 覆盖范围和完成标准
 
@@ -28,6 +32,16 @@
 接口覆盖率、实现率、测试通过率和百度上游实测通过率分别统计。把导出方法归到内部适配不等于该业务已经实现；历史能力有明确处理结论也不等于可以成功调用。
 
 现有 `docs/file_data_apis_list.md` 等文件描述百度上游接口，不作为本服务的 HTTP 契约。此方案也不承诺实现原项目没有实现的结构化数据 API。
+
+### 1.1 实施取舍与契约成熟度
+
+保留五层、配置快照、隔离客户端、Bearer、单实例 SQLite 和持久任务。先以 P2 的最小账号/实际上传下载/取消/重启恢复闭环验证边界，再补齐通用读取、事件和完整传输。不得等到 P4/P7 才第一次验证真实传输适配。
+
+核心覆盖以主项目有效业务为准。context 会话、CLI 默认值管理、配置重载和诊断在 P6 实施，不作为核心账号/传输的前置。浏览器可续传接收、短期票据、QR 扩展等另列验收，不因列出路由就进入核心发布门槛。
+
+公共身份、路径、错误、数值编码与已实现 P1 的语义保持稳定；planned 字段、状态和组件边界是可修订目标，依据最小链路的证据同步调整 OpenAPI、示例及本设计。operationId 保持稳定。覆盖数量不代表实现或验证率。受限P2接口开放前，按[交接决策](http-api-handoff.md#3-已确定的接续决策)引入planned/partial/implemented三态并同步能力、路由和验证；本次交接尚未引入partial运行状态。
+
+五层只约束职责和依赖；按实际使用者定义小 port，不为简单操作建立五套转发对象。最小调度先满足持久化、有界队列、按任务取消和安全恢复，不提前建立通用工作流平台或复杂公平调度。
 
 ## 2 当前代码对设计的约束
 
@@ -92,7 +106,7 @@ flowchart TB
 
 ### 3.2 建议目录
 
-以下均为未来实施目录，本轮不创建代码骨架。
+以下为目标目录；P1已创建bootstrap、httpapi、application、domain/ports及infrastructure运行基础，对应责任与测试见P1记录。账号和单文件传输的内部P2切片已经存在；文件及其余业务目录按后续用例补齐，不重复创建已有实现。
 
 ```text
 main.go                                # 保留 CLI，增加 server 子命令
@@ -132,9 +146,9 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 建议使用标准库 `net/http` 作为接入层，保持主项目 Go 1.23 基线；初期不因参考项目使用 Gin 而批量引入其依赖。路由、SSE 和流式下载均以 HTTP 标准接口实现，业务服务不绑定路由器。
 
-契约使用明确版本的 OpenAPI 3.1.1；P0 验证所选校验和生成工具对该版本的支持，再锁定工具版本。HTTP DTO、校验和接口文档以同一份契约校验，生成文件不承载业务代码。[OpenAPI 规范](https://spec.openapis.org/oas/v3.1.1.html)
+契约固定为 OpenAPI 3.1.1，唯一源为 `api/openapi/openapi.yaml`；P0 已实际验证 openapi-spec-validator 0.7.2、jsonschema 4.23.0、PyYAML 6.0.2 对该契约及示例的支持。P0 不引入 Go DTO/服务代码生成器。HTTP DTO、校验和接口文档以同一份契约验收。[OpenAPI 规范](https://spec.openapis.org/oas/v3.1.1.html)
 
-存储默认采用单实例 SQLite，保存任务、事件、账号索引、配置版本和幂等记录；文件内容和大结果保存到专用数据目录。具体驱动在 P0 根据交叉编译和 CGO 要求验证后固定。服务实例获得数据目录独占锁，不支持多个实例同时调度同一任务库。
+存储默认采用单实例 SQLite，保存任务、事件、账号索引、配置版本和幂等记录；文件内容和大结果保存到专用数据目录。P0 隔离探测固定候选 `modernc.org/sqlite v1.38.2`，Go 1.23.12、CGO=0 下五个初始服务目标可编译，本机事务和重开通过；P1已引入生产依赖并完成13个原CLI目标的CGO=0构建验证。初始 server 目标为 darwin/arm64、darwin/amd64、linux/amd64、linux/arm64、windows/amd64；CLI 原目标范围保留，P1 必须按构建条件隔离服务存储依赖。服务实例获得数据目录独占锁，不支持多个实例同时调度同一任务库。
 
 ## 4 业务领域拆分
 
@@ -164,15 +178,15 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 公开业务前缀为 `/api/v1`。目录中的 `A` 表示 `/api/v1/accounts/{account_id}`，`B` 表示 `/api/v1`，实现和 OpenAPI 中必须展开，不把这两个缩写写入实际 URL。
 
-`account_id`、`job_id`、上下文和结果文件 ID 是服务生成的不透明字符串。百度 `uid`、`fs_id`、`share_id`、离线任务 ID 也用十进制字符串传输，以避免调用方整数精度问题。大小、字节进度和速率使用十进制整数字符串；页码、重试次数、并发数等有上界的小整数使用 JSON number。时间使用带 UTC 时区的 RFC 3339 字符串。
+`account_id`、`job_id`、上下文和结果文件 ID 是服务生成的不透明字符串。百度 `uid`、`fs_id`、`share_id`、离线任务 ID 也用十进制字符串传输，以避免调用方整数精度问题。大小、字节进度、速率、累计条目数量和 revision 使用十进制整数字符串；页码、重试次数、并发数和分享天数等有上界的小整数使用 JSON number。时间使用带 UTC 时区的 RFC 3339 字符串。
 
-所有账号业务使用路径里的 `account_id`。普通请求不读取进程“当前账号”。调用方可以创建 context 保存浏览状态；相对路径必须同时指定自己的 `context_id` 或显式 `base_path`，两者不能同时给出。缺省路径为 `/`。context 账号和路径账号不一致时返回 409，不自动切换账号。
+所有账号业务使用路径里的 `account_id`。普通请求不读取进程“当前账号”。P2/P3首先使用显式账号与绝对路径或 base_path；P6调用方可选创建 context 保存浏览状态；相对路径必须额外提供自己的 `context_id` 或显式 `base_path`，两者不能同时给出。缺省路径为 `/`。context 账号和路径账号不一致时返回 409，不自动切换账号。
 
 网盘路径使用 `/`；服务端本地路径使用 `root_id + relative_path`。文件名默认按字面量解释；通配符使用显式 selector 或路径匹配接口。任务在提交时固定匹配结果和根路径，排队后不重新解释调用方 cwd。
 
 ### 5.2 响应和错误
 
-成功查询返回 200，创建资源返回 201，任务提交和控制请求返回 202，无响应体的成功删除返回 204。成功 JSON 使用 `{data, meta}`；`meta` 包含 `request_id`，分页时增加分页信息。列表为空时返回 `[]`。
+成功查询返回 200，创建资源返回 201，任务提交和控制请求返回 202，无响应体的成功删除返回 204。成功 JSON 使用 `{data, meta}`；`meta` 包含 `request_id`，分页时增加分页信息。列表为空时返回 `[]`。OpenAPI 文档、HTML、指标、SSE、图片和文件内容原样返回，不包 JSON 信封；HEAD 包括错误响应在内均无 body，错误业务码通过 `X-Error-Code` 返回。
 
 错误使用 `application/problem+json`，遵循 RFC 9457，增加稳定的业务 `code`、`request_id`、`retryable` 和脱敏的上游信息。HTTP 状态码表达请求结果，不统一包装成 HTTP 200。[Problem Details 标准](https://www.rfc-editor.org/rfc/rfc9457.html)
 
@@ -199,8 +213,10 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 | 410 | 登录会话、暂存资源或事件回放游标已过期 |
 | 412 | If-Match 配置或资源版本不匹配 |
 | 413 | 请求体、文件接收或批量条目超过服务限制 |
+| 415 | 请求 Content-Type 不支持 |
 | 416 | 不满足的内容 Range 请求 |
 | 422 | 业务参数不支持、百度凭据失效、所选控制能力不支持 |
+| 428 | 需要强 If-Match 的更新操作未提供此头 |
 | 429 | 调用方限流或队列配额不足，返回 Retry-After |
 | 501 | 本地尚未实现且已经在契约中声明的可选能力 |
 | 502 | 百度响应或协议无法解析，或未分类的上游业务错误 |
@@ -218,19 +234,19 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 在 `baidupcs` 内增加最小的分页查询扩展，复用当前页解析器和 `PrepareFilesDirectoriesList`。保留现有聚合列表方法的行为，避免在 HTTP 层复制百度 JSON 解析。
 
-分享和回收站保留上游页码语义。若搜索上游不支持分页，则使用有容量和 TTL 上限的查询快照，由服务自己的 opaque cursor 分页；大查询改为扫描任务。分页结果说明 `consistency=upstream_live|snapshot`，动态目录跨页不承诺快照一致性。
+分享和回收站保留上游页码语义；回收站每页 100，分享上游页容量无法确认时 `page_size=null`，不接受客户端自定页容量。若搜索上游不支持分页，则使用有容量和 TTL 上限的查询快照，由服务自己的 opaque cursor 分页；大查询改为扫描任务。分页结果说明 `consistency=upstream_live|snapshot`，动态目录跨页不承诺快照一致性。
 
 无限深度 tree、递归清单、统计、校验和导出通过 job 执行。树深度按当前 CLI 的 0 起点语义映射；`-1` 表示不限深度，仍受节点数、运行时长和调用方配额约束，超限必须报告 `complete=false`。
 
 ### 5.4 幂等和超时
 
-所有会创建任务、分享、账号或上传会话的 POST 支持 `Idempotency-Key`。key 按调用方、账号、方法和规范化路由隔离，保存请求摘要和首次响应；默认保留至少 24 小时，活动 job 的绑定至少保留到任务终结。同 key 不同请求返回 409；同 key 重放返回原资源。修改操作的上游结果不明时不得盲目自动重试。
+所有会创建任务、分享、账号或上传会话的 POST 支持 `Idempotency-Key`。key 按调用方、账号、方法和规范化路由隔离，保存请求摘要和首次响应；默认保留至少 24 小时，活动 job 的绑定至少保留到任务终结。同 key 不同请求返回 409；同 key 重放返回首次响应状态和原资源，摘要包含路径参数。幂等重放优先于重复控制的“返回当前状态”规则。修改操作的上游结果不明时不得盲目自动重试。
 
 同步请求使用请求 context 和有限的上游超时。异步 job 从服务生命周期创建自己的 context，提交请求断开不取消已入库任务。流式内容和 SSE 使用独立的读写期限策略和空闲检测，不套用整个请求 60 秒结束的统一 WriteTimeout。关闭流程停止接收新任务，等待或保存执行中的检查点，再关闭存储；流和任务需要分别排空。[Go HTTP 服务生命周期](https://pkg.go.dev/net/http#Server)
 
 ## 6 HTTP 接口目录
 
-阶段编号对应配套实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出的均为目标契约，当前分支尚未实现。
+当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径在P2提前验证，当前尚未接入的切片保留planned；P2接入时先实施partial状态以区分受限可调用与完整实现。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P1已实现SYS01—04、SYS08—09、CFG01—05和CFG07，其他操作授权后返回501；逐项状态以OpenAPI中的x-capability为准。
 
 ### 6.1 系统和诊断
 
@@ -253,20 +269,22 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 | ACC01 | POST B/accounts | 导入 BDUSS 配合 PTOKEN/STOKEN/SBOXTKN/BAIDUID，或完整 Cookie，或 access token；返回脱敏账号 | P2 |
 | ACC02 | GET B/accounts | 当前调用方可访问的账号清单 | P2 |
 | ACC03 | GET A | 账号资料、登录状态、credential_revision、凭据存在标志 | P2 |
-| ACC04 | PATCH A | 修改 label 等非秘密属性，If-Match | P2 |
-| ACC05 | DELETE A | 删除本地账号及凭据；活动任务存在时 409；不声称注销百度全局登录 | P2 |
-| ACC06 | PATCH A/credentials | 写入或清除指定凭据，更新版本；不返回原值 | P2 |
+| ACC04 | PATCH A | 修改 label 等非秘密属性，If-Match | P3 |
+| ACC05 | DELETE A | 删除本地账号及凭据；活动任务存在时 409；不声称注销百度全局登录 | P3 |
+| ACC06 | PATCH A/credentials | 写入或清除指定凭据，更新版本；不返回原值 | P3 |
 | ACC07 | POST A/validate | 检查账号状态和可获取的百度身份；不因失败删除凭据 | P2 |
-| ACC08 | GET A/quota | total、used、free、采集时间 | P2 |
-| ACC09 | GET A/capabilities | 此账号在当前凭据和配置下可使用的能力 | P2 |
+| ACC08 | GET A/quota | total、used、free、采集时间 | P3 |
+| ACC09 | GET A/capabilities | 此账号在当前凭据和配置下可使用的能力 | P3 |
 | LOG01 | POST B/account-login-sessions | method=password 或 qrcode；创建短期登录会话 | P6 |
 | LOG02 | GET B/account-login-sessions/{session_id} | waiting、challenge_required、confirmed、completed、expired、failed | P6 |
 | LOG03 | GET B/account-login-sessions/{session_id}/qrcode | 经本服务授权返回二维码图片；仅 qrcode 会话 | P6 |
 | LOG04 | POST B/account-login-sessions/{session_id}/responses | challenge_id 和验证码或短信/邮箱响应；仅支持已实现的 challenge | P6 |
-| LOG05 | POST B/account-login-sessions/{session_id}/complete | 使用服务保存的交换状态建立或更新账号；不让客户端提交临时 BDUSS 代替会话验证 | P6 |
+| LOG05 | POST B/account-login-sessions/{session_id}/complete | 使用服务保存的交换状态建立或更新账号；统一 200 和账号 Location；不接受临时 BDUSS | P6 |
 | LOG06 | DELETE B/account-login-sessions/{session_id} | 撤销会话并清理短期秘密 | P6 |
 
 ACC01 的三类主凭据互斥，补充 Cookie 字段可随其兼容类型提交。Access token 账号不强求同时具备 BDUSS；无法查询的百度 UID 可以为空。token-only 账号只开放经过实现和验证的 token 能力。`force_login_username` 后备导入须显式标记 `identity_verified=false`。
+
+Cookie 导入使用完整解析器，不能依赖必须有尾部分号的正则；格式错误或缺少 BDUSS 返回 400。只保存一个规范化 Cookie Jar，单字段修改和清除同步作用于 Jar；cookies=null 清除 Cookie 类凭据并保留独立 access_token，避免旧 Cookie 文本恢复已吊销字段。
 
 密码、验证码、QR 临时令牌保存在短期秘密存储。手机和邮箱验证有完整的服务流程后才发布相应 challenge，不能调用会阻塞终端输入的 `RunLogin`。二维码登录流程可参考副项目，但会话绑定、过期清理和凭据输出按本方案实现。
 
@@ -274,10 +292,10 @@ ACC01 的三类主凭据互斥，补充 Cookie 字段可随其兼容类型提交
 
 | ID | 方法和路径 | 输入及结果 | 阶段 |
 | --- | --- | --- | --- |
-| CTX01 | POST B/contexts | account_id、cwd；创建属于调用方的上下文 | P2 |
-| CTX02 | GET B/contexts/{context_id} | 返回所选账号和 cwd，等价于 who、pwd | P2 |
-| CTX03 | PATCH B/contexts/{context_id} | 切换账号或 cwd；校验目录；include_listing 可附列表；If-Match | P2 |
-| CTX04 | DELETE B/contexts/{context_id} | 删除上下文，不影响已提交任务 | P2 |
+| CTX01 | POST B/contexts | account_id、cwd；创建属于调用方的上下文 | P6 |
+| CTX02 | GET B/contexts/{context_id} | 返回所选账号和 cwd，等价于 who、pwd | P6 |
+| CTX03 | PATCH B/contexts/{context_id} | 切换账号或 cwd；校验目录；include_listing 可附列表；If-Match | P6 |
+| CTX04 | DELETE B/contexts/{context_id} | 删除上下文，不影响已提交任务 | P6 |
 
 切换账号默认重置 cwd 为 `/`；显式提供新 cwd 时校验它。context 有 TTL，且不能由另一个 API principal 读取或修改。修改 CLI 默认账号另走 CFG09，不影响此上下文。
 
@@ -285,12 +303,12 @@ ACC01 的三类主凭据互斥，补充 Cookie 字段可随其兼容类型提交
 
 | ID | 方法和路径 | 输入及结果 | 阶段 |
 | --- | --- | --- | --- |
-| FIL01 | GET A/files | path、排序、页码、page_size、fields；目录列表 | P2 |
-| FIL02 | GET A/files/metadata | path；完整元信息、目录标志、blocklist 和摘要可信状态 | P2 |
-| FIL03 | POST A/files/metadata | paths；逐项批量元信息及失败明细 | P2 |
-| FIL04 | GET A/files/search | path、keyword、recursive、fields；快照分页或有界结果 | P2 |
-| FIL05 | POST A/file-scans | paths、mode=tree\|recursive\|statistics、depth、include_ids；返回扫描 job | P3 |
-| FIL06 | POST A/path-matches | patterns、base_path 或 context_id；返回解析后的绝对路径 | P2 |
+| FIL01 | GET A/files | path、排序、页码、page_size、fields；目录列表 | P3 |
+| FIL02 | GET A/files/metadata | path；完整元信息、目录标志、blocklist 和摘要可信状态 | P3 |
+| FIL03 | POST A/files/metadata | paths；逐项批量元信息及失败明细 | P3 |
+| FIL04 | GET A/files/search | path、keyword、recursive、fields；快照分页或有界结果 | P3 |
+| FIL05 | POST A/file-scans | paths、options.mode=tree\|recursive\|statistics、options.depth、options.include_ids；返回扫描 job | P3 |
+| FIL06 | POST A/path-matches | patterns、base_path 或 context_id；返回解析后的绝对路径 | P3 |
 | FIL07 | POST A/directories | paths；创建目录 job，逐项返回实际结果 | P5 |
 | FIL08 | POST A/file-deletions | selector、ignore_missing；删除至网盘回收站 job | P5 |
 | FIL09 | POST A/file-copies | items[{from,to}]、目标冲突策略；复制 job | P5 |
@@ -298,7 +316,7 @@ ACC01 的三类主凭据互斥，补充 Cookie 字段可随其兼容类型提交
 | FIL11 | POST A/file-renames | path、target_path；重命名 job | P5 |
 | FIL12 | GET A/file-changes | cursor；上游增量结果、has_more、reset_required；条件 | P6 |
 
-`FileEntry` 至少包含 `fs_id`、`app_id`、`path`、`name`、`is_dir`、`size_bytes`、创建和修改时间、`md5`、可选 `block_list`、`has_subdirectories`。`md5_status=reported|possibly_inaccurate|verified|missing` 表达分片上传摘要的实际可信程度。
+完整投影的 `FileEntry` 包含 `fs_id`、`app_id`、`path`、`name`、`is_dir`、`size_bytes`、创建和修改时间、`md5`、可选 `block_list`、`has_subdirectories`。`fields` 缺省为 all；投影仍始终返回 fs_id、path、name、is_dir、size_bytes、md5_status，app_id 未知时为 null。`md5_status=reported|possibly_inaccurate|verified|missing` 表达分片上传摘要的实际可信程度。
 
 FIL07 至 FIL11 的 selector 在提交时固定。目标是目录还是重命名目的地由应用服务明确判断；多源目标不是目录时返回具体错误。需要上游不支持的覆盖策略时返回 422，不做静默降级。目录写入后按账号和相关路径失效缓存。
 
@@ -306,7 +324,7 @@ FIL07 至 FIL11 的 selector 在提交时固定。目标是目录还是重命名
 
 | ID | 方法和路径 | 输入及结果 | 阶段 |
 | --- | --- | --- | --- |
-| UPL01 | POST A/uploads | 本地根目录内路径或 staged_file_id、target_dir、上传选项；返回上传 job | P4 |
+| UPL01 | POST A/uploads | sources（local 使用 root_id+relative_path，staged 使用 staged_file_id）、target_dir、options；上传 job | P4 |
 | UPL02 | POST B/staging-files | multipart 文件接收，返回 staged_file_id、大小和文件名 | P4 |
 | UPL03 | GET B/staging-files/{file_id} | 调用方自己的暂存文件状态和过期时间 | P4 |
 | UPL04 | DELETE B/staging-files/{file_id} | 删除未被任务占用的暂存文件；占用返回 409 | P4 |
@@ -330,19 +348,19 @@ FIL07 至 FIL11 的 selector 在提交时固定。目标是目录还是重命名
 | DWN02 | POST A/download-links | paths 或 fs_ids、source=pcs\|pan\|direct、https、link_index；逐项返回链接、link_ref 及所需 UA 信息 | P4 |
 | DWN03 | GET A/content | path、Range、If-Range；经授权的文件代理内容 | P4 |
 | DWN04 | HEAD A/content | 与 GET 一致的元信息和授权，无响应体 | P4 |
-| DWN05 | POST A/download-tickets | path、有效期；扩展，生成仅用于该文件内容的短期 URL | P4 |
+| DWN05 | POST A/download-tickets | path、有效期；扩展，生成仅用于该文件 DWN03/04 内容的短期 URL | P4 |
 
 下载模式完整覆盖 `locate|pcs|stream`。保留覆盖策略、线程总预算、文件并发数、重试次数、测试下载、下载校验、修改时间、可执行权限、备选链接和完整路径选项。API 的 `test=true` 是实际测试传输但不写最终文件；计划预览使用独立 `dry_run`，不能混为一种行为。
 
 `options.report_workers=true` 对应 CLI 的详细线程状态输出，结果进入 JOB03 和 JOB05。服务返回有效选项，说明 Windows 上不会生效的 executable 等平台差异。
 
-`path_mode=relative` 保留所选根目录以下的相对结构；`full` 保留网盘完整路径；如增加 `flat`，必须显式处理同名冲突。禁止使用副项目“统一保存目录加 basename”的简化逻辑。
+`path_mode=relative` 的单文件使用 basename，单目录保留根名称；多根先去重并移除被已选目录覆盖的子项，再按所有选择根父目录的最近公共祖先保留相对路径。例如 /a/x 与 /b/x 分别保存为 a/x、b/x；`full` 保留网盘完整路径；如增加 `flat`，必须显式处理同名冲突。禁止使用副项目“统一保存目录加 basename”的简化逻辑。
 
 代理使用服务内账号凭据，查询参数不接受 Cookie。仅向经过允许的百度和下载节点主机发送凭据，重定向逐跳检查，限制跳数，并绑定请求 context。同步代理不落完整文件到内存或本地。
 
 代理处理 200、206、416、Range、Content-Range、Accept-Ranges、Content-Length、Content-Disposition；初版仅支持单个 byte range，多范围请求返回明确错误。HEAD 优先使用元数据或上游 HEAD，不能靠下载整个文件产生响应。流开始后发生的错误以终止流和事件记录表达，不能追加 JSON。
 
-下载票据绑定账号、调用方、文件和有效期，不携带百度 Cookie；默认 60 秒、最大 300 秒。可允许有效期内的 Range 重取，避免一次性票据破坏浏览器续传。票据值不写访问日志。
+下载票据绑定账号、调用方、文件和有效期，不携带百度 Cookie；默认 60 秒、最大 300 秒。兑换 URL 指向 DWN03/04，短期 query `ticket` 可单独作为该文件的 Bearer 凭据；不要求同时提供长期 API token，但每次复核原调用方授权和绝对路径，不能授权其他接口。可允许有效期内的 Range 重取，避免一次性票据破坏浏览器续传。票据值不写访问日志。
 
 ### 6.7 服务任务
 
@@ -374,32 +392,32 @@ FIL07 至 FIL11 的 selector 在提交时固定。目标是目录还是重命名
 | SHR02 | GET A/shares | page；分享列表，可选补充提取码 | P5 |
 | SHR03 | GET A/shares/{share_id} | ShareSURLInfo 可提供的详情、短链接和提取码 | P5 |
 | SHR04 | POST A/share-cancellations | share_ids；取消分享 job | P5 |
-| TRF01 | POST A/share-inspections | 分享 URL 或整段分享文本、提取码；返回可选择项和短期 inspection_id | P5 |
-| TRF02 | POST A/share-transfers | 分享输入或 inspection_id、target_dir、fs_ids、collect、download_after；返回转存 job | P5 |
+| TRF01 | POST A/share-inspections | 首次 input 为分享 URL/整段文本及提取码；后续 inspection_id 支持目录展开和 cursor 分页 | P5 |
+| TRF02 | POST A/share-transfers | share 输入或 inspection_id、target_dir、fs_ids、options.collect/download_after；返回转存 job | P5 |
 
-分享提取码可按主项目行为生成，响应必须给出实际使用的提取码；不把“合并链接输出”误解释为合并文件。
+分享提取码省略时可按主项目行为生成；显式非法值拒绝，响应给出实际使用的提取码。period_days 保留任意有效天数，0 为永久，不限于 1/7/30；上游不支持返回 422。ShareSURLInfo 只保证短链接和提取码，未知的列表字段省略；不把“合并链接输出”误解释为合并文件。
 
-TRF02 支持主项目最新的整段分享文本解析、链接携带提取码、指定 fs_id 转存、归档目录和转存后下载。`download_after=true` 创建有依赖关系的下载子任务，目标目录可显式指定；远端文件可见性用有上限的退避检查，不照搬固定睡眠 10 秒。
+TRF02 支持主项目最新的整段分享文本解析、链接携带提取码、指定 fs_id 转存、归档目录和转存后下载。`options.download_after=true` 创建有依赖关系的下载子任务，必须提供 `options.download_destination`；远端文件可见性用有上限的退避检查，不照搬固定睡眠 10 秒。
 
-旧秒传链接转存当前不可用。`randomize_name=true` 对应的旧 Rname 流程未启用，返回 422 并给出能力原因。`SuperTransfer` 作为未启用实验实现登记，不默认开放。
+旧秒传链接转存当前不可用。`options.randomize_name=true` 对应的旧 Rname 流程未启用，返回 422 并给出能力原因。`SuperTransfer` 作为未启用实验实现登记，不默认开放。
 
 ### 6.9 百度离线下载和回收站
 
 | ID | 方法和路径 | 输入及结果 | 阶段 |
 | --- | --- | --- | --- |
-| OFF01 | POST A/offline-tasks | source_urls、save_path；逐项返回百度 offline_task_id | P5 |
+| OFF01 | POST A/offline-tasks | source_urls、save_path；统一返回 offline_add job，JOB04 逐项给出百度 offline_task_id | P5 |
 | OFF02 | GET A/offline-tasks | 百度离线任务列表和结构化进度 | P5 |
-| OFF03 | POST A/offline-tasks/query | offline_task_ids；精确批量查询 | P5 |
+| OFF03 | POST A/offline-tasks/query | offline_task_ids；最多 100 个唯一 ID，逐输入返回查询结果，禁止静默截断 | P5 |
 | OFF04 | POST A/offline-tasks/cancellations | offline_task_ids；取消操作 job | P5 |
 | OFF05 | POST A/offline-tasks/deletions | offline_task_ids；删除操作 job | P5 |
-| OFF06 | POST A/offline-tasks/clear | 清空百度离线任务，返回处理总数或 operation job | P5 |
+| OFF06 | POST A/offline-tasks/clear | 清空百度离线任务，统一返回 offline_clear job，结果含处理总数 | P5 |
 | OFF07 | GET A/offline-tasks/{offline_task_id} | 单项查询，复用 QueryTask | P5 |
 | REC01 | GET A/recycle | page；回收站列表 | P5 |
 | REC02 | POST A/recycle/restorations | fs_ids；恢复 job，保存实际成功 ID 列表 | P5 |
 | REC03 | POST A/recycle/deletions | fs_ids；永久删除 job | P5 |
 | REC04 | POST A/recycle/clear | 清空回收站 job，返回成功数量 | P5 |
 
-离线 source URL 按主项目支持的协议原样交给百度；本服务不代替百度抓取其内容。离线任务 ID 与服务 job ID 使用不同字段。已交付百度执行的任务，服务重启后通过百度状态重新查询，不能当作本地上传下载断点恢复。
+离线 source URL 按主项目支持的协议原样交给百度；本服务不代替百度抓取其内容。离线任务 ID 与服务 job ID 使用不同字段。已交付百度执行的任务，服务重启后通过百度状态重新查询，不能当作本地上传下载断点恢复。当前 CloudDlListTask 固定 start=0/limit=1000，服务 cursor 仅对实际收到的集合分页，不宣称获得全部历史任务。回收站保留 upstream_left_time 原值，源码未说明单位时不推算绝对过期时间。
 
 ### 6.10 校验和导出
 
@@ -411,11 +429,11 @@ TRF02 支持主项目最新的整段分享文本解析、链接携带提取码�
 | INT04 | POST A/file-verifications | 网盘路径和本地文件引用；校验 job | P6 |
 | INT05 | POST A/file-checksums/from-link | 服务已签发的 link_ref 及可选比较摘要；条件，禁止任意 URL 代理 | P6 |
 | INT06 | POST A/legacy/rapid-uploads | 旧式摘要秒传契约；默认报告上游能力不可用，不接受为成功任务 | P6 |
-| EXP01 | POST A/exports | paths、recursive、root_path、format、max_retries；导出 job 和结果文件 | P6 |
+| EXP01 | POST A/exports | paths、options.recursive/root_path/format/max_retries；导出 job 和结果文件 | P6 |
 
 远端摘要和 MD5 修复依赖上游返回的字段，不保证所有文件可成功处理。结构化导出、旧命令格式和旧通用链接格式分别标识。旧格式作为兼容数据输出，不声称可重新导入成功；任何生成的命令文件只作为下载内容，服务不执行其中命令。
 
-EXP01 的默认输出是服务管理的 artifact，可另外指定允许的本地根目录。`stdout` 的等价表达是结果内容响应；不创建终端打印任务。导出每项包含成功、失败及缺失字段，保持可审计的部分结果。
+EXP01 的默认输出是服务管理的 artifact，可另外指定允许的本地根目录。`stdout` 的等价表达是结果内容响应；不创建终端打印任务。导出每项包含成功、失败及缺失字段，保持可审计的部分结果。`options.root_path` 仅用于输出内容中的虚拟路径改写，省略或空字符串保留原路径，也允许相对值；不按 context/cwd 解析，不用于读取或写入本地目录。legacy_link 格式忽略根改写并报告 warning。
 
 ### 6.11 配置和本地支撑
 
@@ -426,11 +444,11 @@ EXP01 的默认输出是服务管理的 artifact，可另外指定允许的本�
 | CFG03 | GET B/configuration/schema | 字段类型、默认值、范围、单位和生效方式 | P1 |
 | CFG04 | POST B/configuration/validate | 校验候选配置并返回规范化值，不保存 | P1 |
 | CFG05 | POST B/configuration/reset | 重置指定客户端字段；不删除账号和任务 | P1 |
-| CFG06 | POST B/configuration/reload | 从固定服务配置或旧 CLI 配置重新加载；支持 dry_run 和版本比较 | P6 |
+| CFG06 | POST B/configuration/reload | 从固定来源重载 22 个客户端字段，不导入账号凭据；dry_run 和 If-Match；启动字段变更需重启 | P6 |
 | CFG07 | GET B/configuration/defaults | 当前代码的有效默认值和平台差异 | P1 |
-| CFG08 | GET B/configuration/cli-defaults | CLI 默认账号及各账号默认工作目录的兼容映射 | P2 |
-| CFG09 | PATCH B/configuration/cli-defaults | 更新 CLI 默认值；不修改 HTTP context 和运行 job | P2 |
-| LOC01 | GET B/local/roots | 调用方可访问的 root_id、读写能力、可用空间状态 | P2 |
+| CFG08 | GET B/configuration/cli-defaults | CLI 默认账号及各账号默认工作目录的兼容映射 | P6 |
+| CFG09 | PATCH B/configuration/cli-defaults | 更新 CLI 默认值；不修改 HTTP context 和运行 job | P6 |
+| LOC01 | GET B/local/roots | 调用方可访问的 root_id、读写能力、可用空间状态 | P3 |
 | LOC02 | POST B/local/encryptions | 本地文件引用、算法、秘密密钥、gzip 选项；兼容加密 job | P6 |
 | LOC03 | POST B/local/decryptions | 同上；兼容解密 job | P6 |
 | ART01 | GET B/artifacts/{artifact_id} | 结果文件元数据和过期时间 | P3 |
@@ -444,7 +462,7 @@ PATCH 能区分缺失、false、0、空字符串和 null。false 是有效布尔
 
 本地加解密保留主项目兼容算法和 gzip 行为，不把旧算法描述为新的安全存储方案。当前工具可能删除源文件，服务默认先在隔离工作目录操作副本；只有明确 `remove_source=true` 才允许在最终结果成功后删除源文件。密钥使用秘密引用，不进入任务参数和日志。
 
-HTTP 加解密必须显式提供密钥，不继承 CLI 的默认密钥。服务没有保存可用于恢复的加密密钥时，相应任务在重启后不能自动恢复，须明确报告缺失秘密。
+HTTP 加解密使用 `sources[{root_id,relative_path}]`、`destination`、`options` 和只写的 `key`；必须显式提供密钥，不继承 CLI 的默认密钥。服务没有保存可用于恢复的加密密钥时，相应任务在重启后不能自动恢复，须明确报告缺失秘密。
 
 ## 7 关键数据契约
 
@@ -452,7 +470,7 @@ HTTP 加解密必须显式提供密钥，不继承 CLI 的默认密钥。服务�
 
 ```json
 {
-  "sources": [{"type": "local", "root_id": "upload_root", "path": "photos"}],
+  "sources": [{"type": "local", "root_id": "upload_root", "relative_path": "photos"}],
   "target_dir": "/备份",
   "options": {
     "file_concurrency": 2,
@@ -465,7 +483,7 @@ HTTP 加解密必须显式提供密钥，不继承 CLI 的默认密钥。服务�
 }
 ```
 
-对暂存内容使用 `{type:"staged",staged_file_id:"..."}`。响应为 202，`Location` 指向 JOB02，同时返回固定后的 sources、target 和有效选项。重试次数 0 表示不重试，不能被默认值覆盖。
+对暂存内容使用 `{type:"staged",staged_file_id:"..."}`。响应为 202，`Location` 指向 JOB02，同时返回固定后的 sources、target 和有效选项。重试次数 0 表示不重试，不能被默认值覆盖。Job.effective_options 使用单独的 Effective* schema，必须完整返回适用的生效字段，不复用请求中可缺省字段的约束。
 
 ### 7.2 下载任务请求
 
@@ -503,7 +521,7 @@ HTTP 加解密必须显式提供密钥，不继承 CLI 的默认密钥。服务�
     "phase": "pending",
     "config_revision": "7",
     "credential_revision": "3",
-    "progress": {"total_items": null, "completed_items": 0, "total_bytes": null, "transferred_bytes": "0"},
+    "progress": {"total_items": null, "processed_items": "0", "succeeded_items": "0", "failed_items": "0", "skipped_items": "0", "cancelled_items": "0", "total_bytes": null, "transferred_bytes": "0", "written_bytes": "0", "bytes_per_second": "0", "eta_seconds": null},
     "available_actions": ["cancel"],
     "links": {"self": "/api/v1/jobs/job_example", "events": "/api/v1/jobs/job_example/events"}
   },
@@ -511,7 +529,7 @@ HTTP 加解密必须显式提供密钥，不继承 CLI 的默认密钥。服务�
 }
 ```
 
-完整 DTO、oneOf 约束、必填字段、默认值、最大长度和响应示例在 P0 转为 OpenAPI。所有目录条目、分项错误和任务选项都使用具体 schema，不用一个任意 map 代替完整领域契约。
+以上任务响应为阅读节选，完整响应见 api/openapi/examples/http-exchanges.json。完整 DTO、oneOf 约束、必填字段、默认值、最大长度和响应示例已在 P0 写入 OpenAPI 并校验。所有目录条目、分项错误和任务选项都使用具体 schema，不用一个任意 map 代替完整领域契约。
 
 ## 8 任务调度和传输生命周期
 
@@ -550,7 +568,7 @@ stateDiagram-v2
 
 ### 8.2 并发和资源预算
 
-全局、账号、调用方三个层面限制活动任务、排队数、传输文件数、连接数、带宽和暂存空间。每个请求只提交到共享调度器，不能每次建立一个不受总预算限制的 executor。
+P2先实现全局有界队列、活动任务上限和按任务取消，验证真实传输预算。P3/P4依据实际并发补齐账号限制、文件数、连接、带宽和暂存上限；调用方公平配额等管理策略后置。每个请求只提交到共享调度器，不能每次建立一个不受总预算限制的 executor。
 
 按目标路径加操作锁：本地同一最终文件不能由两个任务并发写；远端同账号同目标的覆盖写串行执行。锁键使用规范化路径与账号，锁等待可取消。不同账号即使路径相同也不共享远端写锁。
 
@@ -558,7 +576,7 @@ stateDiagram-v2
 
 ### 8.3 事件和结果
 
-SSE 事件类型为 `job.created`、`job.state_changed`、`job.progress`、`item.completed`、`job.finished` 和心跳。序号对单 job 单调递增，客户端可以收到重复事件；按事件 ID 去重。进度约每秒合并一次，终态事件立即持久化。
+SSE 事件类型为 `job.snapshot`、`job.created`、`job.state_changed`、`job.progress`、`item.completed`、`job.finished` 和心跳。无 Last-Event-ID 时先发送 job.snapshot，携带最新持久化事件 ID，再跟随之后的事件；心跳使用无 ID 注释。持久事件序号对单 job 单调递增，客户端可以收到重复事件；按事件 ID 去重。进度约每秒合并一次，终态事件立即持久化。
 
 浏览器通过带 Authorization 的 fetch 流读取 SSE；不将长期 API token 放在订阅 URL 中。
 
@@ -593,7 +611,7 @@ SSE 事件类型为 `job.created`、`job.state_changed`、`job.progress`、`item
 
 客户端参数和传输默认值在任务提交时固定。新配置不改变正在运行任务的账号、目标或覆盖策略。限流预算可以按明确规则即时收紧；网络 Transport 配置创建新版本客户端，旧任务按其固定实例结束。P1 完成这层隔离前，存在活动请求时不允许热改 requester 全局网络变量。
 
-监听地址、TLS、主密钥、存储位置等启动参数标为 restart_required；PATCH 可以记录待生效配置，但不得假报当前服务已切换。配置重置只涉及所选客户端字段，保留账号、凭据、任务和服务鉴权。
+监听地址、TLS、主密钥、存储位置等属于启动配置，需要重启，不在 v1 CFG02 的 22 个可写客户端字段内。CFG06 发现此类变更返回 422 STARTUP_CONFIGURATION_CHANGE_REQUIRES_RESTART，dry_run 不保存；当前客户端配置的 restart_required_fields 为空。配置重置只涉及所选客户端字段，保留账号、凭据、任务和服务鉴权。
 
 服务 API 认证与百度账号登录分别管理。建议默认监听 `127.0.0.1`，使用随机的 Bearer API token；服务保存 token 摘要。通过静态 principal 配置账号 allowlist 和 `read`、`write`、`transfer`、`local.read`、`local.write`、`admin` 权限。初期单管理员即可，不建立与需求无关的用户注册系统。
 
@@ -612,7 +630,7 @@ context 的账号变更必须重新检查 allowlist。缓存、artifact、暂存
 
 本地 root 由管理员配置，调用方不能自行注册任意系统目录。解析 local path 后检查真实路径、软链接、父目录和写入位置；断开的软链接按主项目当前修复处理并报告，不造成崩溃。暂存目录与配置、凭据和可执行文件目录分开。
 
-普通账号查询仅返回凭据存在标志、类型、版本和状态。日志按路由模板记录，不保存 Cookie、Authorization、密码、提取码、access token 和签名下载 URL。CORS 默认关闭，启用时使用精确 origin 白名单。反向代理头仅在已配置可信代理时使用。
+普通账号查询的凭据信息仅返回存在标志、版本和状态；账号 Sex/Age 等非秘密元数据可为空，保留原值，不猜测单位。日志按路由模板记录，不保存 Cookie、Authorization、密码、提取码、access token 和签名下载 URL。CORS 默认关闭，启用时使用精确 origin 白名单。反向代理头仅在已配置可信代理时使用。
 
 ## 11 运行能力和历史行为
 

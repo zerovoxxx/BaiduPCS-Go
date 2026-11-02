@@ -1,0 +1,4 @@
+# Contract tooling only. Install in a venv outside the business module.
+openapi-spec-validator==0.7.2
+jsonschema==4.23.0
+PyYAML==6.0.2

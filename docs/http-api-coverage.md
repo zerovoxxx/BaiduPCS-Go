@@ -1,21 +1,24 @@
 # BaiduPCS Go HTTP API 源码覆盖矩阵
 
-日期：2026 年 11 月 2 日。基线提交：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。所有源码链接固定到该提交，后续升级主项目时应重新盘点。
+日期：2026 年 11 月 2 日。基线提交：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。原有业务源码链接固定到该提交；P1新增server入口使用本地源码链接。机器清单随实现更新，P0冻结版本保存在api/openapi/baselines/p0-source-inventory.json。
 
-本文中的路由 ID 对应[HTTP API 设计方案](http-api-design.md)，阶段和验收对应[实施计划](http-api-implementation-plan.md)。此表记录目标映射，尚不代表相关接口已经实现或完成上游验证。
+本文中的路由 ID 对应[HTTP API 设计方案](http-api-design.md)，阶段和验收对应[实施计划](http-api-implementation-plan.md)。此表记录目标映射，尚不代表相关接口已经实现或完成上游验证。实施顺序已调整为P2先验证账号/实际上传下载/取消/重启恢复，context和CLI默认值等管理能力后置；目标映射不要求提前实现所有管理资源。P0 已保存 [机器清单](../api/openapi/source-inventory.json)、[OpenAPI 与示例](../api/openapi/README.md) 和 [核对报告](http-api-p0-baseline.md)；校验器同时检查 AST→本表→路由 ID，发现新增遗漏或过时行会失败。
 
 ## 1 盘点范围
 
 | 对象 | 数量 | 核对方式 |
 | --- | --- | --- |
-| main.go 顶层命令 | 34 | Go AST 读取 app.Commands，不把全局 verbose 当命令 |
-| 命令及子命令节点 | 51 | 包含 5 个命令组和 46 个叶子命令；别名不重复计数 |
-| 命令参数 | 86 | 每个命令的 Flags 字段，逐项映射 |
+| main.go 顶层命令 | 35（P0为34） | Go AST 读取 app.Commands，不把全局 verbose 当命令 |
+| 命令及子命令节点 | 52（P0为51） | 包含 5 个命令组和 47 个叶子命令；别名不重复计数 |
+| 命令参数 | 90（P0为86） | 每个命令的 Flags 字段，逐项映射 |
 | 全局参数 | 1 | verbose，另有框架自动提供的 help/version |
 | baidupcs 顶层包导出函数和方法 | 132 | Go AST FuncDecl；排除测试和块注释，包含底层 Prepare 与格式辅助 |
 | PCSConfig 导出字段 | 24 | 2 个账号相关字段分域，其余 22 个类型化配置 |
 | pcscommand 导出函数 | 34 | 包括没有注册成命令的 RunFixMD5 |
 | pcsconfig 导出函数和方法 | 44 | 配置生命周期、账号和网络客户端适配 |
+| 12 个业务选项结构导出字段 | 45 | 包含 P0 补齐的 OrderOptions 两个字段；逐字段映射 |
+| 传输/任务相关导出函数和方法 | 193 | pcsupload 23、pcsdownload 14、taskframework 16、uploader 40、downloader 100 |
+| 机器清单合计 | 615（P0为609、P1为614） | 403 个导出函数/方法、52 个命令节点、90 个参数、1 个全局参数、24 个配置字段、45 个选项字段 |
 | 其他相关实现 | 分组核对 | 传输、调度、校验、错误、签名和本地工具；不把每个工具方法公开为路由 |
 
 清单反映当前代码实际定义，不从 README 的旧命令说明反推可用能力。`fixmd5`、`rapidupload` 没有注册为当前 CLI 命令；`upload2.go` 中的块注释不计入函数数。子包的缓存、签名、JSON、错误处理和平台工具按基础设施归属，不按函数数量制造 HTTP 端点。
@@ -24,6 +27,7 @@
 
 | 命令 | 目标接口或保留方式 | 行为说明 | 源码 |
 | --- | --- | --- | --- |
+| server | SYS01、SYS02、SYS03、SYS04、SYS08、SYS09、CFG01、CFG02、CFG03、CFG04、CFG05、CFG07 | P1服务入口；配置、网络和认证独立，其他业务按阶段开放 | [main.go:339](../main.go:339) |
 | run | CLI 专属 | 执行系统命令；不提供远程命令执行接口 | [main.go:329](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L329) |
 | env | SYS03、CFG01 | 只返回本服务运行信息和有效配置，不暴露任意环境变量 | [main.go:352](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L352) |
 | update | CLI 专属；SYS03 | 自更新保留在 CLI；HTTP 可查询当前版本 | [main.go:379](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L379) |
@@ -80,6 +84,10 @@
 
 | 命令 | 参数 | HTTP 等价表达或处理 |
 | --- | --- | --- |
+| server | -listen | CLI 专属启动参数；默认127.0.0.1:5299，不经CFG02修改 |
+| server | -data-dir | CLI 专属启动参数；独立服务数据目录，不读取旧CLI配置 |
+| server | -config | CLI 专属启动参数；固定服务JSON配置，禁止请求切换来源 |
+| server | -token-file | CLI 专属启动参数；管理员客户端token输入文件，鉴权仅保存摘要 |
 | update | -y | CLI 交互确认；不作为服务自更新接口 |
 | login | -username | LOG01 username |
 | login | -password | LOG01 password，短期秘密 |
@@ -89,17 +97,17 @@
 | login | -cookies | ACC01 credentials.cookies，完整 Cookie 解析 |
 | logout | -y | ACC05 明确 DELETE 已表达删除意图；无终端交互确认 |
 | cd | -l | CTX03 include_listing |
-| ls | -l | FIL01 fields 完整字段投影及统计结果 |
+| ls | -l | FIL01 fields=all 和当前页 summary；全量统计走 FIL05 |
 | ls | -asc | FIL01 direction=asc |
 | ls | -desc | FIL01 direction=desc |
 | ls | -time | FIL01 order_by=time |
 | ls | -name | FIL01 order_by=name |
 | ls | -size | FIL01 order_by=size |
-| search | -l | FIL04 fields 完整字段投影和统计 |
+| search | -l | FIL04 fields=all 和当前页 summary |
 | search | -r | FIL04 recursive |
 | search | -path | FIL04 path；相对路径必须绑定 context 或 base_path |
-| tree | -depth | FIL05 depth，-1 不限深度但有资源上限 |
-| tree | -fsid | FIL05 include_ids；完整 FileEntry 自带 fs_id |
+| tree | -depth | FIL05 options.depth，-1 不限深度但有资源上限 |
+| tree | -fsid | FIL05 options.include_ids；完整 FileEntry 自带 fs_id |
 | download | -test | DWN01 options.test；实际测试传输但不落最终文件 |
 | download | -ow | DWN01 options.overwrite |
 | download | -status | DWN01 options.report_workers；JOB03/JOB05 结构化 worker 状态 |
@@ -120,19 +128,19 @@
 | upload | -norapid | UPL01 options.skip_rapid_check；保留无完整摘要的恢复路径 |
 | upload | -policy | UPL01 options.policy=skip\|overwrite\|rsync，rsync 按当前大小比较语义 |
 | locate | -pan | DWN02 source=pan；默认 source=pcs |
-| transfer | -download | TRF02 download_after；生成有依赖的下载子 job |
-| transfer | -collect | TRF02 collect；归档到同名目录 |
-| transfer | -rname | TRF02 randomize_name；当前实际调用已注释，true 返回 422 |
+| transfer | -download | TRF02 options.download_after；生成有依赖的下载子 job |
+| transfer | -collect | TRF02 options.collect；归档到同名目录 |
+| transfer | -rname | TRF02 options.randomize_name；当前实际调用已注释，true 返回 422 |
 | transfer | -fs_id | TRF02 fs_ids 字符串数组，兼容主项目指定单个或多个 ID 的目的 |
 | share set | -p | SHR01 password；缺省按核心规则生成 |
 | share set | -period | SHR01 period_days；0 永久 |
 | share set | -f | SHR01 combined_link；仅控制带码链接表达 |
 | share list | -page | SHR02 page，从 1 开始 |
-| export | -root | EXP01 root_path，导出路径改写 |
-| export | -out | EXP01 结果 artifact；可选受控 destination 替代任意输出文件路径 |
-| export | -retry | EXP01 max_retries |
-| export | -r | EXP01 recursive |
-| export | -link | EXP01 format=legacy_link；明确丢失目录信息 |
+| export | -root | EXP01 options.root_path，导出路径改写 |
+| export | -out | EXP01 结果 artifact；可选 options.destination 替代任意输出文件路径 |
+| export | -retry | EXP01 options.max_retries |
+| export | -r | EXP01 options.recursive |
+| export | -link | EXP01 options.format=legacy_link；明确丢失目录信息 |
 | export | -stdout | EXP01 结果内容通过 ART02 返回，不抓取终端输出 |
 | offlinedl add | -path | OFF01 save_path，明确网盘绝对路径 |
 | offlinedl delete | -all | OFF06 清空操作；不通过空 ID 列表隐式清空 |
@@ -160,12 +168,12 @@
 | config set | -proxy | CFG02 proxy；有 presence、范围和生效方式校验 |
 | config set | -proxy_hostnames | CFG02 proxy_hostnames；有 presence、范围和生效方式校验 |
 | config set | -local_addrs | CFG02 local_addrs；有 presence、范围和生效方式校验 |
-| tool enc | -method | LOC02 method，覆盖九种现有算法 |
+| tool enc | -method | LOC02 options.method，覆盖九种现有算法 |
 | tool enc | -key | LOC02 写入临时秘密；API 要求显式提供，不沿用 CLI 默认密钥 |
-| tool enc | -disable-gzip | LOC02 gzip 的反向映射，默认启用 |
-| tool dec | -method | LOC03 method，覆盖九种现有算法 |
+| tool enc | -disable-gzip | LOC02 options.gzip 的反向映射，默认启用 |
+| tool dec | -method | LOC03 options.method，覆盖九种现有算法 |
 | tool dec | -key | LOC03 写入临时秘密；API 要求显式提供，不沿用 CLI 默认密钥 |
-| tool dec | -disable-gzip | LOC03 gzip 的反向映射，默认启用 |
+| tool dec | -disable-gzip | LOC03 options.gzip 的反向映射，默认启用 |
 
 | 全局行为 | 处理 |
 | --- | --- |
@@ -192,7 +200,7 @@
 | PCSUA | CFG01、CFG02 pcs_ua | PCS 请求 UA；不允许换行注入 |
 | PCSAddr | CFG01、CFG02 pcs_addr | 受校验的 PCS 主机；不接受任意代理 URL |
 | PanUA | CFG01、CFG02 pan_ua | Pan 请求 UA；按客户端版本生效 |
-| SaveDir | CFG01、CFG02 savedir；LOC01 | 映射允许的本地根目录；任务有效目标明确返回 |
+| SaveDir | CFG01、CFG02 savedir（root_id + directory）；LOC01 | 映射允许的本地根目录；任务有效目标明确返回 |
 | EnableHTTPS | CFG01、CFG02 enable_https | presence-aware bool；绑定对应客户端实例 |
 | FixPCSAddr | CFG01、CFG02 fix_pcs_addr | 固定上传节点策略；按新实例生效 |
 | ForceLogin | CFG01、CFG02 force_login_username；ACC01 | 后备身份明确标记未验证，不能按固定 UID 合并账号 |
@@ -206,6 +214,15 @@
 配置采用 snapshot 和 revision。缓存字节、大小和速率保留二进制单位的旧格式解析兼容，HTTP 返回规范化十进制字节字符串；并发、重试和页码仍用有界整数。完整 Cookie、代理密码和密钥不会作为普通配置明文读取。
 
 ## 5 业务选项结构全部字段
+
+### OrderOptions
+
+[baidupcs/file_directory.go:93](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L93)
+
+| 字段 | 类型 | HTTP 或内部表达 |
+| --- | --- | --- |
+| By | `OrderBy` | FIL01 order_by；name、time、size |
+| Order | `Order` | FIL01 direction；asc、desc |
 
 ### ShareOption
 
@@ -223,9 +240,9 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| Download | `bool` | TRF02 download_after |
-| Collect | `bool` | TRF02 collect |
-| Rname | `bool` | TRF02 randomize_name；当前 true 不支持 |
+| Download | `bool` | TRF02 options.download_after |
+| Collect | `bool` | TRF02 options.collect |
+| Rname | `bool` | TRF02 options.randomize_name；当前 true 不支持 |
 | FsID | `string` | TRF02 fs_ids |
 
 ### DownloadOptions
@@ -262,11 +279,11 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| RootPath | `string` | EXP01 root_path |
-| SavePath | `string` | EXP01 受控 destination 或 artifact |
-| MaxRetry | `int` | EXP01 max_retries |
-| Recursive | `bool` | EXP01 recursive |
-| LinkFormat | `bool` | EXP01 format=legacy_link |
+| RootPath | `string` | EXP01 options.root_path；空串保留原路径，允许相对的虚拟导出根 |
+| SavePath | `string` | EXP01 options.destination 或 artifact |
+| MaxRetry | `int` | EXP01 options.max_retries |
+| Recursive | `bool` | EXP01 options.recursive |
+| LinkFormat | `bool` | EXP01 options.format=legacy_link |
 | StdOut | `bool` | ART02 获取结果内容 |
 
 ### LsOptions
@@ -275,7 +292,7 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| Total | `bool` | FIL01 fields 和 summary 的完整投影 |
+| Total | `bool` | FIL01 fields=all 和当前页 summary；CLI 可聚合分页保持原输出 |
 
 ### SearchOptions
 
@@ -283,7 +300,7 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| Total | `bool` | FIL04 fields 和 summary 的完整投影 |
+| Total | `bool` | FIL04 fields=all 和当前页 summary |
 | Recurse | `bool` | FIL04 recursive |
 
 ### Runner
@@ -301,8 +318,8 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| Depth | `int` | FIL05 depth |
-| ShowFsid | `bool` | FIL05 include_ids，结果总有可用 ID |
+| Depth | `int` | FIL05 options.depth |
+| ShowFsid | `bool` | FIL05 options.include_ids，结果总有可用 ID |
 
 ### UploadOptions
 
@@ -314,7 +331,7 @@
 | MaxRetry | `int` | UPL01 options.max_retries |
 | Load | `int` | UPL01 options.file_concurrency |
 | NoRapidUpload | `bool` | UPL01 options.skip_rapid_check |
-| NoSplitFile | `bool` | 当前未生效；请求 true 返回 422，待独立策略实现 |
+| NoSplitFile | `bool` | UPL01 options.no_split_file；当前未生效，请求 true 返回 422，待独立策略实现 |
 | Policy | `string` | UPL01 options.policy |
 | NoFilenameCheck | `bool` | UPL01 options.check_filename 的反向映射，覆盖当前全局 IgnoreIllegal 的来源 |
 
@@ -324,8 +341,8 @@
 
 | 字段 | 类型 | HTTP 或内部表达 |
 | --- | --- | --- |
-| ID | `int` | 内部原任务 ID；HTTP 使用稳定 job_id 和 item_id |
-| MaxRetry | `int` | 对应任务 max_retries |
+| ID | `int` | JOB02 job_id、JOB03 item_id 替代内部临时整数 ID |
+| MaxRetry | `int` | EXP01 options.max_retries（ListTask 仅用于当前导出队列） |
 
 ## 6 baidupcs 全部导出函数和方法
 
@@ -755,6 +772,7 @@
 
 | 方法 | 所属 HTTP 能力 | 内部处理 | 源码 |
 | --- | --- | --- | --- |
+| *Downloader.ExecuteContext | DWN01、JOB06、JOB08 | P2内部单连接执行：实例客户端、context取消、严格Range和调用方确认检查点；旧Execute不变 | [requester/downloader/context.go:16](../requester/downloader/context.go:16) |
 | NewConfig | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:32](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L32) |
 | *Config.Fix | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:41](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L41) |
 | *Config.Copy | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:49](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L49) |
@@ -901,3 +919,58 @@
 新增或变更业务命令、命令参数、核心导出方法及配置字段时，必须同时检查本表、OpenAPI 和相关验收。升级主项目后先比较 AST 清单，再判断是否影响公开契约；底层重命名不能机械产生新的 HTTP 端点。
 
 实现阶段为每个业务项补充 implementation、offline_test、upstream_test、限制和证据链接。HTTP 无遗漏、逻辑已实现、离线测试通过、百度上游实测通过是四个独立结论。
+
+
+## 13 P0 补充的数据字段与行为核对
+
+完整字段以 OpenAPI schema 为准；这里补充容易在“导出函数已映射”之后仍然遗漏的结构化数据与调用限制。
+
+| 源码对象/字段 | 目标表达与边界 |
+| --- | --- |
+| BaiduBase.UID/Name，Baidu.Sex/Age | Account.baidu_uid/username/sex/age；未知可空，身份后备明确 identity_verified=false；年龄不猜单位 |
+| Baidu.BDUSS/PTOKEN/STOKEN/BAIDUID/SBOXTKN/COOKIES/AccessToken | ACC01 互斥主凭据导入、ACC06 presence-aware 更新；Account 仅有 credentials_present，不回显秘密 |
+| Baidu.Workdir、BaiduActiveUID | 调用方 Context.cwd 与 CFG08/CFG09 的 CLI 默认值分开，不决定其他请求或已入库任务 |
+| FileDirectory 的 FsID/AppID/Path/Filename/Ctime/Mtime/MD5/BlockList/Size/Isdir/Ifhassubdir | FileEntry 对应字段和 md5_status；ID/字节用字符串，未知时间可空 |
+| FileDirectory.PreBase/Parent/Children | 扫描、树和下载计划内部关系；通过有界 artifact/扫描结果表达，不递归序列化共享指针 |
+| ShareRecordInfo 与 ShareSURLInfo | Share 中分别表达列表元数据与短链接/提取码；只有 SURL 信息时省略未知列表字段；period_days 保留任意有效天数 |
+| CloudDlTaskInfo 及 FileList/Result | OfflineTask/OfflineBatchItem；Result=不存在或上游缺项均保留逐输入失败；TaskID 使用 offline_task_id |
+| CloudDlQueryTask 的 100 项截断 | OFF03 maxItems=100、uniqueItems；101 项 413，不能默默丢掉第 101 项 |
+| PrepareCloudDlListTask 固定 start=0/limit=1000 | OFF02 只分页实际收到的快照，不能承诺全部历史任务 |
+| RecycleFDInfo.LeftTime | RecycleEntry.upstream_left_time 保留原值，单位未验证不推算 expires_at；恢复保留实际成功 fs_id |
+| LocalFileMeta.Length/SliceMD5/BlocksList/MD5/CRC32/ModTime/Path | Checksum 与 JobItem/local_file；slice 为 256 KiB；CRC32 为十进制字符串，local path 不泄露 root 绝对目录 |
+| TaskUnitRunResult、DownloadStatus、上传状态与控制句柄 | Job/Progress/JobItem/CheckpointSummary/WorkerStatus；累计数量为字符串、未知总量 null、跳过与失败分开；空 Pause/Resume 不算成功实现 |
+| 配置/凭据 revision 与任务有效选项 | 任务提交时固定；普通配置更新不改变已有 job；凭据吊销使旧引用停止执行 |
+
+P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前615条均已映射。105个目标操作中12个系统/配置操作已实现，其余93个为planned；67 个 schema 边界用例通过，25 组 HTTP 行为规格尚未执行，真实百度实测未运行。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
+
+
+## 14 P1 新分层代码归属
+
+| 目录/入口 | 归属与验证 |
+| --- | --- |
+| internal/bootstrap | 入口组装、模式判断、服务配置、数据目录锁、HTTP与信号生命周期；根main只做CLI参数和signal.NotifyContext |
+| internal/httpapi | 12个系统/配置操作、Bearer协议、严格JSON、强ETag、Problem响应、脱敏日志；其他已声明操作授权后501 |
+| internal/application | 配置校验/继承/版本/幂等编排、服务身份授权与系统能力；不import HTTP或基础设施 |
+| internal/domain 与 internal/ports | 拥有其数据的不可变快照、账号凭据、principal、领域错误和存储/认证/环境边界 |
+| internal/infrastructure/baidu | ClientFactory每次构建全新PCS/Jar/Transport/缓存及签名状态；测试通过本地TLS上游检查Cookie、UA、配置版本、取消和重定向隔离 |
+| requester.NewHTTPClientWithTransport | 加法式实例构造，不读取全局代理、UA、网卡或DNS缓存；旧NewHTTPClient路径保留 |
+| internal/infrastructure/persistence | SQLite配置版本/CAS/配置幂等、AES-GCM、私有密钥、单目录独占锁和初始任务表；SQLite仅在5个平台组合导入 |
+| internal/infrastructure/identity、localfs、network | SHA-256 token摘要、账号/root权限清单、受限根目录及本机网卡查询 |
+| api/openapi/contract.go、openapi.json | 由唯一YAML源生成并嵌入；校验器阻止JSON漂移，启动时校验实现状态与实际handler一致 |
+
+新分层内部函数按上述责任和依赖方向测试管理，不额外制造HTTP路由。P0的402个导出函数与24个配置字段的盘点范围保持；账号、文件、传输的业务迁移仍按P2及后续阶段进行。
+
+
+## 15 P2 提前验证的内部链路
+
+| 组件 | 当前范围与证据 |
+| --- | --- |
+| application/accounts、domain/account | 三种凭据规范化、独立账号ID；Entry的JSON不包含凭据；规范化及错误输入测试 |
+| application/transfers、domain/transfer、ports/transfers.go | 2个活动任务、16个等待名额；服务生命周期、幂等提交、独立取消、手动恢复；内部记录不是公网DTO |
+| infrastructure/persistence/transfers.go | P1库增量迁移至schema v2；账号、执行记录、配置和检查点加密；状态比较更新及启动中断识别 |
+| infrastructure/baidu/transfer.go | 复用当前FakeRapidUpload/UploadTmpFile/UploadCreateSuperFile和MultiUploader；单文件直连下载、摘要、分片/偏移检查点与结果核对 |
+| requester/downloader/context.go | 新增独立的单连接context执行路径，不使用旧全局缓存/monitor；拒绝不匹配的恢复Range和响应长度 |
+| requester/uploader/multiworker.go | 取消后等待当前provider调用返回再释放源文件；并发终止错误写入加锁 |
+| infrastructure/baidu/transfer_test.go | 受控TLS上传回读、A/B/C取消隔离、重开恢复、错误检查点拒绝、远端合并响应丢失核对；race通过 |
+
+这是P2的内部端到端风险验证，尚未接入server handler；不会把UPL01/DWN01或账号公网操作提前标成implemented。当前只支持1字节至32MiB普通文件、单文件并行和skip策略、无速率限制；目录、空文件、其他选项及旧并行下载monitor仍在P4验收。见[P2验证记录](http-api-p2-verification.md)。

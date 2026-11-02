@@ -1,0 +1,752 @@
+[
+  {
+    "id": "token-only-account",
+    "schema": "AccountCreate",
+    "valid": true,
+    "value": {
+      "credentials": {
+        "kind": "access_token",
+        "access_token": "EXAMPLE_ONLY"
+      }
+    }
+  },
+  {
+    "id": "mixed-account-credentials-rejected",
+    "schema": "AccountCreate",
+    "valid": false,
+    "value": {
+      "credentials": {
+        "kind": "bduss",
+        "bduss": "EXAMPLE_ONLY",
+        "access_token": "EXAMPLE_ONLY"
+      }
+    }
+  },
+  {
+    "id": "cookie-primary-import",
+    "schema": "AccountCreate",
+    "valid": true,
+    "value": {
+      "credentials": {
+        "kind": "cookies",
+        "cookies": "BDUSS=EXAMPLE_ONLY; STOKEN=EXAMPLE_ONLY;"
+      }
+    }
+  },
+  {
+    "id": "bduss-with-supplementary-cookies",
+    "schema": "AccountCreate",
+    "valid": true,
+    "value": {
+      "credentials": {
+        "kind": "bduss",
+        "bduss": "EXAMPLE_ONLY",
+        "ptoken": "EXAMPLE_ONLY",
+        "stoken": "EXAMPLE_ONLY",
+        "sboxtkn": "EXAMPLE_ONLY",
+        "baiduid": "EXAMPLE_ONLY"
+      }
+    }
+  },
+  {
+    "id": "credential-clear-preserves-other-fields",
+    "schema": "CredentialsPatch",
+    "valid": true,
+    "value": {
+      "stoken": null
+    }
+  },
+  {
+    "id": "credential-patch-empty-rejected",
+    "schema": "CredentialsPatch",
+    "valid": false,
+    "value": {}
+  },
+  {
+    "id": "credential-empty-string-rejected",
+    "schema": "CredentialsPatch",
+    "valid": false,
+    "value": {
+      "bduss": ""
+    }
+  },
+  {
+    "id": "cookie-and-cookie-fields-conflict",
+    "schema": "CredentialsPatch",
+    "valid": false,
+    "value": {
+      "cookies": "BDUSS=EXAMPLE_ONLY",
+      "bduss": "EXAMPLE_ONLY"
+    }
+  },
+  {
+    "id": "cookie-plus-access-token-allowed",
+    "schema": "CredentialsPatch",
+    "valid": true,
+    "value": {
+      "cookies": "BDUSS=EXAMPLE_ONLY",
+      "access_token": "EXAMPLE_ONLY"
+    }
+  },
+  {
+    "id": "upload-source-local",
+    "schema": "UploadSource",
+    "valid": true,
+    "value": {
+      "type": "local",
+      "root_id": "upload_root",
+      "relative_path": "photos"
+    }
+  },
+  {
+    "id": "upload-source-staged",
+    "schema": "UploadSource",
+    "valid": true,
+    "value": {
+      "type": "staged",
+      "staged_file_id": "staged_example"
+    }
+  },
+  {
+    "id": "mixed-upload-source-rejected",
+    "schema": "UploadSource",
+    "valid": false,
+    "value": {
+      "type": "local",
+      "root_id": "upload_root",
+      "relative_path": "photos",
+      "staged_file_id": "staged_example"
+    }
+  },
+  {
+    "id": "local-parent-traversal-rejected",
+    "schema": "LocalPath",
+    "valid": false,
+    "value": "photos/../private"
+  },
+  {
+    "id": "local-absolute-path-rejected",
+    "schema": "LocalPath",
+    "valid": false,
+    "value": "/etc/passwd"
+  },
+  {
+    "id": "local-windows-drive-rejected",
+    "schema": "LocalPath",
+    "valid": false,
+    "value": "C:/Users/private"
+  },
+  {
+    "id": "local-backslash-rejected",
+    "schema": "LocalPath",
+    "valid": false,
+    "value": "photos\\private"
+  },
+  {
+    "id": "local-root-directory-allowed",
+    "schema": "LocalPath",
+    "valid": true,
+    "value": ""
+  },
+  {
+    "id": "scope-both-rejected",
+    "schema": "PathsRequest",
+    "valid": false,
+    "value": {
+      "paths": [
+        "x"
+      ],
+      "base_path": "/资料",
+      "context_id": "ctx_example"
+    }
+  },
+  {
+    "id": "scope-context-allowed",
+    "schema": "PathsRequest",
+    "valid": true,
+    "value": {
+      "paths": [
+        "x"
+      ],
+      "context_id": "ctx_example"
+    }
+  },
+  {
+    "id": "id-precision-kept",
+    "schema": "BaiduID",
+    "valid": true,
+    "value": "9007199254740993"
+  },
+  {
+    "id": "id-as-number-rejected",
+    "schema": "BaiduID",
+    "valid": false,
+    "value": 9007199254740993
+  },
+  {
+    "id": "decimal-leading-zero-rejected",
+    "schema": "Decimal",
+    "valid": false,
+    "value": "01"
+  },
+  {
+    "id": "empty-selector-rejected",
+    "schema": "Selector",
+    "valid": false,
+    "value": {
+      "kind": "paths",
+      "values": []
+    }
+  },
+  {
+    "id": "selector-only-fsid-allowed",
+    "schema": "Selector",
+    "valid": true,
+    "value": {
+      "kind": "fs_ids",
+      "values": [
+        "9007199254740993"
+      ]
+    }
+  },
+  {
+    "id": "selector-inferred-kind-rejected",
+    "schema": "Selector",
+    "valid": false,
+    "value": {
+      "paths": [
+        "/资料"
+      ]
+    }
+  },
+  {
+    "id": "literal-wildcard-path",
+    "schema": "Selector",
+    "valid": true,
+    "value": {
+      "kind": "paths",
+      "values": [
+        "/a*"
+      ]
+    }
+  },
+  {
+    "id": "upload-explicit-zero-and-false",
+    "schema": "UploadOptions",
+    "valid": true,
+    "value": {
+      "max_retries": 0,
+      "skip_rapid_check": false,
+      "check_filename": false,
+      "max_rate_bytes_per_second": "0"
+    }
+  },
+  {
+    "id": "download-explicit-zero-and-false",
+    "schema": "DownloadOptions",
+    "valid": true,
+    "value": {
+      "max_retries": 0,
+      "verify_checksum": false,
+      "overwrite": false,
+      "link_index": 0,
+      "test": false
+    }
+  },
+  {
+    "id": "negative-retry-rejected",
+    "schema": "DownloadOptions",
+    "valid": false,
+    "value": {
+      "max_retries": -1
+    }
+  },
+  {
+    "id": "empty-file-staging",
+    "schema": "StagingSessionCreate",
+    "valid": true,
+    "value": {
+      "filename": "empty.txt",
+      "size_bytes": "0"
+    }
+  },
+  {
+    "id": "checksum-algorithm-length-conflict",
+    "schema": "ExpectedChecksum",
+    "valid": false,
+    "value": {
+      "algorithm": "md5",
+      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "id": "fsids-too-many-rejected",
+    "schema": "OfflineIDsRequest",
+    "valid": false,
+    "value": {
+      "offline_task_ids": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "70",
+        "71",
+        "72",
+        "73",
+        "74",
+        "75",
+        "76",
+        "77",
+        "78",
+        "79",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "96",
+        "97",
+        "98",
+        "99",
+        "100",
+        "101"
+      ]
+    }
+  },
+  {
+    "id": "fsids-duplicates-rejected",
+    "schema": "OfflineIDsRequest",
+    "valid": false,
+    "value": {
+      "offline_task_ids": [
+        "1",
+        "1"
+      ]
+    }
+  },
+  {
+    "id": "clear-not-empty-id-list",
+    "schema": "RecycleIDsRequest",
+    "valid": false,
+    "value": {
+      "fs_ids": []
+    }
+  },
+  {
+    "id": "scan-depth-unlimited",
+    "schema": "ScanRequest",
+    "valid": true,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "options": {
+        "mode": "tree",
+        "depth": -1,
+        "include_ids": true
+      }
+    }
+  },
+  {
+    "id": "scan-options-not-top-level",
+    "schema": "ScanRequest",
+    "valid": false,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "mode": "tree"
+    }
+  },
+  {
+    "id": "flat-download-not-declared",
+    "schema": "DownloadOptions",
+    "valid": false,
+    "value": {
+      "path_mode": "flat"
+    }
+  },
+  {
+    "id": "download-after-requires-destination",
+    "schema": "ShareTransferOptions",
+    "valid": false,
+    "value": {
+      "download_after": true
+    }
+  },
+  {
+    "id": "download-after-with-destination",
+    "schema": "ShareTransferOptions",
+    "valid": true,
+    "value": {
+      "download_after": true,
+      "download_destination": {
+        "root_id": "download_root",
+        "directory": "archive"
+      }
+    }
+  },
+  {
+    "id": "destination-without-download-rejected",
+    "schema": "ShareTransferOptions",
+    "valid": false,
+    "value": {
+      "download_destination": {
+        "root_id": "download_root",
+        "directory": "archive"
+      }
+    }
+  },
+  {
+    "id": "share-input-or-inspection-not-both",
+    "schema": "ShareInput",
+    "valid": false,
+    "value": {
+      "input": "https://pan.baidu.com/s/1EXAMPLE",
+      "inspection_id": "inspect_example"
+    }
+  },
+  {
+    "id": "share-directory-expansion",
+    "schema": "ShareInspectionRequest",
+    "valid": true,
+    "value": {
+      "inspection_id": "inspect_example",
+      "directory_fs_id": "9007199254740993",
+      "page_size": 100
+    }
+  },
+  {
+    "id": "inspection-initial-and-cursor-rejected",
+    "schema": "ShareInspectionRequest",
+    "valid": false,
+    "value": {
+      "input": "https://pan.baidu.com/s/1EXAMPLE",
+      "cursor": "cursor_example"
+    }
+  },
+  {
+    "id": "share-password-explicit-invalid-rejected",
+    "schema": "ShareCreate",
+    "valid": false,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "password": "abc"
+    }
+  },
+  {
+    "id": "share-custom-period-three-days",
+    "schema": "ShareCreate",
+    "valid": true,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "period_days": 3
+    }
+  },
+  {
+    "id": "share-period-is-number",
+    "schema": "ShareCreate",
+    "valid": true,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "period_days": 7
+    }
+  },
+  {
+    "id": "share-period-string-rejected",
+    "schema": "ShareCreate",
+    "valid": false,
+    "value": {
+      "paths": [
+        "/资料"
+      ],
+      "period_days": "7"
+    }
+  },
+  {
+    "id": "configuration-presence-zero-false-empty",
+    "schema": "ConfigurationPatch",
+    "valid": true,
+    "value": {
+      "max_download_rate": "0",
+      "no_check": false,
+      "proxy": ""
+    }
+  },
+  {
+    "id": "configuration-null-rejected",
+    "schema": "ConfigurationPatch",
+    "valid": false,
+    "value": {
+      "proxy": null
+    }
+  },
+  {
+    "id": "configuration-unknown-field-rejected",
+    "schema": "ConfigurationPatch",
+    "valid": false,
+    "value": {
+      "u_policy": "skip"
+    }
+  },
+  {
+    "id": "configuration-savedir-structured",
+    "schema": "ConfigurationPatch",
+    "valid": true,
+    "value": {
+      "savedir": {
+        "root_id": "download_root",
+        "directory": "archive"
+      }
+    }
+  },
+  {
+    "id": "configuration-raw-local-path-rejected",
+    "schema": "ConfigurationPatch",
+    "valid": false,
+    "value": {
+      "savedir": "/tmp"
+    }
+  },
+  {
+    "id": "crypto-explicit-key-required",
+    "schema": "CryptoRequest",
+    "valid": false,
+    "value": {
+      "sources": [
+        {
+          "root_id": "source_root",
+          "relative_path": "a.txt"
+        }
+      ],
+      "destination": {
+        "root_id": "output_root",
+        "directory": ""
+      },
+      "options": {
+        "method": "aes-256-ctr",
+        "remove_source": false
+      }
+    }
+  },
+  {
+    "id": "crypto-no-secret-in-options",
+    "schema": "CryptoOptions",
+    "valid": false,
+    "value": {
+      "method": "aes-256-ctr",
+      "key": "EXAMPLE_ONLY"
+    }
+  },
+  {
+    "id": "login-complete-rejects-client-bduss",
+    "schema": "LoginComplete",
+    "valid": false,
+    "value": {
+      "bduss": "EXAMPLE_ONLY"
+    }
+  },
+  {
+    "id": "utc-time-required",
+    "schema": "Timestamp",
+    "valid": false,
+    "value": "2026-11-02T16:00:00+08:00"
+  },
+  {
+    "id": "utc-time-valid",
+    "schema": "Timestamp",
+    "valid": true,
+    "value": "2026-11-02T08:00:00Z"
+  },
+  {
+    "id": "invalid-md5-rejected",
+    "schema": "MD5",
+    "valid": false,
+    "value": "not-a-digest"
+  },
+  {
+    "id": "unknown-progress-totals",
+    "schema": "Progress",
+    "valid": true,
+    "value": {
+      "total_items": null,
+      "processed_items": "0",
+      "succeeded_items": "0",
+      "failed_items": "0",
+      "skipped_items": "0",
+      "cancelled_items": "0",
+      "total_bytes": null,
+      "transferred_bytes": "0",
+      "written_bytes": "0",
+      "bytes_per_second": "0",
+      "eta_seconds": null
+    }
+  },
+  {
+    "id": "large-count-number-rejected",
+    "schema": "Progress",
+    "valid": false,
+    "value": {
+      "total_items": null,
+      "processed_items": 0,
+      "succeeded_items": "0",
+      "failed_items": "0",
+      "skipped_items": "0",
+      "cancelled_items": "0",
+      "total_bytes": null,
+      "transferred_bytes": "0",
+      "written_bytes": "0",
+      "bytes_per_second": "0",
+      "eta_seconds": null
+    }
+  },
+  {
+    "id": "no-split-option-schema-accepted-service-422",
+    "schema": "UploadOptions",
+    "valid": true,
+    "value": {
+      "no_split_file": true
+    }
+  },
+  {
+    "id": "randomize-option-schema-accepted-service-422",
+    "schema": "ShareTransferOptions",
+    "valid": true,
+    "value": {
+      "randomize_name": true
+    }
+  },
+  {
+    "id": "unexpected-job-result-kind-rejected",
+    "schema": "JobResult",
+    "valid": false,
+    "value": {
+      "job_id": "job_example",
+      "kind": "download",
+      "result": {
+        "summary": {
+          "total": "0",
+          "processed": "0",
+          "succeeded": "0",
+          "failed": "0",
+          "skipped": "0",
+          "cancelled": "0"
+        },
+        "complete": true,
+        "affected_count": "0",
+        "items": []
+      }
+    }
+  },
+  {
+    "id": "export-relative-rewrite-root",
+    "schema": "ExportOptions",
+    "valid": true,
+    "value": {
+      "root_path": "restore/root",
+      "format": "legacy_command"
+    }
+  },
+  {
+    "id": "export-empty-root-preserves-path",
+    "schema": "ExportOptions",
+    "valid": true,
+    "value": {
+      "root_path": ""
+    }
+  },
+  {
+    "id": "effective-upload-options-cannot-be-empty",
+    "schema": "EffectiveUploadOptions",
+    "valid": false,
+    "value": {}
+  },
+  {
+    "id": "effective-download-options-cannot-be-empty",
+    "schema": "EffectiveDownloadOptions",
+    "valid": false,
+    "value": {}
+  }
+]

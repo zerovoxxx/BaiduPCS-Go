@@ -1,0 +1,14 @@
+: heartbeat
+
+id: evt_1
+event: job.snapshot
+data: {"event_id":"evt_1","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.snapshot","payload":{"job_id":"job_example","owner":"principal_example","account_id":"acct_example","state":"queued","phase":"pending","created_at":"2026-11-02T08:00:00Z","dry_run":false,"started_at":null,"finished_at":null,"config_revision":"7","credential_revision":"3","parent_job_id":null,"child_job_ids":[],"retry_of_job_id":null,"resolved_paths":["/资料"],"resolved_sources":[],"local_files":[],"destination":{"root_id":"root_example","directory":"archive"},"target_path":null,"progress":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null},"available_actions":["cancel"],"problem":null,"links":{"self":"/api/v1/jobs/job_example","events":"/api/v1/jobs/job_example/events","result":"/api/v1/jobs/job_example/result"},"kind":"download","effective_options":{"mode":"locate","path_mode":"relative","parallel":1,"file_concurrency":1,"max_retries":3,"overwrite":false,"verify_checksum":false,"preserve_mtime":false,"executable":false,"link_index":0,"test":false,"report_workers":false,"max_rate_bytes_per_second":"0"}}}
+
+id: evt_2
+event: job.progress
+data: {"event_id":"evt_2","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.progress","payload":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null}}
+
+id: evt_3
+event: job.finished
+data: {"event_id":"evt_3","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.finished","payload":{"job_id":"job_example","kind":"download","result":{"summary":{"total":"1","processed":"1","succeeded":"1","failed":"0","skipped":"0","cancelled":"0"},"complete":true,"artifact_ids":[],"transferred_bytes":"1024","written_bytes":"1024","child_job_ids":[]}}}
+

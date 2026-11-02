@@ -1,0 +1,37 @@
+name: HTTP API contract and foundations
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  foundations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.12
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated contract validators
+        run: python -m pip install -r api/openapi/tools/requirements.txt
+      - name: Offline HTTP, isolation, lifecycle and CLI startup
+        env:
+          BAIDUPCS_P1_CONTRACT_RESPONSES: /tmp/baidupcs-p1-responses.json
+        run: >-
+          go test -race -count=1 -timeout=120s
+          ./internal/domain/... ./internal/application/...
+          ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
+      - name: Legacy CLI offline regression
+        run: >-
+          go test -count=1 -timeout=120s
+          ./pcsliner/args ./pcsutil/cachepool ./pcsutil/converter
+          ./pcsutil/escaper ./pcsutil/waitgroup ./pcsutil/taskframework
+          ./baidupcs/netdisksign ./baidupcs/expires/cachemap
+          ./requester ./requester/rio ./requester/rio/speeds
+          ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
+      - name: Contract, embedded document and actual HTTP responses
+        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json
+      - name: Preserve CLI build targets and isolate SQLite
+        run: python api/openapi/tools/check_builds.py

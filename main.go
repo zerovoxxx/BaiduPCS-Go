@@ -1,21 +1,25 @@
 package main
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"unicode"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/peterh/liner"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/bootstrap"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcscommand"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsconfig"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsfunctions/pcsdownload"
@@ -57,7 +61,7 @@ var (
 	// Version 版本号
 	Version = "v4.0.2-dev"
 
-	historyFilePath = filepath.Join(pcsconfig.GetConfigDir(), "pcs_command_history.txt")
+	historyFilePath string
 	reloadFn        = func(c *cli.Context) error {
 		err := pcsconfig.Config.Reload()
 		if err != nil {
@@ -76,8 +80,9 @@ var (
 	isCli bool
 )
 
-func init() {
+func initializeCLI() {
 	pcsutil.ChWorkDir()
+	historyFilePath = filepath.Join(pcsconfig.GetConfigDir(), "pcs_command_history.txt")
 
 	err := pcsconfig.Config.Init()
 	switch err {
@@ -91,7 +96,11 @@ func init() {
 }
 
 func main() {
-	defer pcsconfig.Config.Close()
+	serverMode := bootstrap.IsServerInvocation(os.Args[1:])
+	if !serverMode {
+		initializeCLI()
+		defer pcsconfig.Config.Close()
+	}
 
 	app := cli.NewApp()
 	app.Name = "BaiduPCS-Go"
@@ -326,6 +335,34 @@ func main() {
 	}
 
 	app.Commands = []cli.Command{
+		{
+			Name:     "server",
+			Usage:    "启动隔离的HTTP API服务",
+			Category: "服务",
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "listen", Usage: "监听地址", Value: bootstrap.DefaultListen},
+				cli.StringFlag{Name: "data-dir", Usage: "独立服务数据目录，不读取CLI配置"},
+				cli.StringFlag{Name: "config", Usage: "固定的服务启动JSON配置文件"},
+				cli.StringFlag{Name: "token-file", Usage: "管理员API token输入文件（0600）"},
+			},
+			Action: func(c *cli.Context) error {
+				if isCli {
+					err := fmt.Errorf("server 请从独立进程启动")
+					fmt.Fprintln(os.Stderr, err)
+					return err
+				}
+				// Raw legacy debug output can contain upstream signatures. The
+				// service uses structured HTTP logs instead of that CLI switch.
+				pcsverbose.IsVerbose = false
+				ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer cancel()
+				listen := ""
+				if c.IsSet("listen") {
+					listen = c.String("listen")
+				}
+				return bootstrap.Run(ctx, bootstrap.Options{Listen: listen, DataDir: c.String("data-dir"), ConfigFile: c.String("config"), TokenFile: c.String("token-file"), Version: Version}, os.Stderr)
+			},
+		},
 		{
 			Name:     "run",
 			Usage:    "执行系统命令",
@@ -2166,5 +2203,9 @@ func main() {
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if serverMode && err != nil {
+		fmt.Fprintln(os.Stderr, "server:", err)
+		os.Exit(1)
+	}
 }

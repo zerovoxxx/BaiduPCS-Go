@@ -24,10 +24,9 @@ const (
 
 var (
 	pcsConfigVerbose = pcsverbose.New("PCSCONFIG")
-	configFilePath   = filepath.Join(GetConfigDir(), ConfigName)
 
 	// Config 配置信息, 由外部调用
-	Config = NewConfig(configFilePath)
+	Config = &PCSConfig{deferDefaultPath: true}
 )
 
 // PCSConfig 配置详情
@@ -61,11 +60,12 @@ type PCSConfig struct {
 	IgnoreIllegal  bool   `json:"ignore_illegal"`       // 禁用上传文件名非法字符检查
 	UPolicy        string `json:"u_policy"`             // 上传重名文件处理策略
 
-	configFilePath string
-	configFile     *os.File
-	fileMu         sync.Mutex
-	activeUser     *Baidu
-	pcs            *baidupcs.BaiduPCS
+	configFilePath   string
+	deferDefaultPath bool
+	configFile       *os.File
+	fileMu           sync.Mutex
+	activeUser       *Baidu
+	pcs              *baidupcs.BaiduPCS
 }
 
 // NewConfig 返回 PCSConfig 指针对象
@@ -135,6 +135,10 @@ func (c *PCSConfig) Save() error {
 }
 
 func (c *PCSConfig) init() error {
+	if c.deferDefaultPath {
+		c.configFilePath = filepath.Join(GetConfigDir(), ConfigName)
+		c.deferDefaultPath = false
+	}
 	if c.configFilePath == "" {
 		return ErrConfigFileNotExist
 	}

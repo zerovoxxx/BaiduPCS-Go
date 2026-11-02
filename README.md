@@ -3,6 +3,8 @@
 
 仿 Linux shell 文件处理命令的百度网盘命令行客户端.
 
+HTTP服务正在开发：当前开放12个系统/配置操作，账号和传输仅有内部验证。运行方式见[服务指南](docs/http-api-server.md)，继续开发请从[工程交接与P2待办](docs/http-api-handoff.md)开始。
+
 iikira/BaiduPCS-Go was largely inspired by [GangZhuo/BaiduPCS](https://github.com/GangZhuo/BaiduPCS) and this project was largely based on iikira/BaiduPCS-Go
 
 ## 注意

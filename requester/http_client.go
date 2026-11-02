@@ -28,6 +28,23 @@ func NewHTTPClient() *HTTPClient {
 	return h
 }
 
+// NewHTTPClientWithTransport constructs a fully initialized client without reading
+// requester globals. Ownership of transport and jar passes to this instance.
+// The legacy NewHTTPClient path keeps its existing proxy/TLS behavior.
+func NewHTTPClientWithTransport(transport *http.Transport, jar http.CookieJar, userAgent string) *HTTPClient {
+	if transport == nil {
+		transport = &http.Transport{}
+	}
+	if jar == nil {
+		jar, _ = cookiejar.New(nil)
+	}
+	return &HTTPClient{
+		Client:    http.Client{Transport: transport, Jar: jar, Timeout: 50 * time.Second},
+		transport: transport,
+		UserAgent: userAgent,
+	}
+}
+
 func (h *HTTPClient) lazyInit() {
 	if h.transport == nil {
 		h.transport = &http.Transport{

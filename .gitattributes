@@ -1,0 +1,2 @@
+# SSE ends each event with a blank line, including the final event.
+api/openapi/examples/job-events.sse whitespace=-blank-at-eof
