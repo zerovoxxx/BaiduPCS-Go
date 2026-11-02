@@ -12,6 +12,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcstable"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/converter"
+	"github.com/qjfoidnh/BaiduPCS-Go/requester"
 	"github.com/qjfoidnh/baidu-tools/tieba"
 )
 
@@ -22,7 +23,7 @@ var (
 	ErrBaiduUserNotFound = errors.New("baidu user not found")
 )
 
-//BaiduBase Baidu基
+// BaiduBase Baidu基
 type BaiduBase struct {
 	UID  uint64 `json:"uid"`  // 百度ID对应的uid
 	Name string `json:"name"` // 真实ID
@@ -40,6 +41,8 @@ type Baidu struct {
 	BAIDUID string `json:"baiduid"`
 	SBOXTKN string `json:"sboxtkn"`
 	COOKIES string `json:"cookies"`
+	// nil is a legacy account; an empty array is a cleared structured session.
+	CookieEntries []requester.CookieEntry `json:"cookie_entries"`
 
 	AccessToken string `json:"accesstoken"`
 
@@ -48,18 +51,37 @@ type Baidu struct {
 
 // BaiduPCS 初始化*baidupcs.BaiduPCS
 func (baidu *Baidu) BaiduPCS() *baidupcs.BaiduPCS {
-	pcs := baidupcs.NewPCS(Config.AppID, baidu.BDUSS)
-	pcs.SetStoken(baidu.STOKEN)
-	if baidu.SBOXTKN != "" {
-		pcs.SetSboxtkn(baidu.SBOXTKN)
+	return baidu.newPCS(Config)
+}
+
+func (baidu *Baidu) newPCS(config *PCSConfig) *baidupcs.BaiduPCS {
+	var pcs *baidupcs.BaiduPCS
+	if baidu.CookieEntries != nil {
+		client := requester.NewSecureHTTPClient()
+		jar, err := requester.NewCookieJar(baidu.CookieEntries)
+		if err != nil {
+			jar, _ = requester.NewCookieJar(nil)
+		}
+		client.SetCookiejar(jar)
+		pcs = baidupcs.NewPCSWithClient(config.AppID, client)
+	} else {
+		if strings.TrimSpace(baidu.COOKIES) != "" {
+			pcs = baidupcs.NewPCSWithCookieStr(config.AppID, baidu.COOKIES)
+		} else {
+			pcs = baidupcs.NewPCS(config.AppID, baidu.BDUSS)
+		}
+		if baidu.STOKEN != "" {
+			pcs.SetStoken(baidu.STOKEN)
+		}
+		if baidu.SBOXTKN != "" {
+			pcs.SetSboxtkn(baidu.SBOXTKN)
+		}
 	}
-	if strings.Contains(baidu.COOKIES, "STOKEN=") && baidu.STOKEN == "" {
-		// 未显式指定stoken则从cookies中读取
-		pcs = baidupcs.NewPCSWithCookieStr(Config.AppID, baidu.COOKIES)
-	}
-	pcs.SetHTTPS(Config.EnableHTTPS)
-	pcs.SetPCSUserAgent(Config.PCSUA)
-	pcs.SetPanUserAgent(Config.PanUA)
+	// Secure cookies and QR credentials must never be downgraded to HTTP.
+	pcs.SetHTTPS(config.EnableHTTPS || baidu.CookieEntries != nil)
+	pcs.SetPCSAddr(config.PCSAddr)
+	pcs.SetPCSUserAgent(config.PCSUA)
+	pcs.SetPanUserAgent(config.PanUA)
 	pcs.SetUID(baidu.UID)
 	pcs.SetaccessToken(baidu.AccessToken)
 	return pcs

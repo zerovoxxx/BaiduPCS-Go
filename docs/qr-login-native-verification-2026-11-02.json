@@ -1,0 +1,94 @@
+{
+  "base_revision": "1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73",
+  "branch": "codex/qr-login",
+  "user_confirmed_official_app": true,
+  "native_real_account_test": {
+    "platform": "macOS arm64",
+    "native_qrlogin": true,
+    "cookie_values_recorded": false,
+    "native_exit": 0,
+    "new_process_who": true,
+    "new_process_quota": true,
+    "structured_cookies_saved": true,
+    "config_permission_octal": "0o600",
+    "new_process_directory_read": true,
+    "official_app_confirmation": true,
+    "temporary_credentials_removed": true,
+    "qr_image_removed": true,
+    "finished_at": "2026-11-02T16:51:44+08:00"
+  },
+  "linux_anonymous_runtime_test": {
+    "platform": "Linux arm64 in Docker",
+    "exit": 124,
+    "official_qr_image_created": true,
+    "timeout_reported": true,
+    "qr_image_removed": true,
+    "real_account_login_attempted": false,
+    "certificate_verification": true,
+    "temporary_config_in_container_tmpfs": true,
+    "container_removed": true,
+    "checked_at": "2026-11-02T17:00:09+08:00"
+  },
+  "real_sigint_cancellation_test": {
+    "official_qr_created_before_cancel": true,
+    "exit": 130,
+    "cancel_message": true,
+    "qr_image_removed": true,
+    "temporary_config_removed": true,
+    "checked_at": "2026-11-02T17:12:15+08:00"
+  },
+  "automated_checks": {
+    "targeted_tests": true,
+    "race": true,
+    "go_vet": true,
+    "packages": [
+      "internal/pcslogin",
+      "internal/pcsconfig",
+      "internal/pcscommand",
+      "requester"
+    ]
+  },
+  "builds": {
+    "darwin_arm64": true,
+    "linux_amd64_cgo0": true,
+    "linux_arm64_cgo0": true,
+    "linux_386_cgo0": true,
+    "windows_amd64_cgo0": true
+  },
+  "full_suite": {
+    "passed": false,
+    "failures_reproduced_on_clean_origin_main": true,
+    "baseline_failures": [
+      {
+        "package": "requester/downloader",
+        "cause": "Existing test references missing Monitor.ShowWorkers"
+      },
+      {
+        "package": "pcsutil",
+        "cause": "Existing TestWalkDir uses developer-specific absolute path"
+      },
+      {
+        "package": "pcsutil/checksum",
+        "cause": "Existing TestChecksum uses developer-specific binary path"
+      },
+      {
+        "package": "pcsutil/getip",
+        "cause": "Existing external service returned HTTP 502 HTML instead of JSON"
+      }
+    ]
+  },
+  "scope_limits": [
+    "Real account QR flow was tested on macOS arm64; Linux arm64 runtime test was anonymous",
+    "No upload, download or share mutation was performed"
+  ],
+  "cleanup": {
+    "verified_at": "2026-11-02T17:17:14+08:00",
+    "real_login_config_removed": true,
+    "cookies_and_tickets_removed": true,
+    "qr_images_removed": true,
+    "sensitive_file_residuals": 0,
+    "default_user_config_present": false,
+    "cookie_values_in_report": false,
+    "server_logout_performed": false
+  }
+}
