@@ -22,7 +22,7 @@ func (c *PCSConfig) ActiveUser() *Baidu {
 // ActiveUserBaiduPCS 获取当前登录的用户的baidupcs.BaiduPCS
 func (c *PCSConfig) ActiveUserBaiduPCS() *baidupcs.BaiduPCS {
 	if c.pcs == nil {
-		c.pcs = c.ActiveUser().BaiduPCS()
+		c.pcs = c.ActiveUser().newPCS(c)
 	}
 	return c.pcs
 }

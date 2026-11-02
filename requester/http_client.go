@@ -22,6 +22,7 @@ func NewHTTPClient() *HTTPClient {
 		Client: http.Client{
 			Timeout: 50 * time.Second,
 		},
+		https:     true,
 		UserAgent: UserAgent,
 	}
 	h.Client.Jar, _ = cookiejar.New(nil)
@@ -35,7 +36,7 @@ func (h *HTTPClient) lazyInit() {
 			DialContext: dialContext,
 			// DialTLS:     h.dialTLSFunc(),
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: !h.https,
 			},
 			TLSHandshakeTimeout:   20 * time.Second,
 			DisableKeepAlives:     false,
@@ -78,17 +79,21 @@ func (h *HTTPClient) ResetCookiejar() {
 	h.Jar, _ = cookiejar.New(nil)
 }
 
-// SetHTTPSecure 是否启用 https 安全检查, 强制不检查
+// SetHTTPSecure 设置是否校验 HTTPS 证书。新客户端默认校验。
 func (h *HTTPClient) SetHTTPSecure(b bool) {
 	h.https = b
 	h.lazyInit()
-	// 	if b {
-	// 		h.transport.TLSClientConfig = nil
-	// 	} else {
 	h.transport.TLSClientConfig = &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: !b,
 	}
-	// 	}
+}
+
+// NewSecureHTTPClient initializes a certificate-verifying client with the
+// project's proxy, DNS and local-address settings, for context-aware requests.
+func NewSecureHTTPClient() *HTTPClient {
+	h := NewHTTPClient()
+	h.SetHTTPSecure(true)
+	return h
 }
 
 // SetKeepAlive 设置 Keep-Alive

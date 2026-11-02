@@ -1,6 +1,8 @@
 package pcsconfig
 
 import (
+	"errors"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -90,7 +92,7 @@ func (c *PCSConfig) setupNewUser(user *Baidu) {
 	}
 	c.BaiduActiveUID = user.UID
 	c.activeUser = user
-	c.pcs = user.BaiduPCS()
+	c.pcs = user.newPCS(c)
 }
 
 // SwitchUser 切换用户, 返回切换成功的用户
@@ -117,9 +119,13 @@ func (c *PCSConfig) CheckBaiduUserExist(baidubase *BaiduBase) bool {
 // SetupUserByBDUSS 设置百度 bduss, ptoken, stoken, cookies 并保存
 func (c *PCSConfig) SetupUserByBDUSS(bduss, ptoken, stoken, cookies string) (baidu *Baidu, err error) {
 	if bduss == "" && cookies != "" {
-		re, _ := regexp.Compile(`BDUSS=(.+?);`)
-		sub := re.FindSubmatch([]byte(cookies))
-		bduss = string(sub[1])
+		req := &http.Request{Header: http.Header{"Cookie": []string{cookies}}}
+		if cookie, err := req.Cookie("BDUSS"); err == nil {
+			bduss = cookie.Value
+		}
+	}
+	if bduss == "" {
+		return nil, errors.New("登录凭证中缺少 BDUSS")
 	}
 	b, err := NewUserInfoByInput(bduss, c.ForceLogin)
 	if c.ForceLogin == "" {
