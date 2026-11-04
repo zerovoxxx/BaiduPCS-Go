@@ -110,24 +110,50 @@
           },
           {
             "id": "UPL01",
-            "implementation": "planned",
+            "implementation": "partial",
             "availability": "unverified",
-            "enabled": false,
-            "reason": "P0仅冻结契约，未实现HTTP服务",
+            "enabled": true,
+            "reason": "P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证",
             "required_credentials": [
               "bduss"
             ],
             "supported_options": [],
             "limits": [
               {
-                "name": "max_upload_size",
-                "value": "137438953472",
+                "name": "max_file_size",
+                "value": "33554432",
                 "unit": "bytes",
-                "source": "code",
+                "source": "service",
                 "verified_at": null
               }
             ],
-            "verified_at": null
+            "verified_at": null,
+            "supported_option_values": {
+              "file_concurrency": [
+                "1"
+              ],
+              "parallel_per_file": [
+                "1"
+              ],
+              "max_retries": [
+                "0"
+              ],
+              "policy": [
+                "skip"
+              ],
+              "skip_rapid_check": [
+                "true"
+              ],
+              "check_filename": [
+                "false"
+              ],
+              "no_split_file": [
+                "false"
+              ],
+              "max_rate_bytes_per_second": [
+                "0"
+              ]
+            }
           }
         ],
         "meta": {
@@ -614,24 +640,50 @@
           },
           {
             "id": "UPL01",
-            "implementation": "planned",
+            "implementation": "partial",
             "availability": "unverified",
-            "enabled": false,
-            "reason": "P0仅冻结契约，未实现HTTP服务",
+            "enabled": true,
+            "reason": "P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证",
             "required_credentials": [
               "bduss"
             ],
             "supported_options": [],
             "limits": [
               {
-                "name": "max_upload_size",
-                "value": "137438953472",
+                "name": "max_file_size",
+                "value": "33554432",
                 "unit": "bytes",
-                "source": "code",
+                "source": "service",
                 "verified_at": null
               }
             ],
-            "verified_at": null
+            "verified_at": null,
+            "supported_option_values": {
+              "file_concurrency": [
+                "1"
+              ],
+              "parallel_per_file": [
+                "1"
+              ],
+              "max_retries": [
+                "0"
+              ],
+              "policy": [
+                "skip"
+              ],
+              "skip_rapid_check": [
+                "true"
+              ],
+              "check_filename": [
+                "false"
+              ],
+              "no_split_file": [
+                "false"
+              ],
+              "max_rate_bytes_per_second": [
+                "0"
+              ]
+            }
           }
         ],
         "meta": {
@@ -1737,11 +1789,21 @@
         "sources": [
           {
             "type": "local",
-            "root_id": "root_example",
-            "relative_path": "archive"
+            "root_id": "test",
+            "relative_path": "input.bin"
           }
         ],
-        "target_dir": "/资料"
+        "target_dir": "/BaiduPCS-Go-P2-Verification",
+        "options": {
+          "file_concurrency": 1,
+          "parallel_per_file": 1,
+          "max_retries": 0,
+          "policy": "skip",
+          "skip_rapid_check": true,
+          "check_filename": false,
+          "no_split_file": false,
+          "max_rate_bytes_per_second": "0"
+        }
       }
     },
     "response": {
@@ -1771,13 +1833,13 @@
           "resolved_sources": [
             {
               "type": "local",
-              "root_id": "root_example",
-              "relative_path": "archive"
+              "root_id": "test",
+              "relative_path": "input.bin"
             }
           ],
           "local_files": [],
           "destination": null,
-          "target_path": "/资料",
+          "target_path": "/BaiduPCS-Go-P2-Verification/input.bin",
           "progress": {
             "total_items": null,
             "processed_items": "0",
@@ -1802,11 +1864,11 @@
           },
           "kind": "upload",
           "effective_options": {
-            "file_concurrency": 4,
-            "parallel_per_file": 4,
-            "max_retries": 3,
+            "file_concurrency": 1,
+            "parallel_per_file": 1,
+            "max_retries": 0,
             "policy": "skip",
-            "skip_rapid_check": false,
+            "skip_rapid_check": true,
             "check_filename": false,
             "no_split_file": false,
             "max_rate_bytes_per_second": "0"
@@ -2075,12 +2137,27 @@
         "selector": {
           "kind": "paths",
           "values": [
-            "/资料"
+            "/BaiduPCS-Go-P2-Verification/input.bin"
           ]
         },
         "destination": {
-          "root_id": "root_example",
-          "directory": "archive"
+          "root_id": "test",
+          "directory": "out"
+        },
+        "options": {
+          "mode": "pcs",
+          "path_mode": "relative",
+          "parallel": 1,
+          "file_concurrency": 1,
+          "max_retries": 0,
+          "overwrite": false,
+          "verify_checksum": true,
+          "preserve_mtime": false,
+          "executable": false,
+          "link_index": 0,
+          "test": false,
+          "report_workers": false,
+          "max_rate_bytes_per_second": "0"
         }
       }
     },
@@ -2108,13 +2185,13 @@
           "child_job_ids": [],
           "retry_of_job_id": null,
           "resolved_paths": [
-            "/资料"
+            "/BaiduPCS-Go-P2-Verification/input.bin"
           ],
           "resolved_sources": [],
           "local_files": [],
           "destination": {
-            "root_id": "root_example",
-            "directory": "archive"
+            "root_id": "test",
+            "directory": "out"
           },
           "target_path": null,
           "progress": {
@@ -2141,13 +2218,13 @@
           },
           "kind": "download",
           "effective_options": {
-            "mode": "locate",
+            "mode": "pcs",
             "path_mode": "relative",
             "parallel": 1,
             "file_concurrency": 1,
-            "max_retries": 3,
+            "max_retries": 0,
             "overwrite": false,
-            "verify_checksum": false,
+            "verify_checksum": true,
             "preserve_mtime": false,
             "executable": false,
             "link_index": 0,

@@ -42,7 +42,10 @@ func Catalog() ([]system.Operation, string, error) {
 				return nil, "", errors.New("invalid contract operation catalog")
 			}
 			seen[op.ID] = true
-			operations = append(operations, system.Operation{ID: op.ID, Method: strings.ToUpper(method), Path: path, Phase: op.Phase, Scopes: append([]string{}, op.Authorization.Scopes...), Anonymous: op.Security != nil && len(*op.Security) == 0, Implemented: op.Capability.Implementation == "implemented"})
+			if op.Capability.Implementation != "planned" && op.Capability.Implementation != "partial" && op.Capability.Implementation != "implemented" {
+				return nil, "", errors.New("invalid implementation state")
+			}
+			operations = append(operations, system.Operation{ID: op.ID, Method: strings.ToUpper(method), Path: path, Phase: op.Phase, Scopes: append([]string{}, op.Authorization.Scopes...), Anonymous: op.Security != nil && len(*op.Security) == 0, Implemented: op.Capability.Implementation == "implemented", Implementation: op.Capability.Implementation})
 		}
 	}
 	sort.Slice(operations, func(i, j int) bool { return operations[i].ID < operations[j].ID })

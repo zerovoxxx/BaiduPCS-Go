@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 2 日。状态：P0公共协议及覆盖基线已建立；P1完成运行基础和12个系统/配置操作；P2内部最小链路已有受控上游验证，公网操作尚未开放。P2先验证账号、单文件传输、取消和重启恢复，额外管理能力后置。
+日期：2026 年 11 月 5 日。状态：P0、P1及受限P2已交付；12个系统/配置操作implemented，账号/单文件/任务的10个操作partial，其余83个planned。P2生产HTTP、受控TLS/race、子进程故障窗口及专用目录真实上游验证通过；完整读取、事件、传输选项和管理按P3以后核销。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -8,12 +8,12 @@
 
 配套文档：
 
-- [从P2继续的工程交接清单](http-api-handoff.md)
+- [从P3继续的工程交接清单](http-api-handoff.md)
 - [分阶段实施计划](http-api-implementation-plan.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
 - [OpenAPI 3.1.1 契约与全部示例](../api/openapi/README.md)
 - [P0 核对与行为基线报告](http-api-p0-baseline.md)
-- [服务启动指南](http-api-server.md)、[P1实施验证](http-api-p1-verification.md)与[P2最小链路验证](http-api-p2-verification.md)
+- [服务启动指南](http-api-server.md)、[P1实施验证](http-api-p1-verification.md)与[P2交付与验证](http-api-p2-verification.md)
 
 ## 1 覆盖范围和完成标准
 
@@ -39,7 +39,7 @@
 
 核心覆盖以主项目有效业务为准。context 会话、CLI 默认值管理、配置重载和诊断在 P6 实施，不作为核心账号/传输的前置。浏览器可续传接收、短期票据、QR 扩展等另列验收，不因列出路由就进入核心发布门槛。
 
-公共身份、路径、错误、数值编码与已实现 P1 的语义保持稳定；planned 字段、状态和组件边界是可修订目标，依据最小链路的证据同步调整 OpenAPI、示例及本设计。operationId 保持稳定。覆盖数量不代表实现或验证率。受限P2接口开放前，按[交接决策](http-api-handoff.md#3-已确定的接续决策)引入planned/partial/implemented三态并同步能力、路由和验证；本次交接尚未引入partial运行状态。
+公共身份、路径、错误、数值编码与已实现 P1 的语义保持稳定；planned 字段、状态和组件边界是可修订目标，依据最小链路的证据同步调整 OpenAPI、示例及本设计。operationId 保持稳定。覆盖数量不代表实现或验证率。P2已按[交接决策](http-api-handoff.md#3-已落实的接续决策)同步planned/partial/implemented、能力、路由和校验；supported_option_values明确允许值，limits只表达数值资源上限。
 
 五层只约束职责和依赖；按实际使用者定义小 port，不为简单操作建立五套转发对象。最小调度先满足持久化、有界队列、按任务取消和安全恢复，不提前建立通用工作流平台或复杂公平调度。
 
@@ -106,7 +106,7 @@ flowchart TB
 
 ### 3.2 建议目录
 
-以下为目标目录；P1已创建bootstrap、httpapi、application、domain/ports及infrastructure运行基础，对应责任与测试见P1记录。账号和单文件传输的内部P2切片已经存在；文件及其余业务目录按后续用例补齐，不重复创建已有实现。
+以下为目标目录；P1已创建bootstrap、httpapi、application、domain/ports及infrastructure运行基础，对应责任与测试见P1记录。账号和单文件传输的受限P2生产HTTP已经存在；文件及其余业务目录按后续用例补齐，不重复创建已有实现。
 
 ```text
 main.go                                # 保留 CLI，增加 server 子命令
@@ -246,7 +246,7 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 ## 6 HTTP 接口目录
 
-当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径在P2提前验证，当前尚未接入的切片保留planned；P2接入时先实施partial状态以区分受限可调用与完整实现。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P1已实现SYS01—04、SYS08—09、CFG01—05和CFG07，其他操作授权后返回501；逐项状态以OpenAPI中的x-capability为准。
+当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径已在P2以partial开放；完整验收仍在原阶段。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P1已实现SYS01—04、SYS08—09、CFG01—05和CFG07，其他操作授权后返回501；逐项状态以OpenAPI中的x-capability为准。
 
 ### 6.1 系统和诊断
 

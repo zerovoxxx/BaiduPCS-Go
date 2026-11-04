@@ -1,72 +1,57 @@
-# HTTP API 开发交接：从 P2 继续
+# HTTP API 工程交接：P2 已交付，从 P3 继续
 
-日期：2026-11-02。分支：`codex/http-api-design`，远程：`fork`（`zerovoxxx/BaiduPCS-Go`）。以本文件所在提交为交接版本；`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73` 是原业务源码基线，`bf76d65` 只有早期设计，不能作为 P1/P2 已实现版本。
+日期：2026-11-05。分支 `codex/http-api-design`。P0/P1 历史基线保留；当前契约 `0.2.0-p2`。本文件描述本次工作树的最终交付，原业务源码基线仍为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。
 
-## 1 先确定当前完成到哪里
+## 1 当前完成到哪里
 
-| 范围 | 当前事实 | 不能据此推断 |
+| 范围 | 当前事实 | 仍需区分 |
 | --- | --- | --- |
-| P0 | 105 个操作、89 个路径、190 个 schema；当前 615 条源码映射；公共协议、示例及旧 CLI 基线已有校验 | 105 个操作可用，或 25 组行为规格已经执行 |
-| P1 | server、配置快照、隔离客户端、Bearer、SQLite、生命周期及 12 个系统/配置操作可调用 | 账号、任务和传输已经接入 server |
-| P2 | 内部账号导入、单文件执行、取消、检查点、组件重开及结果核对有受控 TLS/race 证据 | 完整 HTTP 端到端、服务进程 SIGKILL 恢复、真实百度传输已通过 |
-| QR 独立试验 | [QR 设计](qr-login-design.md)与[脱敏记录](qr-login-verification-2026-11-02.json)证明当时 macOS 环境下的扫码及只读会话链路 | qrlogin 命令、HTTP 登录会话、Linux 运行或上传下载已实现 |
+| P0 | 105 个操作、89 个路径、190 个 schema；当前 615 条源码映射 | 目标契约覆盖不等于业务实现率；25 组完整行为规格仍按后续阶段核销 |
+| P1 | 配置快照、隔离客户端、Bearer、SQLite、生命周期与 12 个系统/配置操作 implemented | 保留全部成果及 CLI 构建范围 |
+| P2 | 账号/受限单文件/任务 HTTP、持久派发、取消、迁移、关闭及恢复已接入生产；离线/race、四个 SIGKILL 窗口和真实百度验证通过 | 10 个新开放操作是 partial；完整账号和任务仍在 P3，完整传输在 P4 |
+| QR | 本轮扫码仅用于显式授权的独立上游验收 | qrlogin CLI 和 HTTP 登录会话仍 planned；不将辅助扫码流程计为 LOG 操作实现 |
 
-当前只有 SYS01—SYS04、SYS08—SYS09、CFG01—CFG05、CFG07 为 implemented，其他 93 个操作仍 planned，授权后返回 501。P2 整体未验收，下一位工程师应先完成第 4 节，不能直接跳到 P3。
+当前状态为 **12 implemented、10 partial、83 planned**。partial：ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08。planned 操作通过鉴权后仍返回 501。P2-01—P2-12 的逐项证据见[P2 验证记录](http-api-p2-verification.md)，真实范围见[脱敏记录](http-api-p2-upstream-verification.json)。
 
-推荐阅读顺序：本文件 → [实施计划](http-api-implementation-plan.md) → [P2 证据与限制](http-api-p2-verification.md) → [设计](http-api-design.md) → [OpenAPI 与校验](../api/openapi/README.md)。逐项业务语义查[源码覆盖矩阵](http-api-coverage.md)，部署查[启动指南](http-api-server.md)。
+推荐顺序：本文件 → [P2 操作指南](http-api-p2-guide.md) → [P2 验证记录](http-api-p2-verification.md) → [实施计划](http-api-implementation-plan.md) → [设计](http-api-design.md) → [契约校验](../api/openapi/README.md)。逐项业务语义查[源码覆盖矩阵](http-api-coverage.md)。
 
-## 2 代码接入点与缺口
+## 2 代码接入点与后续缺口
 
-| 位置 | 已有能力 | 接手时要做的事 |
+| 位置 | P2 已有能力 | P3/P4 继续的工作 |
 | --- | --- | --- |
-| [bootstrap/server.go](../internal/bootstrap/server.go) | 数据目录锁、密钥/存储、ClientFactory、P1 服务、HTTP 与关闭 | 当前没有创建 accounts/transfers 服务；每个独占数据目录只装配一个任务执行服务，增加启动恢复、readiness 和关闭顺序 |
-| [httpapi/server.go](../internal/httpapi/server.go)、dto.go | 12 个 handler、鉴权、严格 JSON、错误、版本比较 | 加入账号和任务依赖、DTO/handler；现有统一 query 拒绝规则不能机械沿用到后续带查询参数的接口 |
-| [application/accounts/service.go](../internal/application/accounts/service.go) | 三种凭据规范化、独立账号 ID、加密导入 | 还没有账号列表/读取应用服务、在线校验、元数据/版本更新或 HTTP Account DTO；创建账号当前要求 admin 且账号 allowlist 有 `*` |
-| [application/transfers/service.go](../internal/application/transfers/service.go) | 2 个运行名额、16 个等待名额；幂等提交、Get/Cancel/Resume/Close | 当前是内部执行切片，没有持久派发扫描、公共 Job/Result、控制请求幂等、同目标锁或完整错误映射 |
-| [ports/transfers.go](../internal/ports/transfers.go) | 账号仓库、传输记录与执行边界 | 按当前调用者增补列表、事务、结果和版本能力；不先建一个包含所有百度方法的大接口 |
-| [persistence/sqlite.go](../internal/infrastructure/persistence/sqlite.go)、transfers.go | schema v2；配置/账号/记录/检查点加密，状态 CAS | 增量迁移、任务事务与索引、更新时间、幂等保留、结果及清理；不能重建数据库代替迁移 |
-| [baidu/factory.go](../internal/infrastructure/baidu/factory.go)、transfer.go | 实例级网络和凭据绑定；真实单文件适配 | 现有切片只支持 1 字节—32 MiB、skip、上传并行 1、单连接下载、无速率限制；完整选项仍需实现 |
-| [downloader/context.go](../requester/downloader/context.go) | 独立单连接 context/Range 路径 | 不是旧 Execute/monitor 已完成并发隔离的证明；P4 再接原并行能力 |
-| [baidu/transfer_test.go](../internal/infrastructure/baidu/transfer_test.go) | 可运行的装配与受控上游示例 | 可复用 fixture 思路，但不能把测试装配、假上游或原始内部记录变成公网 API |
+| internal/bootstrap/server.go | 独占目录锁后装配账号/唯一传输服务；恢复、ready、HTTP、任务和存储有序关闭 | 沿现有生命周期接事件、读取及其他引擎，不再重建运行基础 |
+| internal/httpapi/p2.go、jobs.go | 十个 partial handler、严格输入、脱敏 DTO、权限、字符串整数、固定有效选项及控制响应 | 分页、完整任务/结果模型、SSE 和全部选项；避免直接公开 Record/Entry |
+| internal/application/accounts/service.go | 三种凭据规范化、独立账号 ID、导入重放、列表/读取、在线校验和元数据 revision | 凭据更新/吊销、旧配置导入、完整身份字段和交互登录；保留 presence/null 语义 |
+| internal/application/transfers/service.go | 持久 queued 扫描、2 执行/16 等待、幂等提交/控制、可取消目标锁、有界关闭 | 任务/事件同事务、列表/逐项结果、重试与完整清理配额；不引入通用工作流 |
+| internal/infrastructure/persistence | schema v3 增量迁移、AES-GCM、状态/时间/version CAS、控制回复事务、活动重放保留 | 在 v3 上新增迁移与索引，不能重建用户 DB 代替迁移 |
+| internal/infrastructure/baidu | 实例网络/凭据绑定；PrepareUK 原请求构造；HTTPS 单文件传输、指纹/分片/提交结果核验 | 完整握手、目录、策略、上传 ID 失效、限速与并发；不复用旧全局上传客户端 |
+| internal/infrastructure/localfs | 真实目标键、Unix 目录描述符打开与不覆盖提交；只清理确认取消任务的随机临时文件 | 与完整目录、暂存、配额及各平台运行一起扩展；旧无记录文件不猜测归属 |
+| requester/downloader/context.go | 独立单连接、256 KiB 持久确认单位、严格 Range；请求空闲/取消由绑定客户端控制 | 旧 Execute/monitor/全局 cache 隔离仍在 P4，不把新增路径当作旧并行路径已完成 |
+| internal/bootstrap/live_test.go | 显式凭据文件/专用目录的 opt-in 真实测试；正常离线 CI 默认 skip | 对新增业务按账号能力追加明确实测，不使用日常文件、不输出凭据或目录内容 |
 
-`transfer.Record` 含完整配置和私有检查点，可能包括代理秘密和 uploadid；`account.Entry` 的 JSON 也不是契约 Account。必须映射 DTO，不能直接 `json.Encode` 应用返回值。SQL 的 `jobs.state` 是当前权威状态，加密 record 中同名字段可能滞后。
+`transfer.Record` 包括代理和私有检查点/uploadid，只能加密持久化，不能作为 HTTP 数据。SQL 状态与版本是权威字段。账号 DTO 的未知 UID/UK、性别/年龄等必须为 null，不能以 UK 冒充 UID。
 
-## 3 已确定的接续决策
+## 3 已落实的接续决策
 
-1. **五层与 P1 保留。** 同 module、模块化单体、标准库 HTTP、单实例 SQLite；不引入外部队列或通用工作流。管理能力不作为核心传输前置，CLI 随对应流程逐步接共享应用服务。
-2. **P2 对外开放前补齐 partial 状态。** 当前代码只有 planned/implemented。下一次 P2 契约演进采用 `planned | partial | implemented`：partial 表示有实际 handler，但只支持明确子集；implemented 表示完整目标契约验收。`x-phase` 仍表示完整验收阶段，`x-early-validation=P2` 不代表已开放。当前交接不提前修改运行中的状态声明。
-3. **partial 必须贯穿同一变更。** 同步 YAML 的 Capability schema、`x-capability`、示例、`contract.Catalog`、`domain/system`、HTTP 路由开关、System.Capabilities 与 check_contract.py。partial 能执行；planned 仍 501；已知但不支持的选项 422，格式错误 400。实际 HTTP 校验必须覆盖 partial 和 implemented 的成功/拒绝路径，实现率分开统计。百度业务没有上游证据时保持 unverified、verified_at=null，不能照搬当前 P1“本地能力已验证”的 available 理由。更新契约版本，保持既有 P1 行为。
-4. **先支持明确的受限传输。** P2 只需显式账号、单个本地源/绝对网盘文件路径、已有授权根目录、固定单文件选项；轮询即可。先不依赖 context 资源、staging、SSE、全部列表/搜索或交互登录。完整单文件/目录与选项在 P4 核销。
-5. **秘密请求使用验证过的 HTTPS。** 不复用旧 `pcsconfig.ActiveUser/CopyPCS`、全局 uploadClient 或未经检查的身份查询回退。现有配置允许 `enable_https=false`，这是尚待 P2 适配的兼容边界；对携带凭据的明文上游请求须明确拒绝或使用明确的安全策略，不能静默泄露凭据，也不能声称该约束当前已经落实。
-6. **身份、Cookie 与凭据版本分开。** UID、UK、服务 account_id 各有语义，未知保持 null；不以 UID 去重或用 UK 冒充 UID。当前 Cookie map 只是旧字符串输入的最小模型，不能容纳 QR 试验中的同名不同域 Cookie。扩展到结构化会话前保留 domain/path/Secure/expires；不得合并后把 Passport 的 STOKEN 广播到所有百度子域。检查旧 HTTPS/HTTP Cookie 查询和 locate 的 UID 回退，避免绕过实例客户端。QR 试验不是当前工厂已经支持结构化 Cookie 的证据。
-7. **恢复先核验，取消不等于回滚。** known cancelled 不自动复活；提交阶段结果未知保持 interrupted。若 interrupted 任务处于 committing/done，不能直接“取消成功”并丢弃核对能力；先核验已发生的效果。新配置不改变已入库任务快照；凭据更新/吊销需要版本记录与明确恢复规则。
+1. 保留同 module、标准库 HTTP、模块化单体、SQLite 和五层边界。每个新 port 必须有当前使用者；不增加外部队列、微服务或空管理框架。
+2. planned/partial/implemented 已贯穿契约、Catalog、路由、能力和校验器。partial 能执行但不算完整实现；`supported_option_values` 给规范字符串值，limits 只放数值上限；`x-phase` 仍是完整验收归属。
+3. P2 使用显式账号、单个 local 源/绝对远端文件、已有授权 root、固定选项及轮询。目录/空文件/暂存/其他参数明确拒绝，P3/P4 按完整契约补齐。
+4. 配置仍可保存 enable_https=false，但携带上游凭据的客户端明确拒绝创建；绑定 Transport 和重定向禁止 HTTP 降级，Cookie 是 Secure。原 HTTPS/HTTP Cookie 查询已按 PCS 协议校正；未使用 UID 的旧明文身份回退。
+5. 原始 Cookie 文本模型不等于结构化会话。STOKEN 仅安装在 Pan，PTOKEN 不广播到其他子域；P6 扩展 QR 会话仍需保存 domain/path/Secure/expires 等作用域，不合并 Passport 和 Pan 同名 Cookie。
+6. 取消不等于回滚。未知提交结果保留 interrupted；committing/done 的中断任务先 resume 核验，不能伪报 cancelled；已知 cancelled 不自动复活。配置和凭据版本绑定已入库任务，后续凭据更新要定义明确恢复规则。
+7. 本轮专用账号实测不把所有账号/所有操作标为 available。运行中百度业务仍 unverified、verified_at=null，需要按账号、平台、参数和时间单独认定；受控 TLS 与真实百度证据分别记录。
 
-## 4 P2 剩余待办：按这个顺序提交
+## 4 P2 交付核销
 
-以下均未完成，除非另有实际测试证据。每项都应在实现后把测试名/证据链接补回，不以存在类型或函数核销。
+P2-01—P2-12 全部有实现或明确实测结论，逐项测试名与复现见[P2 验证记录](http-api-p2-verification.md#逐项核销)。交接者可以从 P3 继续。
 
-| ID | 待办与修改点 | 完成条件 |
-| --- | --- | --- |
-| P2-01 | 落实第 3 节的 partial 契约/能力/路由状态；清楚表达文件数、字节上限、固定模式和选项值限制 | 文档与运行状态一致，partial 不误计完整实现，P1 操作无回归；不凭 supported_options 的字段名暗示所有值均可用 |
-| P2-02 | ACC01/02/03/07：补账号仓库列表、脱敏读取、HTTPS 在线验证、身份及状态持久化、请求幂等；为缺失字段构造真实 nullable DTO | 三种凭据输入受控；导入不等于已验证登录；列表按 allowlist 过滤，秘密不回显；token-only 只声明已验证能力；force_login_username 等未支持输入明确拒绝 |
-| P2-03 | bootstrap 装配账号与唯一传输服务；服务 context 独立于请求；注册 HTTP 依赖，恢复完成后才 ready | 无账号仍能启动；重复实例被目录锁拒绝；startup 失败不留下运行 goroutine；请求断开不取消已入库任务 |
-| P2-04 | UPL01/DWN01 受限 DTO 映射与提交前验证：源/目标、权限、presence、路径、选项快照及上限 | 从契约请求映射到内部单文件 Request；`target_dir + 源文件名`、`destination + 远端 basename` 不混淆；显式 false/0 不丢失；不支持的目录、staged、dry_run 或选项不被忽略 |
-| P2-05 | 持久化派发与幂等：修补“创建记录→内存 schedule”的窗口；区分提交/控制幂等作用域、请求摘要与保留期 | 入库后提交连接丢失或派发前失败，任务可查且不会永久滞留；并发同 key 只产生一次逻辑提交，不同 body 409；至少保留 24 小时、活动任务不提前清理；P3 再补任务/事件同事务 |
-| P2-06 | JOB02/04/06/08 的受限 HTTP；构造 Job、Result、Progress、Problem、有效选项和 available_actions | 所有必填字段有真实含义；无总量用 null，计数/版本/字节为字符串；未完成 result 返回 409；权限含 owner、账号、root 与原操作 scope；重复控制遵循幂等规则 |
-| P2-07 | 状态竞争、同目标互斥与排空：补可取消路径锁；检查 interrupted+committing 的 Cancel；把队列满和上游错误映射到契约 | 取消 A 不影响 B/C；同账号同远端目标、同实际本地目标不并发写，root 别名也不能绕过；已确认完成可胜过取消；未知提交结果不伪报 cancelled；队列满用 429/Retry-After，不直接暴露内部当前的 503 QUEUE_FULL |
-| P2-08 | 接入 runtime 关闭：停止接收/提交，取消或排空任务，保存检查点并等待执行器，再关闭客户端、DB、目录锁 | 不沿用 P1“HTTP 排空后直接关 DB”的顺序；Close/终态/检查点写入有受控期限并报告错误，存储不能先于最后写入关闭；恢复/关闭过程中新请求明确拒绝 |
-| P2-09 | 持久化与文件故障窗口：检查 SaveCheckpoint/Finish 的 RowsAffected、更新时间、迁移及唯一执行所有者；处理临时文件先建成但检查点未写、link 成功但终态未写等情况 | v1→v2→下一版升级不丢原配置和记录；无故修改密文/主密钥失败明确；遗留 running/cancelling 不被盲目重放；只清理确认属于该 job 的文件；目标存在与摘要不符时拒绝覆盖 |
-| P2-10 | 真正的 HTTP 与进程级测试：接 Bearer→账号→提交→查询→取消/恢复→重启；覆盖 Range 错误与慢流 | httptest 实际响应通过 schema；上游忽略 Range、返回错误 Content-Range/长度、提前断流不能追加坏文件；取消请求和 SIGTERM 有界；用子进程 SIGKILL 验证“已入库/分片后/合并后/终态前”恢复，不以当前组件重开代替 |
-| P2-11 | 专用账号真实上游验证与平台核对 | 显式提供测试凭据和独立网盘/本地目录，小文件上传回读、取消、重启核验；不使用正常文件，不保存凭据或目录内容；记录账号能力、应用参数、平台和时间。无凭据时可继续独立离线开发，但保持上游 unverified，不能用 QR 只读结果代替 |
-| P2-12 | 补 P2 操作指南、HTTP 示例、能力限制、验收报告与覆盖状态，重新评估 P3/P4 余量 | 新接手者可从干净 clone 复现；完整矩阵只在影响它的变更后重跑；第 5 节后续任务未被最小切片冒充完成 |
+当前受限值：上传 file_concurrency=1、parallel_per_file=1、max_retries=0、policy=skip、skip_rapid_check=true、check_filename=false、no_split_file=false；下载 mode=pcs、path_mode=relative、parallel=1、file_concurrency=1、max_retries=0、overwrite=false、verify_checksum=true，其余布尔 false、link_index=0；两种速率均为字符串 "0"。省略字段继续按契约继承配置，不静默改成固定值；超出受限能力返回 422。上传 skip 正确计 skipped/0 字节。
 
-P2-04 的最小测试请求应显式选择当前能执行的值：上传 `file_concurrency=1`、`parallel_per_file=1`、`max_retries=0`、`policy=skip`、`skip_rapid_check=true`；下载 `mode=pcs`、`path_mode=relative`、`parallel=1`、`file_concurrency=1`、`max_retries=0`、`overwrite=false`、`verify_checksum=true`，速率为 0。未列字段仍须按契约解析；继承配置后若超出最小执行能力，明确拒绝。当前内部引擎两种任务都会检查两个速率字段，错误多归为 INTERNAL_ERROR，skip 命中也未形成 skipped 分项结果，均不能原样当作完整公网行为。
-
-P2 完成门槛：P2-01—P2-10、P2-12 的代码与离线/进程证据齐备；P2-11 有明确实测结果或未测/不可用结论。后者未取得时不能标记对应上游业务已实测可用；需要上线使用的核心路径仍必须补专用账号验证。已完成内部切片不是上述待办已经完成的证据。
+P3/P4 的全量契约验收不因 P2 提前切片而完成。若新增能力超出现有 fixture，应先补对应测试，再演进 partial/implemented 声明。
 
 ## 5 P3—P7：完整验收归属与不可遗漏项
 
-以下按当前 OpenAPI 的 `x-phase` 核对，共 105 个操作；P2 提前切片不改写完整验收归属。
+以下按当前 OpenAPI 的 `x-phase` 核对，共 105 个操作；P2 partial 提前切片不改写完整验收归属。
 
 | 阶段 | 操作数 | operationId |
 | --- | --- | --- |
@@ -91,7 +76,7 @@ P2 完成门槛：P2-01—P2-10、P2-12 的代码与离线/进程证据齐备；
 ## 6 存储、版本和安全边界
 
 - 服务数据目录独立，`master.key` 与数据库必须配对备份；不得为已有密文生成新 key。迁移保持旧记录可读，若修改内部 Record/Checkpoint 的编码或 Cookie 模型，增加版本/转换与回滚限制说明。已有 `baselines/p0-source-inventory.json` 与 `p1-source-inventory.json` 是历史快照，不随实现重写。
-- 当前目录锁在 bootstrap；transfers.New 会把遗留活动记录中断，所以只能由获得锁的唯一实例调用。测试直接组合 Store/Service 不等于允许生产多实例。
+- 当前目录锁在 bootstrap；transfers.New 会把遗留 running/cancelling 记录核验中断、保留 queued 派发，所以只能由获得锁的唯一实例调用。测试直接组合 Store/Service 不等于允许生产多实例。
 - 存储写入、检查点与终态必须检查实际提交结果；超时/失败不返回已持久化的假成功。保留周期、清理配额、备份一致性与主机掉电语义需明确；本轮证据未承诺主机掉电一致性。
 - account/credentials、proxy、uploadid、签名 URL、票据和本地绝对根目录不进入公共 DTO、日志或事件；按路由模板记录。服务 API 的 401 与百度凭据失效分开，401 不能被当作注销百度账号。
 - 本地文件按真实根目录和父目录/符号链接检查；最终文件不覆盖策略和临时文件归属在并发、取消及恢复时仍成立。需要处理文件打开/提交竞争，不能仅相信字符串前缀或 basename。
@@ -106,12 +91,13 @@ python3 -m venv /tmp/baidupcs-http-api-venv
 /tmp/baidupcs-http-api-venv/bin/python -m pip install -r api/openapi/tools/requirements.txt
 
 BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-http-responses.json \
-go test -race -count=1 -timeout=120s \
+BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
+go test -race -count=1 -timeout=180s \
   ./internal/domain/... ./internal/application/... \
   ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
 
 /tmp/baidupcs-http-api-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-http-responses.json
+  --live-responses /tmp/baidupcs-http-responses.json /tmp/baidupcs-p2-responses.json
 
 go test -count=1 -timeout=120s \
   ./pcsliner/args ./pcsutil/cachepool ./pcsutil/converter \
@@ -126,7 +112,7 @@ CGO_ENABLED=0 go build -o /tmp/baidupcs-http .
 git diff --check
 ```
 
-上次交接前的有效结果：新增相关包/race 与 14 个既有离线包通过；18 组实际 HTTP 响应覆盖 12 个 P1 操作；105 个目标操作、190 个 schema、67 个边界例、615 条映射通过；13 个 CLI 目标 CGO=0 构建通过，SQLite 仅在 5 个初始 server 目标导入。未来新增 partial/handler 后增加实际响应覆盖，不能继续只导出原 18 组。
+本轮结果：相关包/race 与 14 个既有离线包通过；39 组实际 HTTP 响应覆盖 12 个 implemented 和 10 个 partial；105 个目标操作、190 个 schema、67 个边界例、615 条映射通过；13 个 CLI 目标 CGO=0 构建通过，SQLite 仅在 5 个服务目标导入。真实百度、Linux/amd64 的范围另见脱敏报告。
 
 默认不要直接把 `go test ./...` 当作验收命令。已知原基线问题是 downloader 测试包 `ShowWorkers` 编译失败、pcsutil.TestWalkDir 和 checksum.TestChecksum 的开发者绝对路径；getip 和旧下载示例会访问外网/写文件。详情见[P0基线](http-api-p0-baseline.md)。P4 改动旧下载器时先修正其测试入口与 fixture，不能因为包当前不可测试而跳过新逻辑验证。
 
@@ -134,4 +120,4 @@ git diff --check
 
 ## 8 交接验收方式
 
-第一个后续变更应引用 P2-01 起的具体 ID，列出支持的请求、仍不支持的字段和运行证据；代码落点以上述接入点为准。每次只把有证据的项改为完成。P3—P7 按操作表和覆盖矩阵逐项核销，发现上游不可用则记录限制与证据，不补造成功响应。所有真实账号/协议实测均记录时间与范围；任何后续工程师不需要依赖这段聊天或本机 `/tmp` 文件才能判断还有什么没做。
+后续变更从 P3 完整账号/读取及任务完善开始，列出具体 operationId、支持的请求、仍不支持字段和运行证据。P2 逐项交付证据保留，不重写历史快照。每次只把有证据的项改为完成。P3—P7 按操作表和覆盖矩阵逐项核销，发现上游不可用则记录限制与证据，不补造成功响应。所有真实账号/协议实测均记录时间与范围；任何后续工程师不需要依赖这段聊天或本机 `/tmp` 文件才能判断还有什么没做。

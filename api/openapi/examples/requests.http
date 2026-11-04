@@ -1,28 +1,29 @@
-# 所有路由均为P0目标契约，当前不能对本分支真实调用。
+# 标注P1/P2的请求可以调用；其他请求是未来目标契约，planned操作鉴权后501。
 # {{api_token}} 为服务身份；EXAMPLE_ONLY仅用于展示，不能登录百度。
 @base_url = http://127.0.0.1:5299
 @api_token = EXAMPLE_ONLY
 @account_id = acct_example
+@job_id = job_example
 
 ### FIL01 分页读取；total/has_more允许null
 GET {{base_url}}/api/v1/accounts/{{account_id}}/files?path=%2F%E8%B5%84%E6%96%99&page=1&page_size=100&fields=all
 Authorization: Bearer {{api_token}}
 
-### UPL01 显式0和false；本地路径统一relative_path
+### UPL01 P2：单个普通文件；root和目标父目录必须存在
 POST {{base_url}}/api/v1/accounts/{{account_id}}/uploads
 Authorization: Bearer {{api_token}}
 Idempotency-Key: example-upload-001
 Content-Type: application/json
 
-{"sources":[{"type":"local","root_id":"upload_root","relative_path":"photos"}],"target_dir":"/备份","options":{"max_retries":0,"policy":"skip","check_filename":true,"skip_rapid_check":false}}
+{"sources":[{"type":"local","root_id":"test","relative_path":"input.bin"}],"target_dir":"/BaiduPCS-Go-P2-Verification","options":{"file_concurrency":1,"parallel_per_file":1,"max_retries":0,"policy":"skip","skip_rapid_check":true,"check_filename":false,"no_split_file":false,"max_rate_bytes_per_second":"0"}}
 
-### DWN01 校验覆盖no_check默认值；test实际传输，dry_run只生成计划
+### DWN01 P2：单文件PCS下载；明确选择校验与固定并行值
 POST {{base_url}}/api/v1/accounts/{{account_id}}/downloads
 Authorization: Bearer {{api_token}}
 Idempotency-Key: example-download-001
 Content-Type: application/json
 
-{"selector":{"kind":"paths","values":["/资料"]},"destination":{"root_id":"download_root","directory":"archive"},"options":{"mode":"locate","path_mode":"relative","max_retries":0,"verify_checksum":true,"test":false},"dry_run":false}
+{"selector":{"kind":"paths","values":["/BaiduPCS-Go-P2-Verification/input.bin"]},"destination":{"root_id":"test","directory":"out"},"options":{"mode":"pcs","path_mode":"relative","parallel":1,"file_concurrency":1,"max_retries":0,"overwrite":false,"verify_checksum":true,"preserve_mtime":false,"executable":false,"link_index":0,"test":false,"report_workers":false,"max_rate_bytes_per_second":"0"}}
 
 ### JOB05 SSE重连；无游标先快照；过期返回410
 GET {{base_url}}/api/v1/jobs/job_example/events
@@ -81,3 +82,47 @@ Content-Type: application/octet-stream
 Upload-Offset: 0
 
 BaiduPCS example
+
+### ACC01 P2：导入只保存凭据，不表示已在线验证
+POST {{base_url}}/api/v1/accounts
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-account-001
+
+{"label":"dedicated-test","credentials":{"kind":"bduss","bduss":"EXAMPLE_ONLY"}}
+
+### ACC02 P2：allowlist过滤后的账号列表
+GET {{base_url}}/api/v1/accounts
+Authorization: Bearer {{api_token}}
+
+### ACC03 P2：脱敏读取
+GET {{base_url}}/api/v1/accounts/{{account_id}}
+Authorization: Bearer {{api_token}}
+
+### ACC07 P2：HTTPS在线验证；不接受请求body
+POST {{base_url}}/api/v1/accounts/{{account_id}}/validate
+Authorization: Bearer {{api_token}}
+
+### JOB02 P2：轮询任务
+GET {{base_url}}/api/v1/jobs/{{job_id}}
+Authorization: Bearer {{api_token}}
+
+### JOB04 P2：未终结时409
+GET {{base_url}}/api/v1/jobs/{{job_id}}/result
+Authorization: Bearer {{api_token}}
+
+### JOB06 P2：按任务取消，控制key与提交key独立
+POST {{base_url}}/api/v1/jobs/{{job_id}}/cancel
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-cancel-001
+
+{}
+
+### JOB08 P2：仅恢复interrupted，先核验已提交结果
+POST {{base_url}}/api/v1/jobs/{{job_id}}/resume
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-resume-001
+
+{}

@@ -46,7 +46,7 @@ def cells(line):
     return [c.strip().replace('\\|', '|') for c in re.split(r'(?<!\\)\|', line)[1:-1]]
 
 
-def inventory(observed, operation_ids, implemented_count=0):
+def inventory(observed, operation_ids, implemented_count=0, partial_count=0):
     functions, commands, flags, config, options = {}, {}, {}, {}, {}
     section, option_type = '', ''
     for number, line in enumerate((ROOT / 'docs/http-api-coverage.md').read_text().splitlines(), 1):
@@ -118,7 +118,7 @@ def inventory(observed, operation_ids, implemented_count=0):
         'schema_version': 1,
         'source_baseline': '1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73',
         'generated_by': 'go run api/openapi/tools/inventory.go + check_contract.py --write-inventory',
-        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count else 'planned', 'implemented_operations': implemented_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'not_run'},
+        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json'},
         'counts': dict(sorted(collections.Counter(e['kind'] for e in entries).items())),
         'files': observed['files'], 'entries': entries,
     }
@@ -126,7 +126,7 @@ def inventory(observed, operation_ids, implemented_count=0):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--live-responses', type=Path, help='validate actual responses exported by TestLiveContractResponses')
+    parser.add_argument('--live-responses', type=Path, nargs='+', help='validate actual responses exported by P1 and P2 HTTP tests')
     parser.add_argument('--write-inventory', action='store_true', help='regenerate only after every source item has a matrix mapping')
     args = parser.parse_args()
     spec = yaml.load((API / 'openapi.yaml').read_text(), Loader=UniqueLoader)
@@ -182,8 +182,8 @@ def main():
             operations[oid] = op
             routes[oid] = (method.upper(), path, op['x-phase'])
             require(op['x-capability']['id'] == oid, f'{oid}: capability mismatch')
-            require(op['x-capability']['implementation'] in ['planned','implemented'], f'{oid}: invalid implementation status')
-            if op['x-capability']['implementation']=='implemented':
+            require(op['x-capability']['implementation'] in ['planned','partial','implemented'], f'{oid}: invalid implementation status')
+            if op['x-capability']['implementation'] in ['partial','implemented']:
                 require(op.get('x-offline-evidence'), f'{oid}: implementation needs offline evidence')
                 for evidence in op['x-offline-evidence']:
                     require((ROOT/evidence).is_file(), f'{oid}: missing offline evidence file')
@@ -328,8 +328,9 @@ def main():
                 revision = data.get('revision', data.get('configuration', {}).get('revision'))
                 require(revision is None or etag == '"' + revision + '"', f'{oid}: ETag/revision mismatch')
     if args.live_responses:
-        live = json.loads(args.live_responses.read_text())
+        live = [record for filename in args.live_responses for record in json.loads(filename.read_text())]
         covered = set()
+        rejected = set()
         for record in live:
             oid = record['operation_id']
             require(oid in operations, f'unknown live operation {oid}')
@@ -343,13 +344,32 @@ def main():
             if media_type == 'application/problem+json':
                 require(record['body']['status']==record['status'],f'{oid}: live Problem status mismatch')
             if record['status'] < 300: covered.add(oid)
+            if record['status'] >= 400: rejected.add(oid)
             if oid == 'SYS08': require(record['body']==spec,'served OpenAPI differs from canonical YAML')
+            if oid == 'SYS04' and record['status']==200:
+                catalog=record['body']['data']
+                require(len(catalog)==len(operations), 'live capability catalog count mismatch')
+                by_id={entry['id']:entry for entry in catalog}
+                require(set(by_id)==set(operations), 'live capability operation mismatch')
+                for operation_id,entry in by_id.items():
+                    state=operations[operation_id]['x-capability']['implementation']
+                    require(entry['implementation']==state, f'{operation_id}: live capability state drift')
+                    require(entry['enabled']==(state!='planned'), f'{operation_id}: live route enablement drift')
+                    if state=='partial':
+                        require(entry['availability']=='unverified' and entry['verified_at'] is None, f'{operation_id}: partial must not imply global upstream verification')
+                        fixed=operations[operation_id].get('x-p2-limits',{}).get('fixed_options',{})
+                        for name,value in fixed.items():
+                            canonical=str(value).lower() if isinstance(value,bool) else str(value)
+                            require(entry.get('supported_option_values',{}).get(name)==[canonical], f'{operation_id}: missing fixed option value {name}')
         implemented={oid for oid,op in operations.items() if op['x-capability']['implementation']=='implemented'}
-        require(covered >= implemented,f'missing implemented live operations: {implemented-covered}')
-        print(f'PASS: {len(live)} actual HTTP responses; all {len(implemented)} implemented operations match OpenAPI')
+        partial={oid for oid,op in operations.items() if op['x-capability']['implementation']=='partial'}
+        require(covered >= implemented|partial,f'missing callable live operations: {(implemented|partial)-covered}')
+        require(rejected >= partial,f'missing partial rejection coverage: {partial-rejected}')
+        print(f'PASS: {len(live)} actual HTTP responses; {len(implemented)} implemented and {len(partial)} partial operations match OpenAPI')
     observed = json.loads(subprocess.check_output(['go', 'run', str(API / 'tools/inventory.go')], cwd=ROOT, text=True))
     implemented_count=sum(op['x-capability']['implementation']=='implemented' for op in operations.values())
-    baseline = inventory(observed, set(operations),implemented_count)
+    partial_count=sum(op['x-capability']['implementation']=='partial' for op in operations.values())
+    baseline = inventory(observed, set(operations),implemented_count,partial_count)
     baseline_file = API / 'source-inventory.json'
     if args.write_inventory:
         baseline_file.write_text(json.dumps(baseline, ensure_ascii=False, indent=2) + '\n')

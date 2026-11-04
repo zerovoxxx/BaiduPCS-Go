@@ -22,6 +22,7 @@ import (
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester"
 )
 
@@ -129,13 +130,17 @@ func TestFactoryIsolationAgainstLegacyGlobalsAndMutableInputs(t *testing.T) {
 		}
 	}
 	cfg.EnableHTTPS = false
+	if _, err := factory.New(context.Background(), configuration.NewSnapshot(2, cfg), credentialsB); fault.As(err).Code != "HTTPS_REQUIRED" {
+		t.Fatal("credential-bearing plaintext configuration accepted", err)
+	}
+	cfg.EnableHTTPS = true
 	cfg.UserAgent = "new-UA"
 	cfg.PCSUA = "new-PCS-UA"
 	next, err := factory.New(context.Background(), configuration.NewSnapshot(2, cfg), account.Credentials{AccountID: "account_a", Revision: 5, Cookies: map[string]string{"BDUSS": "new-a-secret"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if next.PCS.URL().Scheme != "http" || a.PCS.URL().Scheme != "https" || a.HTTP.UserAgent != "snapshot-UA" || a.PCS.GetBDUSS() != "account-a-secret" {
+	if next.PCS.URL().Scheme != "https" || a.PCS.URL().Scheme != "https" || a.HTTP.UserAgent != "snapshot-UA" || a.PCS.GetBDUSS() != "account-a-secret" {
 		t.Fatal("new binding changed existing client")
 	}
 	a.PCS.SetStoken("a-only-update")

@@ -21,7 +21,7 @@
 
 ## BaiduPCS-Go HTTP 服务设计与契约
 
-- [从P2继续：工程交接与剩余待办](http-api-handoff.md)
+- [从P3继续：工程交接与后续边界](http-api-handoff.md)
 
 - [HTTP API 设计方案](http-api-design.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
@@ -29,10 +29,12 @@
 - [OpenAPI 契约与请求响应示例](../api/openapi/README.md)
 - [P0 核对与行为基线](http-api-p0-baseline.md)
 
-- [服务启动与P1范围](http-api-server.md)
+- [服务启动与P2范围](http-api-server.md)
 - [P1实施与验证](http-api-p1-verification.md)
 
-- [P2最小端到端验证与限制](http-api-p2-verification.md)
+- [P2交付与验证](http-api-p2-verification.md)
+- [P2账号与单文件操作指南](http-api-p2-guide.md)
+- [P2真实上游脱敏记录](http-api-p2-upstream-verification.json)
 
 ## 二维码登录方案与独立验证
 

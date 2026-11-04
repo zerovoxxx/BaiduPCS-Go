@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -255,9 +256,66 @@ func StrictJSON(data []byte, target any) error {
 	if err := decoder.Decode(target); err != nil {
 		return invalid("JSON字段或类型无效")
 	}
+	return exactJSONFields(data, reflect.TypeOf(target))
+}
+
+// encoding/json accepts case-insensitive struct field aliases. OpenAPI field
+// names are exact, so reject those aliases rather than silently accepting an
+// input that the public schema calls an unknown property.
+func exactJSONFields(data json.RawMessage, typ reflect.Type) error {
+	for typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
+	}
+	if reflect.PointerTo(typ).Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()) {
+		return nil
+	}
+	switch typ.Kind() {
+	case reflect.Struct:
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(data, &fields); err != nil {
+			return invalid("需要JSON对象")
+		}
+		allowed := map[string]reflect.Type{}
+		for i := 0; i < typ.NumField(); i++ {
+			f := typ.Field(i)
+			if f.PkgPath != "" {
+				continue
+			}
+			name := strings.Split(f.Tag.Get("json"), ",")[0]
+			if name == "-" {
+				continue
+			}
+			if name == "" {
+				name = f.Name
+			}
+			allowed[name] = f.Type
+		}
+		for name, value := range fields {
+			fieldType, ok := allowed[name]
+			if !ok {
+				return invalid("JSON字段名称或大小写无效")
+			}
+			if err := exactJSONFields(value, fieldType); err != nil {
+				return err
+			}
+		}
+	case reflect.Slice, reflect.Array:
+		var values []json.RawMessage
+		if err := json.Unmarshal(data, &values); err != nil {
+			return invalid("需要JSON数组")
+		}
+		for _, value := range values {
+			if err := exactJSONFields(value, typ.Elem()); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 func decodeRequest(w http.ResponseWriter, r *http.Request, target any) error {
+	return decodeObject(w, r, target, false)
+}
+func decodeObject(w http.ResponseWriter, r *http.Request, target any, allowEmpty bool) error {
 	mt, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mt != "application/json" {
 		return &httpError{status: 415, code: "UNSUPPORTED_MEDIA_TYPE", message: "需要application/json请求体"}
@@ -270,14 +328,14 @@ func decodeRequest(w http.ResponseWriter, r *http.Request, target any) error {
 		}
 		return invalid("无法读取JSON请求")
 	}
-	if len(bytes.TrimSpace(body)) == 0 || bytes.Equal(bytes.TrimSpace(body), []byte("{}")) {
+	if len(bytes.TrimSpace(body)) == 0 || !allowEmpty && bytes.Equal(bytes.TrimSpace(body), []byte("{}")) {
 		return invalid("请求对象不能为空")
 	}
 	if err := StrictJSON(body, target); err != nil {
 		return err
 	}
 	var properties map[string]json.RawMessage
-	if err := json.Unmarshal(body, &properties); err != nil || len(properties) == 0 {
+	if err := json.Unmarshal(body, &properties); err != nil || !allowEmpty && len(properties) == 0 {
 		return invalid("请求对象不能为空")
 	}
 	return nil

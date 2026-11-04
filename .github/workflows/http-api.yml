@@ -1,4 +1,4 @@
-name: HTTP API contract and foundations
+name: HTTP API contract and P2 transfers
 on: [push, pull_request]
 permissions:
   contents: read
@@ -19,8 +19,9 @@ jobs:
       - name: Offline HTTP, isolation, lifecycle and CLI startup
         env:
           BAIDUPCS_P1_CONTRACT_RESPONSES: /tmp/baidupcs-p1-responses.json
+          BAIDUPCS_P2_CONTRACT_RESPONSES: /tmp/baidupcs-p2-responses.json
         run: >-
-          go test -race -count=1 -timeout=120s
+          go test -race -count=1 -timeout=180s
           ./internal/domain/... ./internal/application/...
           ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
       - name: Legacy CLI offline regression
@@ -32,6 +33,6 @@ jobs:
           ./requester ./requester/rio ./requester/rio/speeds
           ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
       - name: Contract, embedded document and actual HTTP responses
-        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json
+        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json
       - name: Preserve CLI build targets and isolate SQLite
         run: python api/openapi/tools/check_builds.py

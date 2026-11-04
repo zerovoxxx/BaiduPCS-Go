@@ -40,6 +40,16 @@ func NewClientFactory() *ClientFactory {
 	return &ClientFactory{sessions: map[*Session]struct{}{}, newTransport: buildTransport}
 }
 
+// NewClientFactoryWithTransport supplies the network boundary at assembly time,
+// for private trust roots and deterministic TLS integration tests. URL, redirect
+// and lifetime restrictions still wrap every constructed transport.
+func NewClientFactoryWithTransport(construct func(configuration.Client) *http.Transport) *ClientFactory {
+	if construct == nil {
+		return NewClientFactory()
+	}
+	return &ClientFactory{sessions: map[*Session]struct{}{}, newTransport: construct}
+}
+
 type Session struct {
 	PCS                *baidupcs.BaiduPCS
 	HTTP               *requester.HTTPClient
@@ -90,6 +100,9 @@ func (f *ClientFactory) New(ctx context.Context, snapshot configuration.Snapshot
 	if len(credentials.Cookies) == 0 && credentials.AccessToken == "" {
 		return nil, fault.New(fault.Unsupported, "BAIDU_CREDENTIAL_MISSING", "账号没有可用凭据")
 	}
+	if !cfg.EnableHTTPS {
+		return nil, fault.New(fault.Unsupported, "HTTPS_REQUIRED", "携带百度凭据的服务请求必须启用HTTPS")
+	}
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
@@ -97,18 +110,28 @@ func (f *ClientFactory) New(ctx context.Context, snapshot configuration.Snapshot
 	origin := &url.URL{Scheme: "https", Host: baidupcs.PanBaiduCom, Path: "/"}
 	cookies := make([]*http.Cookie, 0, len(credentials.Cookies))
 	for name, value := range credentials.Cookies {
-		cookie := &http.Cookie{Name: name, Value: value, Domain: ".baidu.com", Path: "/"}
+		domain := ".baidu.com"
+		if name == "STOKEN" {
+			domain = "pan.baidu.com"
+		}
+		if name == "PTOKEN" {
+			domain = "passport.baidu.com"
+		}
+		cookie := &http.Cookie{Name: name, Value: value, Domain: domain, Path: "/", Secure: true}
 		if err := cookie.Valid(); err != nil {
 			return nil, fault.New(fault.Invalid, "INVALID_CREDENTIAL_FORMAT", "Cookie格式无效")
 		}
-		cookies = append(cookies, cookie)
+		// Passport-only cookies are not installed against an unrelated Pan URL.
+		if name != "PTOKEN" {
+			cookies = append(cookies, cookie)
+		}
 	}
 	jar.SetCookies(origin, cookies)
 	lifetime, cancel := context.WithCancel(ctx)
 	transport := f.newTransport(cfg)
 	client := requester.NewHTTPClientWithTransport(transport, jar, cfg.UserAgent)
 	client.Timeout = 30 * time.Second
-	client.Transport = &boundTransport{transport: transport, lifetime: lifetime}
+	client.Transport = &boundTransport{transport: transport, lifetime: lifetime, idleTimeout: 30 * time.Second}
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 5 || !allowedURL(req.URL) {
 			return errors.New("download/upstream redirect forbidden")
@@ -137,7 +160,7 @@ func (f *ClientFactory) New(ctx context.Context, snapshot configuration.Snapshot
 	return session, nil
 }
 func allowedURL(u *url.URL) bool {
-	if u == nil || u.User != nil || u.Scheme != "http" && u.Scheme != "https" {
+	if u == nil || u.User != nil || u.Scheme != "https" {
 		return false
 	}
 	host := strings.ToLower(u.Hostname())
@@ -181,8 +204,9 @@ func buildTransport(cfg configuration.Client) *http.Transport {
 }
 
 type boundTransport struct {
-	transport *http.Transport
-	lifetime  context.Context
+	transport   *http.Transport
+	lifetime    context.Context
+	idleTimeout time.Duration
 }
 
 func (b *boundTransport) CloseIdleConnections() { b.transport.CloseIdleConnections() }
@@ -202,18 +226,31 @@ func (b *boundTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		cancel()
 		return nil, err
 	}
-	response.Body = &boundBody{ReadCloser: response.Body, release: func() { stop(); cancel() }}
+	response.Body = &boundBody{ReadCloser: response.Body, cancel: cancel, idleTimeout: b.idleTimeout, release: func() { stop(); cancel() }}
 	return response, nil
 }
 
 type boundBody struct {
 	io.ReadCloser
-	release func()
-	once    sync.Once
+	release     func()
+	once        sync.Once
+	cancel      context.CancelFunc
+	idleTimeout time.Duration
+	idleExpired atomic.Bool
 }
 
 func (b *boundBody) Read(p []byte) (int, error) {
+	var timer *time.Timer
+	if b.idleTimeout > 0 {
+		timer = time.AfterFunc(b.idleTimeout, func() { b.idleExpired.Store(true); b.cancel() })
+	}
 	n, err := b.ReadCloser.Read(p)
+	if timer != nil {
+		timer.Stop()
+	}
+	if err != nil && b.idleExpired.Load() {
+		err = context.DeadlineExceeded
+	}
 	if err != nil {
 		b.once.Do(b.release)
 	}

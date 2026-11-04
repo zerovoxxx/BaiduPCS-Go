@@ -14,6 +14,9 @@ const (
 	Precondition Kind = "precondition"
 	Unsupported  Kind = "unsupported"
 	Unavailable  Kind = "unavailable"
+	RateLimited  Kind = "rate_limited"
+	BadGateway   Kind = "bad_gateway"
+	Timeout      Kind = "timeout"
 	Internal     Kind = "internal"
 )
 

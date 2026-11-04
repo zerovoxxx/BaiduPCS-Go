@@ -15,9 +15,11 @@ import (
 	"strings"
 	"time"
 
+	appaccounts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/accounts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
+	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
@@ -29,6 +31,8 @@ type Dependencies struct {
 	Auth          *appauth.Service
 	Configuration *appconfig.Service
 	System        *appsystem.Service
+	Accounts      *appaccounts.Service
+	Transfers     *apptransfers.Service
 	Operations    []system.Operation
 	Contract      []byte
 	Ready         func(context.Context) error
@@ -60,6 +64,16 @@ func Implemented(id string) bool {
 	}
 	return false
 }
+func Implementation(id string) string {
+	if Implemented(id) {
+		return "implemented"
+	}
+	switch id {
+	case "ACC01", "ACC02", "ACC03", "ACC07", "UPL01", "DWN01", "JOB02", "JOB04", "JOB06", "JOB08":
+		return "partial"
+	}
+	return "planned"
+}
 func New(deps Dependencies) (http.Handler, error) {
 	if deps.Auth == nil || deps.Configuration == nil || deps.System == nil {
 		return nil, errors.New("missing HTTP application services")
@@ -78,8 +92,11 @@ func New(deps Dependencies) (http.Handler, error) {
 	api := &API{deps: deps, mux: http.NewServeMux(), schema: schema}
 	grouped := map[string]map[string]system.Operation{}
 	for _, op := range deps.Operations {
-		if op.Implemented != Implemented(op.ID) {
+		if op.Implementation != Implementation(op.ID) || op.Implemented != Implemented(op.ID) {
 			return nil, fmt.Errorf("contract implementation status does not match handler: %s", op.ID)
+		}
+		if op.Implementation == "partial" && (deps.Accounts == nil || deps.Transfers == nil) {
+			return nil, errors.New("missing P2 application services")
 		}
 		if grouped[op.Path] == nil {
 			grouped[op.Path] = map[string]system.Operation{}
@@ -124,7 +141,7 @@ func New(deps Dependencies) (http.Handler, error) {
 				}
 				r = r.WithContext(context.WithValue(r.Context(), principalKey, p))
 			}
-			if !op.Implemented {
+			if op.Implementation == "planned" {
 				api.problem(w, r, &httpError{status: 501, code: "CAPABILITY_NOT_IMPLEMENTED", message: "此操作尚未实现"})
 				return
 			}
@@ -132,7 +149,7 @@ func New(deps Dependencies) (http.Handler, error) {
 				api.problem(w, r, fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在排空"))
 				return
 			}
-			if len(r.URL.Query()) != 0 {
+			if r.URL.RawQuery != "" {
 				api.problem(w, r, invalid("此接口不接受查询参数"))
 				return
 			}
@@ -362,7 +379,7 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 		}{publicClient(defaults), runtime.GOOS + "/" + runtime.GOARCH, origin, template, defaults.SaveDir != nil})
 		return nil
 	}
-	return &httpError{status: 501, code: "CAPABILITY_NOT_IMPLEMENTED", message: "此操作尚未实现"}
+	return a.serveP2(id, w, r)
 }
 func etag(revision uint64) string { return `"` + strconv.FormatUint(revision, 10) + `"` }
 func ifMatch(r *http.Request) (uint64, error) {
@@ -456,12 +473,18 @@ func (a *API) problem(w http.ResponseWriter, r *http.Request, err error) {
 			status = 422
 		case fault.Unavailable:
 			status = 503
+		case fault.RateLimited:
+			status = 429
+		case fault.BadGateway:
+			status = 502
+		case fault.Timeout:
+			status = 504
 		}
 	}
 	if status == 401 {
 		w.Header().Set("WWW-Authenticate", "Bearer")
 	}
-	if status == 503 && retryable {
+	if (status == 503 || status == 429) && retryable {
 		w.Header().Set("Retry-After", "1")
 	}
 	w.Header().Set("Content-Type", "application/problem+json")

@@ -10,16 +10,24 @@ import (
 
 type Request struct {
 	Kind, AccountID, RootID, RelativePath, RemotePath string
+	// Options contains canonical request options, not secrets. Public requests
+	// resolve omitted values against their one persisted configuration snapshot.
+	Options string
+	Public  bool
 }
 
 type Record struct {
-	ID, Owner, State, CreatedAt string
-	Request                     Request
-	Config                      configuration.Client
-	ConfigRevision              uint64
-	CredentialRevision          uint64
-	Checkpoint                  json.RawMessage
-	FailureCode                 string
+	ID, Owner, State, CreatedAt      string
+	Request                          Request
+	Config                           configuration.Client
+	ConfigRevision                   uint64
+	CredentialRevision               uint64
+	Checkpoint                       json.RawMessage
+	FailureCode                      string
+	UpdatedAt, StartedAt, FinishedAt string
+	Version                          uint64
+	EffectiveOptions                 json.RawMessage
+	TargetKey                        string
 }
 
 func (r Record) Terminal() bool {
@@ -29,5 +37,6 @@ func (r Record) Terminal() bool {
 func (r Record) Clone() Record {
 	r.Config = r.Config.Clone()
 	r.Checkpoint = append(json.RawMessage(nil), r.Checkpoint...)
+	r.EffectiveOptions = append(json.RawMessage(nil), r.EffectiveOptions...)
 	return r
 }

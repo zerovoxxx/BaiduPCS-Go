@@ -6,8 +6,10 @@
     "source_mapping": "complete",
     "http_implementation": "partial",
     "implemented_operations": 12,
+    "partial_operations": 10,
     "offline_contract": "checked_separately",
-    "upstream_verification": "not_run"
+    "upstream_verification": "scoped_p2_report",
+    "upstream_evidence": "docs/http-api-p2-upstream-verification.json"
   },
   "counts": {
     "command": 47,
@@ -19,7 +21,7 @@
     "option_field": 45
   },
   "files": {
-    "baidupcs/baidupcs.go": "ba1912b6a228d02191f431e2543bc49e398173bae3bd1a7d4136cb2c39dca431",
+    "baidupcs/baidupcs.go": "be4e88692aa4876e5ad32e6192b4e0a64dc0a51646ae49dd9cbed93b9cb18ad1",
     "baidupcs/cache.go": "8b5be834e332f51916dfbab7abfb96f7cb4f4486f16085dcf8cf289f88c06c71",
     "baidupcs/cloud_dl.go": "28b6b91397362767bfdffe9c1a28dcc4dabfe26d831f77ab30923468f275b874",
     "baidupcs/cp_mv_rename.go": "821a1d1843090f0345092a8b6d5785abd0b4365c2fc678621569d36a2ae6e96a",
@@ -81,7 +83,7 @@
     "pcsutil/taskframework/task_unit.go": "a0de40629e1c30b5f74b5cdc4f9db9db8afda153acc1742b800da3e4d286a1cf",
     "pcsutil/taskframework/taskinfo.go": "31fa2971ffd04f8338a62b0c3a75514f17414448cef130fd7e86f86d37b9b9a5",
     "requester/downloader/config.go": "3040e68378651efc700a9c0fadf41ef8e5329b65f9fbf7e4182c69f04bf9a339",
-    "requester/downloader/context.go": "afd4d43e6364c96c98f44d407f1b2b5ac3c7c73df2c762d8852b55c1b7e5da6b",
+    "requester/downloader/context.go": "c4c37fe7f2768fcb8e0875c9694410fea0f80935ff6d2e22f41c90c1efa8f4eb",
     "requester/downloader/download_firstinfo.go": "3d5eee0a104cec9f0f26cb657b44bc53477680e5dbe09473475808c3a7e8147a",
     "requester/downloader/downloader.go": "82382075f088a0e3dcbdc1a5f5e0ebf6addc623e7397d05a4996e90f26bde120",
     "requester/downloader/example.go": "4d5ebab688a3ce740742da5059f15e2af0d365e330e314240721e28ce81e91e8",
@@ -2789,7 +2791,7 @@
       "kind": "function",
       "name": "*BaiduPCS.BDSToken",
       "file": "baidupcs/baidupcs.go",
-      "line": 501,
+      "line": 509,
       "coverage": {
         "mapping": "TRF01、TRF02、DWN02",
         "notes": "内部适配；签名令牌只在百度适配器中使用，不提供令牌读取 API",
@@ -2806,7 +2808,7 @@
       "kind": "function",
       "name": "*BaiduPCS.CopyPCS",
       "file": "baidupcs/baidupcs.go",
-      "line": 370,
+      "line": 378,
       "coverage": {
         "mapping": "UPL01；ClientFactory",
         "notes": "内部适配；当前浅拷贝只能限于同账号用途，不能作为独立账号隔离",
@@ -2821,7 +2823,7 @@
       "kind": "function",
       "name": "*BaiduPCS.GetBAIDUID",
       "file": "baidupcs/baidupcs.go",
-      "line": 293,
+      "line": 297,
       "coverage": {
         "mapping": "所有账号域",
         "notes": "内部适配；仅适配器读取，普通 HTTP 响应不返回客户端和凭据",
@@ -2860,7 +2862,7 @@
       "kind": "function",
       "name": "*BaiduPCS.GetPCSAddr",
       "file": "baidupcs/baidupcs.go",
-      "line": 306,
+      "line": 314,
       "coverage": {
         "mapping": "CFG01、SYS06",
         "notes": "内部适配；客户端地址和节点信息，不公开任意 URL 执行器",
@@ -2876,7 +2878,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetAPPID",
       "file": "baidupcs/baidupcs.go",
-      "line": 311,
+      "line": 319,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2891,7 +2893,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetHTTPS",
       "file": "baidupcs/baidupcs.go",
-      "line": 394,
+      "line": 402,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2906,7 +2908,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetPCSAddr",
       "file": "baidupcs/baidupcs.go",
-      "line": 364,
+      "line": 372,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2921,7 +2923,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetPCSUserAgent",
       "file": "baidupcs/baidupcs.go",
-      "line": 359,
+      "line": 367,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2936,7 +2938,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetPanUserAgent",
       "file": "baidupcs/baidupcs.go",
-      "line": 388,
+      "line": 396,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2951,7 +2953,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetSboxtkn",
       "file": "baidupcs/baidupcs.go",
-      "line": 343,
+      "line": 351,
       "coverage": {
         "mapping": "ACC01、ACC06；ClientFactory",
         "notes": "内部适配；从版本化账号凭据应用，保留大小写不同的现有方法名",
@@ -2967,7 +2969,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetStaticPCSAddr",
       "file": "baidupcs/baidupcs.go",
-      "line": 398,
+      "line": 406,
       "coverage": {
         "mapping": "CFG02；ClientFactory",
         "notes": "内部适配；配置生效于对应版本实例，不在请求中改共享对象",
@@ -2982,7 +2984,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetStoken",
       "file": "baidupcs/baidupcs.go",
-      "line": 327,
+      "line": 335,
       "coverage": {
         "mapping": "ACC01、ACC06；ClientFactory",
         "notes": "内部适配；从版本化账号凭据应用，保留大小写不同的现有方法名",
@@ -2998,7 +3000,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetUID",
       "file": "baidupcs/baidupcs.go",
-      "line": 317,
+      "line": 325,
       "coverage": {
         "mapping": "ACC01、ACC06；ClientFactory",
         "notes": "内部适配；从版本化账号凭据应用，保留大小写不同的现有方法名",
@@ -3014,7 +3016,7 @@
       "kind": "function",
       "name": "*BaiduPCS.SetaccessToken",
       "file": "baidupcs/baidupcs.go",
-      "line": 322,
+      "line": 330,
       "coverage": {
         "mapping": "ACC01、ACC06；ClientFactory",
         "notes": "内部适配；从版本化账号凭据应用，保留大小写不同的现有方法名",
@@ -3030,7 +3032,7 @@
       "kind": "function",
       "name": "*BaiduPCS.UK",
       "file": "baidupcs/baidupcs.go",
-      "line": 474,
+      "line": 482,
       "coverage": {
         "mapping": "ACC07",
         "notes": "HTTP 和内部缓存；百度身份读取，未验证和固定 UID 后备账号分开",
@@ -3045,7 +3047,7 @@
       "kind": "function",
       "name": "*BaiduPCS.URL",
       "file": "baidupcs/baidupcs.go",
-      "line": 403,
+      "line": 411,
       "coverage": {
         "mapping": "CFG01、SYS06",
         "notes": "内部适配；客户端地址和节点信息，不公开任意 URL 执行器",

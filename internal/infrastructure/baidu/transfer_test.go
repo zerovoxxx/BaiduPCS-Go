@@ -33,6 +33,13 @@ type observedEngine struct {
 	t      *testing.T
 }
 
+func (o observedEngine) Prepare(ctx context.Context, r transfer.Record, c account.Credentials) (string, error) {
+	return o.engine.Prepare(ctx, r, c)
+}
+func (o observedEngine) CleanupTransfer(ctx context.Context, r transfer.Record) error {
+	return o.engine.CleanupTransfer(ctx, r)
+}
+
 func (o observedEngine) Execute(ctx context.Context, r transfer.Record, c account.Credentials, save func(json.RawMessage) error) error {
 	err := o.engine.Execute(ctx, r, c, save)
 	if err != nil && ctx.Err() == nil {
@@ -55,6 +62,8 @@ type transferUpstream struct {
 	resumed     chan int64
 	creates     int
 	dropCommit  bool
+	holdCommit  bool
+	committed   chan struct{}
 }
 
 func newTransferUpstream() *transferUpstream {
@@ -70,6 +79,18 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	owner := cookie.Value
 	key := func(p string) string { return owner + "\x00" + p }
 	respond := func(v any) { w.Header().Set("Content-Type", "application/json"); json.NewEncoder(w).Encode(v) }
+	if r.URL.Query().Get("method") == "info" && strings.Contains(r.URL.Path, "quota") {
+		respond(map[string]any{"quota": 1048576, "used": 0})
+		return
+	}
+	if r.URL.Path == "/api/user/getinfo" {
+		if r.URL.Query().Get("need_selfinfo") != "1" {
+			http.Error(w, "need_selfinfo required", 400)
+			return
+		}
+		respond(map[string]any{"errno": 0, "records": []any{map[string]any{"uk": 123, "uname": "test-user"}}})
+		return
+	}
 	operation := r.URL.Query().Get("method")
 	if operation == "" {
 		operation = filepath.Base(r.URL.Path)
@@ -172,8 +193,14 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		u.files[key(up.target)] = body
 		u.creates++
 		drop := u.dropCommit
+		hold := u.holdCommit
 		u.dropCommit = false
 		u.mu.Unlock()
+		if hold {
+			u.committed <- struct{}{}
+			<-r.Context().Done()
+			return
+		}
 		if drop {
 			conn, _, _ := w.(http.Hijacker).Hijack()
 			conn.Close()
@@ -298,7 +325,8 @@ func (f *transferFixture) wait(t *testing.T, id, state string) transfer.Record {
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatal("timed out waiting for job state")
+	last, _ := f.store.Transfer(context.Background(), id)
+	t.Fatalf("timed out waiting for job state: state=%s code=%s checkpoint=%s", last.State, last.FailureCode, last.Checkpoint)
 	return transfer.Record{}
 }
 func blocked(t *testing.T, ch <-chan string) {

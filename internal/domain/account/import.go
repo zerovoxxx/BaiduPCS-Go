@@ -13,8 +13,21 @@ type Import struct {
 }
 
 type Entry struct {
-	ID, Label, CreatedAt string
-	Credentials          Credentials `json:"-"`
+	ID, Label, CreatedAt  string
+	Credentials           Credentials `json:"-"`
+	UpdatedAt, LoginState string
+	Revision              uint64
+	Identity              Identity
+	Present               map[string]bool
+}
+
+// Identity deliberately distinguishes a Baidu UID from the netdisk UK. Unknown
+// metadata is nullable; importing a credential does not verify an identity.
+type Identity struct {
+	UID, UK       *string
+	Username, Sex *string
+	Age           *float64
+	Verified      bool
 }
 
 func Normalize(input Import) (Credentials, error) {
@@ -33,7 +46,7 @@ func Normalize(input Import) (Credentials, error) {
 			}
 		}
 	case "cookies":
-		if input.Cookies == "" || len(input.Cookies) > 16384 || strings.ContainsAny(input.Cookies, "\r\n") || input.BDUSS != "" || input.PToken != "" || input.SToken != "" || input.SBoxTKN != "" || input.BAIDUID != "" || input.AccessToken != "" {
+		if input.Cookies == "" || len(input.Cookies) > 32768 || strings.ContainsAny(input.Cookies, "\r\n") || input.BDUSS != "" || input.PToken != "" || input.SToken != "" || input.SBoxTKN != "" || input.BAIDUID != "" || input.AccessToken != "" {
 			return invalid()
 		}
 		for _, field := range strings.Split(input.Cookies, ";") {

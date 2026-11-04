@@ -1,53 +1,63 @@
-# P2 最小执行链路验证
+# P2 交付与验证
 
-日期：2026-11-02。状态：内部最小链路已实现并通过受控上游验证；P2整体尚未验收。服务对外仍只有P1的12个系统/配置操作，账号、上传下载及任务handler继续planned，未计入接口实现率。真实百度实测未运行。
+工作区日期：2026-11-05；实际进程时间见[脱敏上游记录](http-api-p2-upstream-verification.json)。状态：**P2-01—P2-12 已收尾，可以继续 P3**。契约 `0.2.0-p2`，12 个 implemented、10 个 partial、83 个 planned。partial 是受限可调用子集，不能计为完整操作实现。目标仍为 105 个操作、89 个路径、190 个 schema、615 条源码映射。
 
-## 调整与当前范围
+2026-11-02 的内部组合试验是本阶段的前置证据；本次补齐生产 HTTP、bootstrap 装配、持久派发、权限、公共 DTO、控制幂等、关闭、迁移、故障窗口和实际百度验证。使用方式见[P2 指南](http-api-p2-guide.md)。
 
-依照[实施计划](http-api-implementation-plan.md)，先验证最容易迫使架构返工的账号、实际传输、取消及恢复边界。入口使用应用服务的内部组合调用，不增加验证专用公网路由；这份证据不等于完整HTTP端到端验收。
+## 逐项核销
 
-- accounts.Service规范化BDUSS/完整Cookie/access token，生成独立账号ID。凭据以AES-GCM保存，JSON账号对象不回显；当前不做身份在线校验，不能宣称已登录百度。
-- transfers.Service绑定账号/配置/凭据版本，持久化后从服务生命周期执行；同逻辑提交不重复创建任务，错误输入复用key会拒绝。运行上限为2个任务、16个等待名额；同一服务实例拥有执行权。
-- SingleFileEngine复用主项目FakeRapidUpload、UploadTmpFile、UploadCreateSuperFile和MultiUploader，验证真实预创建、multipart分片及合并流程。只开放内部单文件、skip策略和单文件并行；不复制CLI的目录扫描及全部秒传策略。
-- 下载复用BaiduPCS.DownloadFile与requester/downloader新增ExecuteContext单连接入口，验证真实HTTP读取、context取消、偏移确认和严格Range。旧Execute及并行monitor保持原路径，不把它们标为已完成隔离。
-- P1 SQLite增量迁移至schema v2，仅增加加密账号记录；复用现有jobs表保存内部执行记录与检查点。检查点的账号、目标、任务、配置及凭据版本绑定被核验。
+| ID | 交付与证据 |
+| --- | --- |
+| P2-01 | planned/partial/implemented 贯穿 YAML/JSON、Catalog、路由开关、Capabilities、例子和 checker。`supported_option_values` 表达固定值，limits 保留数值资源上限。`TestP2RuntimeAccountsCapabilitiesAndPersistence` 及实际响应 schema 校验覆盖开放状态和上限。 |
+| P2-02 | ACC01/02/03/07 接入规范化凭据、加密导入、脱敏列表/读取、导入幂等、HTTPS 在线验证与元数据版本。复用原 PrepareUK 的 need_selfinfo=1 和 records 结构；UID/UK 区分、未知字段 null。`TestP2LiveHTTPTransfersAndRecovery`、`TestCredentialImportCanonicalization`、`TestP2TokenOnlyValidationCannotClaimCookieIdentity`、`TestP2RuntimeAccountsCapabilitiesAndPersistence` 及专用账号实测。 |
+| P2-03 | bootstrap 装配唯一账号/传输服务，目录锁先于恢复和派发，ready 检查启用子系统；任务使用服务生命周期，提交连接断开后继续。`TestP2LiveHTTPTransfersAndRecovery`、`TestDurableAdmissionRepairsLostSubmissionAndRestart` 和既有 bootstrap 启动/目录锁测试。 |
+| P2-04 | 显式账号、单个 local 源/绝对远端路径、真实已有父目录、固定选项和 1 B—32 MiB 限制；上传目录与下载目标正确追加 basename。显式 false/0 保留，不支持的选项 422。`TestP2HTTPRejectsUnsupportedAndMalformedRequests` 及真实上传/下载字节核对。 |
+| P2-05 | queued 行是派发依据，启动及定期扫描修补入库后崩溃/断连窗口；提交/账号/控制分别记录幂等，控制回复与状态同事务。至少 24 小时，活动任务控制重放不提前过期；任务随记录保留。`TestDurableAdmissionRepairsLostSubmissionAndRestart`、`TestQueueBoundAndConcurrentSubmissionReplay`、`TestP2ControlReplayRetentionAndCiphertextFailure` 及 SIGKILL admitted 场景。 |
+| P2-06 | JOB02/04/06/08 使用公共 DTO；记录不直接序列化。Job、Result、Progress、Problem、有效选项、nullable 字段和字符串整数通过实际 schema 校验。权限同时检查 owner、账号、root 和原传输 scope，未终结 result=409。`TestP2LiveHTTPTransfersAndRecovery`、`TestTargetLockCancellationAdmissionAndOwnerPermissions`。 |
+| P2-07 | 两个执行名额、16 个等待名额，429/Retry-After；同远端目标或实际本地目标共用可取消锁，root 别名不能绕过。已确认完成可胜过取消；interrupted+committing/done 拒绝伪报取消，恢复先核验。`TestTargetLockCancellationAdmissionAndOwnerPermissions`、`TestInterruptedCommitCannotBeReportedCancelled`、`TestSingleFileTransferRoundTripAndCancellationIsolation`、`TestSingleFileTransferReconcilesLostCommitResponse`。 |
+| P2-08 | 停接收、停止服务任务、等待检查点/终态后再关闭客户端、存储和锁；写入和关闭有期限，错误可见；超时仍不抢先关闭执行器的存储。`TestP2HTTPProcessSIGTERMInterruptsActiveTransfer`、原 bootstrap 生命周期测试与真实运行时重启验证。 |
+| P2-09 | schema v1→v2→v3 增量迁移，状态/时间/version 以 SQL 为准；检查 RowsAffected，兼容旧记录中的 JSON null 检查点；新下载先登记随机临时文件分配，再创建文件。Unix 固定父目录描述符后打开和不覆盖提交；旧检查点转换与回滚边界见指南。`TestP2MigrationFromV1AndV2PreservesEncryptedState`、`TestP2StateWritesCheckAffectedRowsAndKeepVersions`、`TestP2ControlReplayRetentionAndCiphertextFailure`、`TestP2DownloadAllocationAndCommitFaultWindows`、`TestP2DownloadRootsAliasSameTargetAndCancelCleanup` 及实际恢复测试。 |
+| P2-10 | Bearer→账号→上传→查询/结果→下载→取消→重开/恢复的真实 handler 响应；受控 TLS 使用生产百度协议、multipart 和执行器。`TestP2HTTPProcessSIGKILLRecoveryBoundaries` 在已入库未派发、已确认分片、上游已合并但响应未返回、done 已持久化但终态前四个点杀死真实子进程；确认分片和合并各只执行一次。错误 Range/长度、忽略 Range、提前断流、慢流取消和 body 空闲超时另有测试。 |
+| P2-11 | 已使用用户明确授权的扫码会话及 `/BaiduPCS-Go-P2-Verification/` 内随机独立子目录实测。账号验证、1 MiB 上传及下载 SHA-256/字节一致、取消后后续任务、关闭/重启 interrupted→resume→succeeded、最终远端长度和清理通过。Linux/amd64，Go 1.23.12，app_id 266719；账号类型未查询。完整范围与时间见脱敏 JSON。 |
+| P2-12 | 新增操作指南、可运行请求示例、实际能力约束、上游 opt-in 验收入口、迁移/保留/关闭说明，更新交接、设计、覆盖和 CI。P3/P4 完整业务仍独立核销。 |
 
-## 实际证据
-
-复现命令：
+## 离线与进程证据
 
 ```sh
-GOTOOLCHAIN=go1.23.12 go test -race -count=1 -timeout=90s \
-  ./internal/domain/account ./internal/infrastructure/baidu
+export GOTOOLCHAIN=go1.23.12
+BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
+BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
+go test -race -count=1 -timeout=180s \
+  ./internal/domain/... ./internal/application/... \
+  ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
+
+python3 -m venv /tmp/baidupcs-http-venv
+/tmp/baidupcs-http-venv/bin/python -m pip install -r api/openapi/tools/requirements.txt
+/tmp/baidupcs-http-venv/bin/python api/openapi/tools/check_contract.py \
+  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json
+python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p2-builds.json
 ```
 
-| 测试 | 证明的范围 |
-| --- | --- |
-| TestCredentialImportCanonicalization | 无尾分号Cookie不丢失；拒绝缺BDUSS、重复Cookie、换行、坏字段及混合凭据；账号JSON不含凭据 |
-| TestSingleFileTransferRoundTripAndCancellationIsolation | 两账号同路径使用各自Cookie；上传后下载字节一致；取消A不影响B和新C；跨账号读取拒绝；取消任务不能恢复；同key去重及不同请求冲突；数据库/WAL无明文测试凭据 |
-| TestSingleFileTransferRestartAndConfirmedRange | 停止并关闭存储，重建工厂与服务后恢复；注入遗留running状态转interrupted；已确认上传分片只发送一次；下载使用正偏移Range且最终字节一致 |
-| TestSingleFileTransferRejectsChangedSourceAndCheckpointBinding | 更换目标、凭据版本或源文件时拒绝旧检查点，不能复用另一个目标的uploadid |
-| TestSingleFileTransferReconcilesLostCommitResponse | 模拟合并已完成但响应连接丢失，保持interrupted；重开后按远端长度/摘要核对，合并操作总计只执行一次 |
+本轮相关包 race 通过；39 组实际 HTTP 响应覆盖全部 12 个 implemented 和 10 个 partial 的成功路径，以及所有 partial 的拒绝路径；67 个 schema 边界用例、105 组目标 HTTP exchanges、615 条映射校验通过。原 14 个明确离线的 CLI 包回归通过。13 个 CGO=0 CLI 目标编译通过，SQLite 仅在原五个服务目标链接。P0 已记录的三个旧测试问题保留，未运行不加筛选的全仓网络测试。
 
-测试只连接本机受控TLS服务，验证的是实际生产适配器、协议解析、执行组件和SQLite组合；没有访问百度，也没有读取用户正常账号或修改用户网盘。重启测试为组件关闭/重开及持久状态故障注入，尚未进行服务子进程SIGKILL、主机掉电或各目标机运行测试。
+子进程测试通过存储边界注入“停在某次写入之后”的故障时机，使用生产 handler、应用服务、SQLite、ClientFactory 和 SingleFileEngine，网络连接本机验证证书的 TLS 百度协议服务。它们不计为真实百度传输；真实百度证据来自下节独立验收。目标机运行证据本轮只新增 Linux/amd64，不把交叉编译称作其他目标机运行通过。
 
-## 此次发现与处理
+## 真实上游复现
 
-旧PCSUpload缓存进程级HTTP客户端，不能直接作为账号隔离适配器。本轮通过实例Session执行同样的百度协议，不复用该全局客户端。MultiUploader取消后等待provider返回再释放文件，并为并发终止错误赋值加锁。
+`TestP2UpstreamDedicatedAccount` 默认 skip，只有显式提供凭据文件和约定的测试根目录才运行。文件应采用 ACC01 的完整 JSON body，且为 0600 私有普通文件。测试不读取 CLI 当前账号，不列出正常目录，不打印凭据、账号标识、文件名或签名 URL；仅创建本轮随机目录和测试文件，最后删除该子目录。创建/清理是测试 fixture，FIL07 等 HTTP 路由仍 planned。
 
-旧Downloader取消可能返回nil，且monitor/缓存仍含共享状态。本轮增加独立、受限的ExecuteContext入口，使取消返回错误，检查点由调用方在文件Sync后确认；恢复要求206及精确Content-Range，不能把忽略Range的完整响应追加到文件。该入口不是对旧并行下载器已经安全的证明。
+```sh
+BAIDUPCS_P2_LIVE_CREDENTIAL_FILE=/private/account-import.json \
+BAIDUPCS_P2_LIVE_REMOTE_DIR=/BaiduPCS-Go-P2-Verification \
+BAIDUPCS_P2_LIVE_REPORT=/private/p2-live-report.json \
+GOTOOLCHAIN=go1.23.12 go test -v -count=1 -timeout=10m \
+  -run '^TestP2UpstreamDedicatedAccount$' ./internal/bootstrap
+```
 
-上传合并前保存committing状态，响应不明先核对；本地最终文件采用同目录临时文件与不覆盖目标的提交。取消与最终提交竞争时，不确定结果保持interrupted，不宣称取消撤销了已发生的效果。失败只持久化安全业务码，不保存含签名URL的原始错误文本。
+验收入口显式把运行环境的 HTTPS_PROXY 应用为本轮客户端配置；普通服务依然不隐式继承进程代理。扫码只是本次取得测试会话的独立辅助流程，不表示 LOG 登录会话或 qrlogin CLI 已实现。凭据输入文件由调用者管理。本轮扫码辅助流程创建的 Cookie、票据、二维码、凭据和原始临时目录均已清除；仓库仅保存脱敏结果，实值扫描无命中。
 
-## 限制及接下来的门槛
+## 后续边界与余量
 
-继续开发以[交接清单P2-01至P2-12](http-api-handoff.md#4-p2-剩余待办按这个顺序提交)为准；包括当前尚未落实的partial能力表达、HTTP装配、持久派发、关闭、错误映射及崩溃窗口。
+P3 仍需完整账号/凭据更新与吊销、账号迁移、文件读取与分页、任务列表/逐项结果/事件、重试、扫描与 artifact；P2 的持久派发和控制无需重写，任务/事件同事务仍在 P3。P4 仍需目录/空文件、完整策略、全部有效选项、并行预算、暂停、暂存、内容代理和旧下载器隔离。此轮只完成受限普通文件链路，不能把十个 partial 改成完整 implemented。
 
-当前内部验证支持1字节至32MiB普通文件、单连接下载、上传skip策略及无速率限制。已配置非零速率会明确拒绝；目录、空文件、并行下载、完整秒传/重试策略、暂存、流式代理和全部参数在P4完成。内部Record含加密存储所需配置和检查点，不是可直接序列化的HTTP响应。
-
-下一步先接入受限HTTP DTO、原操作权限、脱敏响应、实际契约验证和runtime排空；只按已实现的选项开放能力。还须补齐同目标任务互斥、任务记录/检查点保留清理、凭据版本管理、子进程中断，以及显式专用账号的上游实测。P2门槛通过前不建设完整SSE、context CRUD或额外管理框架，也不把目前结果称为完整P2或完整上传下载。
-
-
-## 本轮收尾验证
-
-新增相关包及根入口的race通过，原14个离线CLI测试包通过。当前18组实际HTTP响应覆盖全部12个P1操作；105个操作、190个schema、67个边界用例和615条源码映射通过，公开实现率未因内部验证提高。调整后的源码重新完成13个CLI目标CGO=0构建，SQLite依然只在5个初始服务目标导入。P0记录的3项既有测试问题保留，未运行无筛选的全仓网络测试。
+实时后台保留/磁盘配额、管理资源和主机掉电一致性没有提前承诺。P2 任务/检查点保留供恢复，有限名额和明确生命周期已经执行；原 35—52 工程工作日估算不由这次最小链路机械折减。后续应按 P3/P4 具体用例和上游证据重新评估，避免以 22 个可调用接口或全部 615 条映射代替全业务完成率。

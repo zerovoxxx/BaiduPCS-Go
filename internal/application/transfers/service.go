@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"path"
 	"strings"
 	"sync"
@@ -15,34 +14,50 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/operation"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/ports"
 )
 
-// Service is the bounded P2 execution slice, not a generic workflow scheduler.
-// Its context belongs to the service lifecycle, never the submission request.
+// Service is the single owner's bounded durable dispatcher. Its context belongs
+// to the service lifecycle, never to a submission's HTTP connection.
 type Service struct {
-	repo          ports.TransferRepository
-	accounts      ports.AccountRepository
-	configuration ports.ConfigurationRepository
-	engine        ports.TransferEngine
-	ctx           context.Context
-	stop          context.CancelFunc
-	mu            sync.Mutex
-	closing       bool
-	storageError  error
-	running       map[string]context.CancelFunc
-	slots         chan struct{}
-	workers       chan struct{}
-	wg            sync.WaitGroup
+	repo                    ports.TransferRepository
+	accounts                ports.AccountRepository
+	configuration           ports.ConfigurationRepository
+	engine                  ports.TransferEngine
+	ctx                     context.Context
+	stop                    context.CancelFunc
+	mu                      sync.Mutex
+	closing                 bool
+	storageError            error
+	running                 map[string]context.CancelFunc
+	targets                 map[string]*targetLock
+	slots, workers          chan struct{}
+	wake                    chan struct{}
+	dispatchDone, closeDone chan struct{}
+	closeOnce               sync.Once
+	wg                      sync.WaitGroup
+}
+
+type targetLock struct {
+	token      chan struct{}
+	references int
 }
 
 func New(ctx context.Context, repo ports.TransferRepository, accounts ports.AccountRepository, cfg ports.ConfigurationRepository, engine ports.TransferEngine) (*Service, error) {
 	if err := repo.InterruptTransfers(ctx); err != nil {
 		return nil, err
 	}
+	// Fail startup on corrupt pending records, before any executor is started.
+	if _, err := repo.QueuedTransfers(ctx, 18); err != nil {
+		return nil, err
+	}
 	lifetime, cancel := context.WithCancel(ctx)
-	return &Service{repo: repo, accounts: accounts, configuration: cfg, engine: engine, ctx: lifetime, stop: cancel, running: map[string]context.CancelFunc{}, slots: make(chan struct{}, 18), workers: make(chan struct{}, 2)}, nil
+	s := &Service{repo: repo, accounts: accounts, configuration: cfg, engine: engine, ctx: lifetime, stop: cancel, running: map[string]context.CancelFunc{}, targets: map[string]*targetLock{}, slots: make(chan struct{}, 18), workers: make(chan struct{}, 2), wake: make(chan struct{}, 1), dispatchDone: make(chan struct{}), closeDone: make(chan struct{})}
+	go s.dispatchLoop()
+	s.notify()
+	return s, nil
 }
 func permission(p auth.Principal, r transfer.Record) error {
 	local := "local.read"
@@ -54,12 +69,24 @@ func permission(p auth.Principal, r transfer.Record) error {
 	}
 	return nil
 }
+func queueFull() error {
+	return &fault.Error{Kind: fault.RateLimited, Code: "QUEUE_FULL", Message: "传输队列已满", Retryable: true}
+}
+func (s *Service) Ready(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closing || s.ctx.Err() != nil {
+		return fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在关闭")
+	}
+	return s.storageError
+}
 func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Request, key string) (transfer.Record, error) {
-	r := transfer.Record{Owner: p.ID, Request: req, CreatedAt: time.Now().UTC().Format(time.RFC3339Nano)}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	r := transfer.Record{Owner: p.ID, Request: req, CreatedAt: now, UpdatedAt: now, State: "queued", Version: 1}
 	if err := permission(p, r); err != nil {
 		return r, err
 	}
-	if req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(key) > 128 {
+	if req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128 {
 		return r, fault.New(fault.Invalid, "INVALID_REQUEST", "单文件传输输入无效")
 	}
 	if key != "" {
@@ -73,7 +100,16 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		}
 		r.ID = "job_" + hex.EncodeToString(random[:])
 	}
-	// Resolve versions once. Replays retain the first record and its snapshot.
+	// Replay before resolving defaults: later configuration changes must not alter
+	// an accepted task's snapshot or turn its replay into an unsupported request.
+	if old, err := s.repo.Transfer(ctx, r.ID); err == nil {
+		if old.Request != req || old.Owner != p.ID {
+			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
+		}
+		return old, nil
+	} else if fault.As(err).Kind != fault.NotFound {
+		return r, err
+	}
 	a, err := s.accounts.Account(ctx, req.AccountID)
 	if err != nil {
 		return r, err
@@ -83,94 +119,204 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		return r, err
 	}
 	r.Config, r.ConfigRevision, r.CredentialRevision = cfg.Client(), cfg.Revision(), a.Credentials.Revision
+	if err = resolveOptions(&r); err != nil {
+		return r, err
+	}
+	if preparer, ok := s.engine.(ports.TransferPreparer); ok {
+		r.TargetKey, err = preparer.Prepare(ctx, r, a.Credentials)
+		if err != nil {
+			return r, err
+		}
+	} else if req.Public {
+		return r, fault.New(fault.Unavailable, "TRANSFER_NOT_READY", "传输准备服务不可用")
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closing || s.ctx.Err() != nil {
 		return r, fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在关闭")
 	}
-	// Look up an existing logical submission before applying the queue bound.
-	old, err := s.repo.Transfer(ctx, r.ID)
-	if err == nil {
+	// Submissions and controls serialize admission, not network execution.
+	if old, err := s.repo.Transfer(ctx, r.ID); err == nil {
 		if old.Request != req || old.Owner != p.ID {
 			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
 		}
 		return old, nil
-	}
-	if fault.As(err).Kind != fault.NotFound {
+	} else if fault.As(err).Kind != fault.NotFound {
 		return r, err
 	}
-	select {
-	case s.slots <- struct{}{}:
-	default:
-		return r, fault.New(fault.Unavailable, "QUEUE_FULL", "传输队列已满")
+	n, err := s.repo.ActiveTransferCount(ctx)
+	if err != nil {
+		return r, err
+	}
+	if n >= 18 {
+		return r, queueFull()
 	}
 	created, err := s.repo.CreateTransfer(ctx, r)
-	if err != nil || !created {
-		<-s.slots
-		if err != nil {
-			return r, err
-		}
+	if err != nil {
+		return r, err
+	}
+	if !created {
 		return s.repo.Transfer(ctx, r.ID)
 	}
-	s.schedule(r)
-	r.State = "queued"
+	// The durable queued row is the dispatch authority. A crash or disconnected
+	// request here is repaired by the next scan or the next service start.
+	s.notify()
 	return r, nil
 }
+func (s *Service) notify() {
+	select {
+	case s.wake <- struct{}{}:
+	default:
+	}
+}
+func (s *Service) dispatchLoop() {
+	defer close(s.dispatchDone)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-s.ctx.Done():
+			return
+		case <-s.wake:
+		case <-ticker.C:
+		}
+		records, err := s.repo.QueuedTransfers(s.ctx, 18)
+		if err != nil {
+			if s.ctx.Err() == nil {
+				s.recordStorageError(err)
+			}
+			continue
+		}
+		s.mu.Lock()
+		if !s.closing && s.ctx.Err() == nil {
+			for _, r := range records {
+				if _, active := s.running[r.ID]; active {
+					continue
+				}
+				select {
+				case s.slots <- struct{}{}:
+					s.schedule(r)
+				default:
+				}
+			}
+		}
+		s.mu.Unlock()
+	}
+}
 
-// schedule is called with mu held and an already reserved slot.
+// acquireTarget is cancellable. Keys name the actual local destination (root
+// aliases included) or the account's absolute remote target. Locks are released
+// only after the final checkpoint and terminal state have been written.
+func (s *Service) acquireTarget(ctx context.Context, key string) (func(), error) {
+	s.mu.Lock()
+	lock := s.targets[key]
+	if lock == nil {
+		lock = &targetLock{token: make(chan struct{}, 1)}
+		s.targets[key] = lock
+	}
+	lock.references++
+	s.mu.Unlock()
+	releaseReference := func() {
+		s.mu.Lock()
+		lock.references--
+		if lock.references == 0 {
+			delete(s.targets, key)
+		}
+		s.mu.Unlock()
+	}
+	select {
+	case lock.token <- struct{}{}:
+		return func() { <-lock.token; releaseReference() }, nil
+	case <-ctx.Done():
+		releaseReference()
+		return nil, ctx.Err()
+	}
+}
 func (s *Service) schedule(r transfer.Record) {
-	// The returned submission record and the executor own separate snapshots.
 	r = r.Clone()
 	ctx, cancel := context.WithCancel(s.ctx)
 	s.running[r.ID] = cancel
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
-		defer func() { cancel(); <-s.slots; s.mu.Lock(); delete(s.running, r.ID); s.mu.Unlock() }()
-		finishCtx := context.WithoutCancel(ctx)
+		defer func() {
+			cancel()
+			<-s.slots
+			s.mu.Lock()
+			delete(s.running, r.ID)
+			s.mu.Unlock()
+			s.notify()
+		}()
 		select {
 		case s.workers <- struct{}{}:
 			defer func() { <-s.workers }()
 		case <-ctx.Done():
-			_, err := s.repo.TransitionTransfer(finishCtx, r.ID, []string{"queued"}, "interrupted")
+			_, err := s.transition(r.ID, []string{"queued"}, "interrupted")
 			s.recordStorageError(err)
 			return
 		}
-		ok, err := s.repo.TransitionTransfer(finishCtx, r.ID, []string{"queued"}, "running")
+		ok, err := s.transition(r.ID, []string{"queued"}, "running")
 		if err != nil || !ok {
 			s.recordStorageError(err)
 			return
 		}
-		a, err := s.accounts.Account(ctx, r.Request.AccountID)
-		if err == nil && a.Credentials.Revision != r.CredentialRevision {
-			err = fault.New(fault.Conflict, "CREDENTIAL_REVISION_MISMATCH", "凭据版本已变更，拒绝恢复旧任务")
+		target := r.TargetKey
+		if target == "" {
+			target = r.Request.Kind + ":" + r.Request.AccountID + ":" + r.Request.RootID + ":" + r.Request.RelativePath + ":" + r.Request.RemotePath
 		}
+		release, err := s.acquireTarget(ctx, target)
 		if err == nil {
-			err = s.engine.Execute(ctx, r, a.Credentials, func(cp json.RawMessage) error {
-				flush, done := context.WithTimeout(finishCtx, 5*time.Second)
-				defer done()
-				return s.repo.SaveTransferCheckpoint(flush, r.ID, cp)
-			})
+			defer release()
 		}
-		state := "succeeded"
-		code := ""
+		var aErr error
+		if err == nil {
+			a, aErr2 := s.accounts.Account(ctx, r.Request.AccountID)
+			aErr = aErr2
+			if aErr == nil && a.Credentials.Revision != r.CredentialRevision {
+				aErr = fault.New(fault.Conflict, "CREDENTIAL_REVISION_MISMATCH", "凭据版本已变更，拒绝恢复旧任务")
+			}
+			if aErr == nil {
+				aErr = s.engine.Execute(ctx, r, a.Credentials, func(cp json.RawMessage) error {
+					flush, done := context.WithTimeout(context.Background(), 5*time.Second)
+					defer done()
+					return s.repo.SaveTransferCheckpoint(flush, r.ID, cp)
+				})
+			}
+			err = aErr
+		}
+		flush, done := context.WithTimeout(context.Background(), 5*time.Second)
+		defer done()
+		state, code := "succeeded", ""
 		if err != nil {
 			code = fault.As(err).Code
-			current, readErr := s.repo.Transfer(finishCtx, r.ID)
+			current, readErr := s.repo.Transfer(flush, r.ID)
 			s.recordStorageError(readErr)
+			var cp struct{ Phase string }
+			_ = json.Unmarshal(current.Checkpoint, &cp)
 			switch {
-			case fault.As(err).Code == "REMOTE_RESULT_UNKNOWN" || fault.As(err).Code == "LOCAL_RESULT_UNKNOWN":
+			case code == "REMOTE_RESULT_UNKNOWN" || code == "LOCAL_RESULT_UNKNOWN" || cp.Phase == "committing" || cp.Phase == "done":
 				state = "interrupted"
 			case readErr == nil && current.State == "cancelling":
 				state = "cancelled"
+				code = ""
 			case s.ctx.Err() != nil:
 				state = "interrupted"
+				code = ""
 			default:
 				state = "failed"
 			}
 		}
-		s.recordStorageError(s.repo.FinishTransfer(finishCtx, r.ID, state, code))
+		if finishErr := s.repo.FinishTransfer(flush, r.ID, state, code); finishErr != nil {
+			s.recordStorageError(finishErr)
+		} else if state == "cancelled" {
+			s.cleanup(flush, r.ID)
+		}
 	}()
+}
+func (s *Service) transition(id string, from []string, to string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return s.repo.TransitionTransfer(ctx, id, from, to)
 }
 func (s *Service) Get(ctx context.Context, p auth.Principal, id string) (transfer.Record, error) {
 	r, err := s.repo.Transfer(ctx, id)
@@ -180,31 +326,26 @@ func (s *Service) Get(ctx context.Context, p auth.Principal, id string) (transfe
 	if err = permission(p, r); err != nil {
 		return transfer.Record{}, err
 	}
+	if len(r.EffectiveOptions) == 0 {
+		legacy := r
+		legacy.Request.Public = false
+		if err = resolveOptions(&legacy); err != nil {
+			return transfer.Record{}, err
+		}
+		r.EffectiveOptions = legacy.EffectiveOptions
+	}
 	return r, nil
 }
-func (s *Service) Cancel(ctx context.Context, p auth.Principal, id string) (transfer.Record, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	r, err := s.Get(ctx, p, id)
-	if err != nil {
-		return r, err
-	}
-	if r.Terminal() {
-		return r, nil
-	}
-	state := "cancelling"
-	if r.State == "queued" || r.State == "interrupted" {
-		state = "cancelled"
-	}
-	if _, err = s.repo.TransitionTransfer(ctx, id, []string{r.State}, state); err != nil {
-		return r, err
-	}
-	if cancel := s.running[id]; cancel != nil {
-		cancel()
-	}
-	return s.repo.Transfer(ctx, id)
+
+type Control struct{ Key, Reason string }
+
+func (s *Service) Cancel(ctx context.Context, p auth.Principal, id string, input ...Control) (transfer.Record, error) {
+	return s.control(ctx, p, id, false, input...)
 }
-func (s *Service) Resume(ctx context.Context, p auth.Principal, id string) (transfer.Record, error) {
+func (s *Service) Resume(ctx context.Context, p auth.Principal, id string, input ...Control) (transfer.Record, error) {
+	return s.control(ctx, p, id, true, input...)
+}
+func (s *Service) control(ctx context.Context, p auth.Principal, id string, resume bool, input ...Control) (transfer.Record, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	r, err := s.Get(ctx, p, id)
@@ -214,44 +355,121 @@ func (s *Service) Resume(ctx context.Context, p auth.Principal, id string) (tran
 	if s.closing || s.ctx.Err() != nil {
 		return r, fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在关闭")
 	}
-	if _, active := s.running[id]; active {
-		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务仍在排空")
+	control := Control{}
+	if len(input) > 0 {
+		control = input[0]
 	}
-	if r.State != "interrupted" {
-		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "仅可恢复中断任务")
+	op := "JOB06/" + id
+	if resume {
+		op = "JOB08/" + id
 	}
-	select {
-	case s.slots <- struct{}{}:
-	default:
-		return r, fault.New(fault.Unavailable, "QUEUE_FULL", "传输队列已满")
-	}
-	ok, err := s.repo.TransitionTransfer(ctx, id, []string{"interrupted"}, "queued")
-	if err != nil || !ok {
-		<-s.slots
-		if err == nil {
-			err = errors.New("task state changed")
+	m := operation.New(p.ID, op, control.Key, control.Reason)
+	if replay, err := s.repo.ReplayControl(ctx, m); err != nil {
+		return r, err
+	} else if replay != nil {
+		if len(replay.EffectiveOptions) == 0 || string(replay.EffectiveOptions) == "null" {
+			replay.EffectiveOptions = r.EffectiveOptions
 		}
+		return *replay, nil
+	}
+	state := ""
+	if resume {
+		if _, active := s.running[id]; active {
+			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务仍在排空")
+		}
+		if r.State != "interrupted" {
+			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "仅可恢复中断任务")
+		}
+		a, err := s.accounts.Account(ctx, r.Request.AccountID)
+		if err != nil {
+			return r, err
+		}
+		if a.Credentials.Revision != r.CredentialRevision {
+			return r, fault.New(fault.Conflict, "CREDENTIAL_REVISION_MISMATCH", "凭据版本已改变")
+		}
+		n, err := s.repo.ActiveTransferCount(ctx)
+		if err != nil {
+			return r, err
+		}
+		if n >= 18 {
+			return r, queueFull()
+		}
+		state = "queued"
+	} else if !r.Terminal() {
+		var cp struct{ Phase string }
+		if len(r.Checkpoint) > 0 && json.Unmarshal(r.Checkpoint, &cp) != nil {
+			return r, fault.New(fault.Internal, "CHECKPOINT_INVALID", "任务检查点损坏")
+		}
+		if r.State == "interrupted" && (cp.Phase == "committing" || cp.Phase == "done") {
+			return r, fault.New(fault.Conflict, "RECONCILIATION_REQUIRED", "提交结果尚未核对，请恢复任务以核验结果")
+		}
+		state = "cancelling"
+		if r.State == "queued" || r.State == "interrupted" {
+			state = "cancelled"
+		}
+	}
+	result, err := s.repo.ControlTransfer(ctx, id, []string{r.State}, state, m)
+	if err != nil {
 		return r, err
 	}
-	s.schedule(r)
-	r.State = "queued"
-	return r, nil
+	if len(result.EffectiveOptions) == 0 {
+		result.EffectiveOptions = r.EffectiveOptions
+	}
+	if !resume {
+		if cancel := s.running[id]; cancel != nil {
+			cancel()
+		}
+		if result.State == "cancelled" {
+			if cleaner, ok := s.engine.(ports.TransferCleaner); ok {
+				if err := cleaner.CleanupTransfer(ctx, result); err != nil {
+					return result, err
+				}
+			}
+		}
+	}
+	s.notify()
+	return result, nil
+}
+func (s *Service) cleanup(ctx context.Context, id string) {
+	if cleaner, ok := s.engine.(ports.TransferCleaner); ok {
+		r, err := s.repo.Transfer(ctx, id)
+		if err == nil {
+			err = cleaner.CleanupTransfer(ctx, r)
+		}
+		s.recordStorageError(err)
+	}
 }
 func (s *Service) recordStorageError(err error) {
 	if err == nil {
 		return
 	}
 	s.mu.Lock()
-	s.storageError = errors.Join(s.storageError, err)
+	// Preserve the first failure without growing an unbounded error chain if a
+	// failed storage device makes every subsequent dispatch scan fail as well.
+	if s.storageError == nil {
+		s.storageError = err
+	}
 	s.mu.Unlock()
 }
+func (s *Service) CloseContext(ctx context.Context) error {
+	s.closeOnce.Do(func() {
+		s.mu.Lock()
+		s.closing = true
+		s.stop()
+		s.mu.Unlock()
+		go func() { <-s.dispatchDone; s.wg.Wait(); close(s.closeDone) }()
+	})
+	select {
+	case <-s.closeDone:
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		return s.storageError
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
 func (s *Service) Close() error {
-	s.mu.Lock()
-	s.closing = true
-	s.stop()
-	s.mu.Unlock()
-	s.wg.Wait()
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.storageError
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	return s.CloseContext(ctx)
 }

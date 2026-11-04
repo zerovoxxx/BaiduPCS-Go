@@ -1,6 +1,6 @@
-# HTTP API 服务启动与 P1 范围
+# HTTP API 服务启动与 P2 范围
 
-当前版本：契约 `0.1.0-p1`。P1 实现配置快照、独立 ClientFactory、Bearer 身份和服务运行基础，开放 12 个系统/配置操作；账号和网盘业务按后续阶段开放。接手开发参见[工程交接清单](http-api-handoff.md)，不要将内部P2验证误认为已开放HTTP接口。[验证记录](http-api-p1-verification.md)列出离线测试和构建证据。
+当前版本：契约 `0.2.0-p2`。12 个 P1 系统/配置操作保持 implemented，另开放账号、单文件传输和任务控制的 10 个 partial 操作，其余 83 个仍 planned。配置快照、隔离 ClientFactory、Bearer 和 SQLite 沿用 P1；具体限制和 HTTP body 见[P2 操作指南](http-api-p2-guide.md)，证据见[P2 验证记录](http-api-p2-verification.md)，继续开发从[工程交接](http-api-handoff.md)进入 P3。
 
 ## 启动
 
@@ -69,7 +69,8 @@ false、0、空代理字符串会保留含义；null、重复 JSON key、未知�
 | POST /api/v1/configuration/validate | admin；候选校验，不写入 |
 | POST /api/v1/configuration/reset | admin；强 If-Match，支持幂等 |
 | GET /api/v1/configuration/defaults | admin；源码默认值与平台模板，默认 savedir 为 null |
-| 其他 P0 已声明操作 | 先检查服务身份、scope 和路径账号 allowlist，随后 501；不会创建空任务伪报成功 |
+| ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08 | P2受限账号、单文件与任务；必须遵守固定选项、权限和大小限制，详见P2指南 |
+| 其他 planned 操作 | 先检查服务身份、scope 和路径账号 allowlist，随后 501 |
 
 `/docs` 本身也需要 Authorization。可以通过能设置此头的客户端访问；调试页只向同源 `/api/v1/` 发出请求，token 不写浏览器存储。CORS 默认关闭，不采信未配置的反向代理身份头。日志只记录路由模板、operationId、状态、请求 ID 和耗时，不记录原 URL、请求体、Cookie 或 Authorization。服务使用结构化日志，不转发可能含上游签名的 CLI 原始 verbose 输出。
 
@@ -93,8 +94,8 @@ TLS 使用启动字段 `tls_certificate`、`tls_key`，两者须同时给出，�
 
 ## 生命周期与后续接入
 
-进程入口处理 SIGINT/SIGTERM。关闭时先停止接收请求、使 readiness 不就绪，最多等待 10 秒排空，再取消实例客户端、关闭数据库和释放目录锁。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；SSE 和内容路径预留独立空闲策略，实际流与任务排空在 P3/P4 接入。
+进程入口处理 SIGINT/SIGTERM。关闭时先使 readiness 不就绪、停止接收新请求，HTTP 最多等待 10 秒排空，再取消任务并等待检查点/终态，随后关闭客户端、数据库和目录锁。任务关闭最多等待 15 秒，必要时取消网络后再有界等待 5 秒；未结束的执行器仍保留存储，错误会返回，不抢先关闭 DB。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；SSE 和内容路径预留独立空闲策略，实际流与任务排空在 P3/P4 接入。
 
 ClientFactory 是基础设施内部协作者，由 bootstrap 持有，供 P2 的百度适配器和 P4 的传输适配器使用。每次 New 明确给出 account_id、凭据 revision、配置 Snapshot 和 context，并在结束时 Close；返回全新 PCS、Cookie Jar、Transport、Resolver 和签名/缓存状态。更新配置或修改调用方原切片/凭据 map 不会改掉已绑定实例。新路径使用证书校验、精确代理主机规则和实例网卡配置，不回退到进程代理环境或 requester 全局设置。
 
-P1 的独立上游客户端按同步请求设置30秒超时。P2内部单文件验证已使用独立任务context，并关闭客户端整体超时；流式空闲策略和有界排空仍须在HTTP接入时补齐，不能把同步超时用于整个传输。当前已有内部账号/持久任务/单文件执行切片，但尚未装配到server；账号及传输HTTP仍返回501。完整账号与文件读取在P3、完整传输在P4、CLI默认值管理在P6，事件与写业务按计划接入；jobs/job_events表的存在不等于完整调度器和事件系统已完成。
+同步请求保留30秒期限；P2传输绑定独立任务context，不使用整体30秒客户端超时。连接/响应头有界，流式body每次读取空闲超过30秒会取消；按任务取消和服务关闭到达实际连接。账号及传输已装配到server，queued记录持久扫描派发，未知提交结果核验后恢复。完整账号和文件读取在P3、完整传输在P4、CLI默认值管理在P6；事件、列表和逐项结果仍按完整阶段补齐。

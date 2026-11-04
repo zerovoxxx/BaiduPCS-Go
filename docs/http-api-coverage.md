@@ -941,7 +941,7 @@
 | TaskUnitRunResult、DownloadStatus、上传状态与控制句柄 | Job/Progress/JobItem/CheckpointSummary/WorkerStatus；累计数量为字符串、未知总量 null、跳过与失败分开；空 Pause/Resume 不算成功实现 |
 | 配置/凭据 revision 与任务有效选项 | 任务提交时固定；普通配置更新不改变已有 job；凭据吊销使旧引用停止执行 |
 
-P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前615条均已映射。105个目标操作中12个系统/配置操作已实现，其余93个为planned；67 个 schema 边界用例通过，25 组 HTTP 行为规格尚未执行，真实百度实测未运行。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
+P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前615条均已映射。105个目标操作中12个系统/配置操作implemented、10个账号/单文件/任务操作partial、83个planned；67个schema边界用例通过，39组实际HTTP响应覆盖全部可调用操作；25组完整行为规格仍按后续阶段核销。P2的真实百度结果仅限用户授权账号和专用目录，见独立脱敏报告。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
 
 
 ## 14 P1 新分层代码归属
@@ -949,7 +949,7 @@ P0对609条记录完成初始映射；P1增加server及4个启动参数至614条
 | 目录/入口 | 归属与验证 |
 | --- | --- |
 | internal/bootstrap | 入口组装、模式判断、服务配置、数据目录锁、HTTP与信号生命周期；根main只做CLI参数和signal.NotifyContext |
-| internal/httpapi | 12个系统/配置操作、Bearer协议、严格JSON、强ETag、Problem响应、脱敏日志；其他已声明操作授权后501 |
+| internal/httpapi | 12个系统/配置操作与10个P2 partial handler；Bearer、严格JSON、强ETag、公共账号/Job/Result DTO、Problem及脱敏日志；其余planned操作授权后501 |
 | internal/application | 配置校验/继承/版本/幂等编排、服务身份授权与系统能力；不import HTTP或基础设施 |
 | internal/domain 与 internal/ports | 拥有其数据的不可变快照、账号凭据、principal、领域错误和存储/认证/环境边界 |
 | internal/infrastructure/baidu | ClientFactory每次构建全新PCS/Jar/Transport/缓存及签名状态；测试通过本地TLS上游检查Cookie、UA、配置版本、取消和重定向隔离 |
@@ -958,19 +958,21 @@ P0对609条记录完成初始映射；P1增加server及4个启动参数至614条
 | internal/infrastructure/identity、localfs、network | SHA-256 token摘要、账号/root权限清单、受限根目录及本机网卡查询 |
 | api/openapi/contract.go、openapi.json | 由唯一YAML源生成并嵌入；校验器阻止JSON漂移，启动时校验实现状态与实际handler一致 |
 
-新分层内部函数按上述责任和依赖方向测试管理，不额外制造HTTP路由。P0的402个导出函数与24个配置字段的盘点范围保持；账号、文件、传输的业务迁移仍按P2及后续阶段进行。
+新分层内部函数按上述责任和依赖方向测试管理，不额外制造HTTP路由。P0的402个导出函数与24个配置字段的盘点范围保持；P2账号和受限传输已接入HTTP，完整账号/文件/任务/传输仍按P3及后续阶段核销。
 
 
-## 15 P2 提前验证的内部链路
+## 15 P2 受限 HTTP 与真实执行链路
 
 | 组件 | 当前范围与证据 |
 | --- | --- |
 | application/accounts、domain/account | 三种凭据规范化、独立账号ID；Entry的JSON不包含凭据；规范化及错误输入测试 |
 | application/transfers、domain/transfer、ports/transfers.go | 2个活动任务、16个等待名额；服务生命周期、幂等提交、独立取消、手动恢复；内部记录不是公网DTO |
-| infrastructure/persistence/transfers.go | P1库增量迁移至schema v2；账号、执行记录、配置和检查点加密；状态比较更新及启动中断识别 |
+| infrastructure/persistence/transfers.go | v1→v2→v3增量迁移；账号、执行记录、配置、检查点和控制重放加密；状态/时间/version比较更新、queued派发与启动中断识别 |
 | infrastructure/baidu/transfer.go | 复用当前FakeRapidUpload/UploadTmpFile/UploadCreateSuperFile和MultiUploader；单文件直连下载、摘要、分片/偏移检查点与结果核对 |
 | requester/downloader/context.go | 新增独立的单连接context执行路径，不使用旧全局缓存/monitor；拒绝不匹配的恢复Range和响应长度 |
 | requester/uploader/multiworker.go | 取消后等待当前provider调用返回再释放源文件；并发终止错误写入加锁 |
 | infrastructure/baidu/transfer_test.go | 受控TLS上传回读、A/B/C取消隔离、重开恢复、错误检查点拒绝、远端合并响应丢失核对；race通过 |
 
-这是P2的内部端到端风险验证，尚未接入server handler；不会把UPL01/DWN01或账号公网操作提前标成implemented。当前只支持1字节至32MiB普通文件、单文件并行和skip策略、无速率限制；目录、空文件、其他选项及旧并行下载monitor仍在P4验收。见[P2验证记录](http-api-p2-verification.md)。
+上述组件已接入生产server及10个partial操作，12个P1操作保持implemented。明确支持1字节至32MiB普通文件、固定单文件选项、skip、零限速、查询/结果/取消/恢复。持久派发、同目标锁、控制幂等、关闭、文件故障窗口及四个SIGKILL点已经验证；真实百度的账号、上传回读、取消、重启恢复和清理通过，范围见[P2验证记录](http-api-p2-verification.md)及[脱敏结果](http-api-p2-upstream-verification.json)。目录、空文件、完整选项及旧并行下载monitor仍在P4。
+
+P2补充归属：domain/operation表达逻辑变更摘要；httpapi/p2.go、jobs.go负责十个partial的输入/公开映射；application/accounts与transfers处理权限、快照、幂等和派发；persistence/replays.go负责账号/控制同事务重放、过期与活动保留；localfs/open_*固定真实文件边界及不覆盖提交。新增内部函数不凭函数名增加HTTP端点；现有615项盘点边界和历史快照保持。

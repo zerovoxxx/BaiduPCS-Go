@@ -17,15 +17,19 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	contract "github.com/qjfoidnh/BaiduPCS-Go/api/openapi"
+	appaccounts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/accounts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
+	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/httpapi"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu"
@@ -44,6 +48,8 @@ type Options struct {
 	TokenFile  string
 	Version    string
 	Logger     *slog.Logger
+	// An assembly dependency, never a remotely writable startup field.
+	ClientTransport func(configuration.Client) *http.Transport
 }
 type startup struct {
 	Listen         string            `json:"listen"`
@@ -75,6 +81,7 @@ func IsServerInvocation(args []string) bool {
 type Runtime struct {
 	Handler                  http.Handler
 	Clients                  *baidu.ClientFactory
+	Transfers                *apptransfers.Service
 	DataDir                  string
 	CredentialFile           string
 	store                    *persistence.Store
@@ -207,7 +214,13 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	if err != nil {
 		return nil, err
 	}
-	runtime.Clients = baidu.NewClientFactory()
+	runtime.Clients = baidu.NewClientFactoryWithTransport(options.ClientTransport)
+	if _, err = runtime.store.Accounts(ctx); err != nil {
+		return nil, err
+	}
+	if err = runtime.store.CleanupReplays(ctx); err != nil {
+		return nil, err
+	}
 	cfgService := appconfig.New(runtime.store, defaults, roots, network.Environment{})
 	operations, baseline, err := contract.Catalog()
 	if err != nil {
@@ -221,7 +234,15 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	}
 	lifetime, cancel := context.WithCancel(context.Background())
 	runtime.cancel = cancel
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, baidu.NewSingleFileEngine(runtime.Clients, roots))
+	if err != nil {
+		return nil, err
+	}
+	configureP2Capabilities(operations)
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: appaccounts.NewValidated(runtime.store, runtime.store, runtime.Clients), Transfers: runtime.Transfers, System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+		if err := runtime.Transfers.Ready(ctx); err != nil {
+			return err
+		}
 		if err := runtime.store.Ping(ctx); err != nil {
 			return err
 		}
@@ -323,6 +344,30 @@ func (r *Runtime) Close() error {
 		if r.cancel != nil {
 			r.cancel()
 		}
+		if r.Transfers != nil {
+			if err := r.Transfers.Close(); err != nil {
+				r.closeError = errors.Join(r.closeError, err)
+				// Abort instance connections before another bounded wait. Storage
+				// must outlive the last executor's checkpoint/terminal write.
+				if r.Clients != nil {
+					_ = r.Clients.Close()
+				}
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				err = r.Transfers.CloseContext(ctx)
+				cancel()
+				if errors.Is(err, context.DeadlineExceeded) {
+					go func() {
+						_ = r.Transfers.CloseContext(context.Background())
+						if r.store != nil {
+							_ = r.store.Close()
+						}
+						_ = r.lock.Close()
+					}()
+					return
+				}
+				r.closeError = errors.Join(r.closeError, err)
+			}
+		}
 		if r.Clients != nil {
 			r.closeError = errors.Join(r.closeError, r.Clients.Close())
 		}
@@ -332,6 +377,73 @@ func (r *Runtime) Close() error {
 		r.closeError = errors.Join(r.closeError, r.lock.Close())
 	})
 	return r.closeError
+}
+
+func configureP2Capabilities(operations []system.Operation) {
+	for i := range operations {
+		op := &operations[i]
+		if op.Implementation != "partial" {
+			continue
+		}
+		add := func(name, value, unit string) {
+			if op.SupportedValues == nil {
+				op.SupportedValues = map[string][]string{}
+			}
+			op.SupportedValues[name] = []string{value}
+			if _, err := strconv.ParseUint(value, 10, 64); err != nil {
+				return
+			}
+			if unit != "bytes" && unit != "bytes_per_second" && unit != "seconds" {
+				unit = "count"
+			}
+			v := value
+			op.Limits = append(op.Limits, system.Limit{Name: name, Value: &v, Unit: unit, Source: "service"})
+		}
+		add("request_body_max_bytes", fmt.Sprint(httpapi.MaxJSONBodyBytes), "bytes")
+		switch op.ID {
+		case "ACC01":
+			op.SupportedValues["credential_kind"] = []string{"bduss", "cookies", "access_token"}
+			add("cookie_input_max_bytes", "32768", "bytes")
+			add("force_login_username", "unsupported", "policy")
+		case "ACC02":
+			add("max_accounts", "1000", "items")
+		case "ACC07":
+			op.SupportedValues["credential_kind"] = []string{"bduss", "cookies", "access_token"}
+			add("upstream_scheme", "https", "policy")
+			add("token_only_identity", "unverified", "policy")
+		case "UPL01", "DWN01":
+			op.RequiredCredentials = []string{"bduss"}
+			add("max_files_per_request", "1", "items")
+			add("min_file_size", "1", "bytes")
+			add("max_file_size", "33554432", "bytes")
+			add("running_jobs", "2", "jobs")
+			add("waiting_jobs", "16", "jobs")
+			add("max_retries", "0", "value")
+			add("file_concurrency", "1", "value")
+			add("max_rate_bytes_per_second", "0", "bytes_per_second")
+			add("dry_run", "false", "value")
+			add("remote_path", "absolute", "policy")
+			add("upstream_scheme", "https", "policy")
+			if op.ID == "UPL01" {
+				op.SupportedOptions = []string{"file_concurrency", "parallel_per_file", "max_retries", "policy", "skip_rapid_check", "check_filename", "no_split_file", "max_rate_bytes_per_second"}
+				add("source_type", "local", "value")
+				add("parallel_per_file", "1", "value")
+				add("policy", "skip", "value")
+				add("skip_rapid_check", "true", "value")
+				add("check_filename", "false", "value")
+				add("no_split_file", "false", "value")
+			} else {
+				op.SupportedOptions = []string{"mode", "path_mode", "parallel", "file_concurrency", "max_retries", "overwrite", "verify_checksum", "preserve_mtime", "executable", "link_index", "test", "report_workers", "max_rate_bytes_per_second"}
+				for name, value := range map[string]string{"mode": "pcs", "path_mode": "relative", "parallel": "1", "overwrite": "false", "verify_checksum": "true", "preserve_mtime": "false", "executable": "false", "link_index": "0", "test": "false", "report_workers": "false", "selector_kind": "paths"} {
+					add(name, value, "value")
+				}
+			}
+		case "JOB02", "JOB04", "JOB06", "JOB08":
+			add("job_kinds", "upload,download", "values")
+			add("control_body_reason_max_length", "1024", "characters")
+			add("idempotency_min_retention", "86400", "seconds")
+		}
+	}
 }
 func Run(ctx context.Context, options Options, output io.Writer) error {
 	if output == nil {

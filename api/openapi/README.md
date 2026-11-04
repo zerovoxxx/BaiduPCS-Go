@@ -1,12 +1,12 @@
 # HTTP API 契约与验证
 
-日期：2026-11-02。版本：`0.1.0-p1`。状态：12个系统/配置操作已实现，其余93个操作为planned；本HTTP服务的真实百度实测未运行。程序源码基线为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`；P1实施与验证见[记录](../../docs/http-api-p1-verification.md)，操作说明见[启动指南](../../docs/http-api-server.md)。P0冻结基线保留在baselines/目录。
+日期：2026-11-05。版本：`0.2.0-p2`。状态：12个系统/配置操作implemented，10个账号/单文件/任务操作partial，83个planned；P2受控TLS/race、进程恢复及用户授权专用目录的真实百度结果见[P2记录](../../docs/http-api-p2-verification.md)。程序源码基线为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`；P1实施与验证见[记录](../../docs/http-api-p1-verification.md)，操作说明见[启动指南](../../docs/http-api-server.md)。P0冻结基线保留在baselines/目录。
 
 [openapi.yaml](openapi.yaml) 是 HTTP 字段、类型、约束和 operationId 的唯一契约源。共 105 个 operation、89 个 path、190 个 schema。operationId 固定使用设计中的 SYS01、ACC01 等 ID。`/api/v1/openapi.json` 已在 P1 原样提供由 YAML 生成的内嵌 JSON。
 
 | 资料 | 用途 |
 | --- | --- |
-| [工程交接](../../docs/http-api-handoff.md) | 从P2继续的代码落点、剩余待办、状态演进和完整阶段核销 |
+| [工程交接](../../docs/http-api-handoff.md) | P2交付、从P3继续的代码落点、边界和完整阶段核销 |
 | [设计](../../docs/http-api-design.md) | 分层、领域、依赖和流程 |
 | [覆盖矩阵](../../docs/http-api-coverage.md) | 逐项人工映射和源码证据 |
 | [P0 核对与基线报告](../../docs/http-api-p0-baseline.md) | 修正结论、已有失败、平台和存储探测 |
@@ -129,29 +129,30 @@ OpenAPI 固定字段格式、字符串长度、集合上限及有界数值。应
 错误采用 `application/problem+json`；百度错误必须结合 operation、ErrType 和远端码适配，不按一个整数做全局映射。503 在适合稍后重试时带 Retry-After；INT06 等长期不可用能力 `retryable=false`，不应诱发循环重试。流开始后只能终止流并记录错误，不追加 JSON。/healthz、/readyz 可匿名且只返回最小状态；readyz 只检查当前启用的运行子系统，不要求百度在线，也不要求尚未开放的阶段能力准备完成。
 
 
-## P1 实际响应与持续校验
+## P1/P2 实际响应与持续校验
 
-P1测试会通过httptest直接运行生产handler，导出真实响应。先安装上述校验依赖，再执行：
+P1/P2测试通过httptest运行生产handler并导出39组实际响应；P2另有HTTP子进程SIGKILL和专用账号opt-in测试。先安装上述校验依赖，再执行：
 
 ```sh
 BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
-GOTOOLCHAIN=go1.23.12 go test -race -count=1 -timeout=120s \
+BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
+GOTOOLCHAIN=go1.23.12 go test -race -count=1 -timeout=180s \
   ./internal/domain/... ./internal/application/... \
   ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
 /tmp/baidupcs-http-p0-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-p1-responses.json
-python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p1-builds.json
+  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json
+python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p2-builds.json
 ```
 
 修改YAML后运行 `python3 api/openapi/tools/export_contract.py` 或 `go generate ./api/openapi`，生成JSON再编译。持续校验工作流为 `.github/workflows/http-api.yml`；原构建工作流的目标矩阵保持。
 
-P0已有的25组行为规格仍供后续阶段逐项核销；P1已实现的鉴权、配置、幂等与生命周期由上述真实集成测试覆盖，不把未开放账号/任务/传输能力计为通过。P1初始化任务表只建立持久化边界，没有创建调度器或传输任务。普通401与百度账号失效的422继续保持独立含义。
+P0已有的25组完整行为规格仍供后续阶段逐项核销；P1的鉴权/配置和P2的受限账号/传输/任务由真实集成测试分别覆盖。P2已经在P1表结构上增量接入持久派发与任务执行；未开放的完整任务、事件与传输选项仍在P3/P4。普通401与百度账号失效的422保持独立含义。
 
 幂等重放保持首次逻辑结果、HTTP状态与资源版本；每次HTTP请求仍生成自己的request_id，并与X-Request-ID一致。
 
 
 ## 调整后的实施顺序
 
-P1已收尾；P2先验证账号、真实单文件传输、按任务取消和重启核验恢复。P3补齐读取与任务事件，P4完成全部传输选项，管理及扩展按实施计划后置。当前P2内部验证不开放新公网操作，12个implemented/93个planned的口径保持；[P2证据与限制](../../docs/http-api-p2-verification.md)独立记录，不计为百度实测。
+P1及受限P2已收尾：12个implemented、10个partial、83个planned。P2开放ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08；完整读取/任务在P3、全部传输选项在P4。P2受控TLS和真实百度分别记录；[操作指南](../../docs/http-api-p2-guide.md)给出可运行请求和限制，[验收](../../docs/http-api-p2-verification.md)给出逐项证据。
 
-P2受限HTTP开放前需按交接P2-01将能力状态扩展为planned/partial/implemented，并同步Catalog、路由、Capability schema、示例与实际响应校验。当前契约仍只允许planned/implemented；不能只把YAML改成partial而不修改运行时或测试。
+planned/partial/implemented已同步到Capability schema、Catalog、路由、示例和checker。partial可以执行，但不计完整实现。supported_option_values返回规范字符串形式的明确值约束，limits仍只接受数值资源上限；x-p2-limits固定支持的请求子集。实际响应检查要求所有开放操作的成功路径及每个partial的拒绝路径，并核对运行能力与目标操作一致。

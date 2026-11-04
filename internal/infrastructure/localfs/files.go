@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 )
 
 // File resolves one file under an administrator-owned root. P2 requires an
@@ -25,10 +26,20 @@ func (r *Registry) File(ctx context.Context, rootID, relative string, write bool
 	target := filepath.Join(root.Path, filepath.FromSlash(relative))
 	info, err := os.Lstat(target)
 	if err == nil && !info.Mode().IsRegular() {
+		if info.IsDir() {
+			if write {
+				return "", fault.New(fault.Conflict, "TARGET_EXISTS", "下载目标是已有目录")
+			}
+			return "", fault.New(fault.Unsupported, "UNSUPPORTED_OPTION", "P2不支持目录传输")
+		}
 		return "", errors.New("local file must be regular and not a symlink")
 	}
 	if err != nil && (!write || !os.IsNotExist(err)) {
 		return "", err
 	}
-	return target, nil
+	parent, err := filepath.EvalSymlinks(filepath.Dir(target))
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(parent, filepath.Base(target)), nil
 }

@@ -49,12 +49,15 @@ func (der *Downloader) ExecuteContext(ctx context.Context, offset int64, checkpo
 	if resp.ContentLength != total-offset || resp.Header.Get("Content-Encoding") != "" {
 		return errors.New("upstream download size or encoding changed")
 	}
-	buffer := make([]byte, 64<<10)
+	// TLS reads can be a few KiB. Accumulate a bounded durable unit rather than
+	// forcing a file and SQLite fsync for every network packet. A partial unit
+	// is still flushed on failure; recovery only uses the persisted offset.
+	buffer := make([]byte, 256<<10)
 	for offset < total {
 		if err = ctx.Err(); err != nil {
 			return err
 		}
-		n, readErr := resp.Body.Read(buffer[:min(int64(len(buffer)), total-offset)])
+		n, readErr := io.ReadFull(resp.Body, buffer[:min(int64(len(buffer)), total-offset)])
 		if n > 0 {
 			written, writeErr := der.writer.WriteAt(buffer[:n], offset)
 			if writeErr != nil {

@@ -97,18 +97,33 @@ func (s *Store) migrate(ctx context.Context) error {
 	if err := s.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > 2 {
+	if version > 3 {
 		return errors.New("database schema is newer than this server")
 	}
-	if version == 2 {
+	if version == 3 {
 		return nil
+	}
+	if version == 2 {
+		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
+ ALTER TABLE jobs ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
+ ALTER TABLE jobs ADD COLUMN started_at TEXT;
+ ALTER TABLE jobs ADD COLUMN finished_at TEXT;
+ CREATE INDEX jobs_dispatch ON jobs(kind,state,created_at);
+ CREATE TABLE request_replays(principal TEXT NOT NULL, operation TEXT NOT NULL, key_hash BLOB NOT NULL, request_hash BLOB NOT NULL, resource_id TEXT NOT NULL, reply BLOB NOT NULL, expires_at INTEGER NOT NULL, PRIMARY KEY(principal,operation,key_hash));
+ CREATE INDEX request_replays_expiry ON request_replays(expires_at);
+ PRAGMA user_version=3;
+ COMMIT;`)
+		return err
 	}
 	if version == 1 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
  CREATE TABLE accounts(account_id TEXT PRIMARY KEY, record BLOB NOT NULL);
  PRAGMA user_version=2;
  COMMIT;`)
-		return err
+		if err != nil {
+			return err
+		}
+		return s.migrate(ctx)
 	}
 	// Only the initial schema is present in P1. Later job services add migrations
 	// instead of silently recreating or discarding a user's stored state.
