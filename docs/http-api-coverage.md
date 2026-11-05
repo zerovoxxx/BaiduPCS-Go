@@ -995,3 +995,5 @@ P2补充归属：domain/operation表达逻辑变更摘要；httpapi/p2.go、jobs
 | bootstrap/p3_test.go、persistence/p3_test.go及相关P3测试 | 逐项证据见[P3验收](http-api-p3-verification.md)；原P2受控TLS、取消隔离、SIGKILL窗口和兼容测试继续执行 |
 
 P3只将有完整实现与离线证据的28个操作核销，包含此前4个P2账号partial。UPL01、DWN01、JOB08继续partial，完整传输仍属P4；上游可用性按账号、参数和时间单独认定。P0/P1历史清单不重写，P2真实账号报告不扩写成P3实测。
+
+本轮新扫码会话的单账号小目录实测见[P3脱敏报告](http-api-p3-upstream-verification.json)，33个检查阶段通过；规模分页、故障、TTL、慢消费者与多账号行为仍由各自离线测试核销。

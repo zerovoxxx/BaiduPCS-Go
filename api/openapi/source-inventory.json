@@ -11,7 +11,8 @@
     "upstream_verification": "scoped_p2_report",
     "upstream_evidence": "docs/http-api-p2-upstream-verification.json",
     "p3_offline_evidence": "docs/http-api-p3-verification.md",
-    "p3_upstream_verification": "not_executed_no_credentials"
+    "p3_upstream_verification": "scoped_p3_report",
+    "p3_upstream_evidence": "docs/http-api-p3-upstream-verification.json"
   },
   "counts": {
     "command": 47,

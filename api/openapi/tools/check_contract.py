@@ -118,7 +118,7 @@ def inventory(observed, operation_ids, implemented_count=0, partial_count=0):
         'schema_version': 1,
         'source_baseline': '1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73',
         'generated_by': 'go run api/openapi/tools/inventory.go + check_contract.py --write-inventory',
-        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json', 'p3_offline_evidence': 'docs/http-api-p3-verification.md', 'p3_upstream_verification': 'not_executed_no_credentials'},
+        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json', 'p3_offline_evidence': 'docs/http-api-p3-verification.md', 'p3_upstream_verification': 'scoped_p3_report', 'p3_upstream_evidence': 'docs/http-api-p3-upstream-verification.json'},
         'counts': dict(sorted(collections.Counter(e['kind'] for e in entries).items())),
         'files': observed['files'], 'entries': entries,
     }

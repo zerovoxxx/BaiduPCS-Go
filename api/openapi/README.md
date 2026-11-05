@@ -7,6 +7,7 @@
 | 资料 | 用途 |
 | --- | --- |
 | [工程交接](../../docs/http-api-handoff.md) | P3交付、从P4继续的代码落点、边界和完整阶段核销 |
+| [P3真实百度报告](../../docs/http-api-p3-upstream-verification.json) | 新扫码单Cookie账号、批准目录内33个检查阶段通过；与离线规模/故障证据分开 |
 | [设计](../../docs/http-api-design.md) | 分层、领域、依赖和流程 |
 | [覆盖矩阵](../../docs/http-api-coverage.md) | 逐项人工映射和源码证据 |
 | [P0 核对与基线报告](../../docs/http-api-p0-baseline.md) | 修正结论、已有失败、平台和存储探测 |

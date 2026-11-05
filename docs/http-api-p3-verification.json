@@ -1,5 +1,5 @@
 {
-  "verified_at": "2026-11-05T06:55:07.008941+00:00",
+  "verified_at": "2026-11-05T07:44:53.205675652Z",
   "base_commit": "4fc00ce",
   "contract_version": "0.3.0-p3",
   "schema_version": 4,
@@ -88,10 +88,21 @@
     "job_visibility_and_nanosecond_filters": "passed"
   },
   "p3_upstream_verification": {
-    "status": "not_executed",
-    "reason": "P2 credentials cleared; new explicit QR session pending",
+    "status": "passed",
     "allowed_remote_root": "/BaiduPCS-Go-P2-Verification/",
-    "test_entrypoint": "TestP3UpstreamDedicatedAccount"
+    "test_entrypoint": "TestP3UpstreamDedicatedAccount",
+    "evidence": "docs/http-api-p3-upstream-verification.json",
+    "started_at": "2026-11-05T07:44:23.797044655Z",
+    "finished_at": "2026-11-05T07:44:53.205675652Z",
+    "passed_stages": 33,
+    "credential_scope": "one QR cookie session",
+    "cleanup": "passed",
+    "credentials_retained_by_user_request": {
+      "file": ".env",
+      "mode": "0600",
+      "git_ignored": true,
+      "git_tracked": false
+    }
   },
   "p2_upstream_evidence_preserved": "docs/http-api-p2-upstream-verification.json"
 }

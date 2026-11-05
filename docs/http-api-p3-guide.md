@@ -4,7 +4,7 @@
 
 以下路径省略 `/api/v1`，所有调用都需要 Authorization Bearer。凭据内容从私有文件提交，不写命令行或日志。
 
-用户已授权在扫码成功后将真实验收凭据保留在本工作区权限为0600的`.env`，由Git忽略，供后续专用目录验证复用；服务不会自动加载它。`BAIDUPCS_P3_CREDENTIALS_JSON`保存API导入输入，`BAIDUPCS_P3_COOKIE_JAR_JSON`保留扫码会话的Cookie域/路径信息；不得把整个Jar直接当作Cookie头跨域发送。真实测试仍需显式设置批准目录，复现命令见[P3验收](http-api-p3-verification.md)。其他机器没有该私有文件时需另行取得凭据。
+真实验收凭据已按用户授权保留在本工作区权限为0600的`.env`，由Git忽略且未被跟踪，供后续专用目录验证复用；服务不会自动加载它。`BAIDUPCS_P3_CREDENTIALS_JSON`保存API导入输入，`BAIDUPCS_P3_COOKIE_JAR_JSON`保留扫码会话的Cookie域/路径信息；不得把整个Jar直接当作Cookie头跨域发送。真实测试仍需显式设置批准目录，复现命令见[P3验收](http-api-p3-verification.md)。其他机器没有该私有文件时需另行取得凭据。
 
 ## 账号和凭据
 
