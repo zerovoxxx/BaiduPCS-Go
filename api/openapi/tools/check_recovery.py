@@ -142,6 +142,28 @@ def main():
             except ValueError as e: assert 'special file' in str(e)
             link.unlink()
             passed('reject_symlink_data_escape')
+            fifo=data/'service.db-wal';os.mkfifo(fifo,0o600)
+            started=time.monotonic()
+            try:
+                try:
+                    backup.backup(data,temp/'fifo-backup')
+                    raise AssertionError('FIFO journal accepted')
+                except ValueError as e: assert 'invalid database journal' in str(e)
+                assert time.monotonic()-started<2
+            finally:
+                fifo.unlink()
+            passed('reject_fifo_journal_without_blocking')
+            malformed=temp/'malformed';shutil.copytree(archived,malformed)
+            manifest=malformed/backup.MANIFEST
+            original=json.loads(manifest.read_text())
+            for value in ([],{**original,'entries':[{'path':'../escape','type':'file'}]}):
+                manifest.write_text(json.dumps(value))
+                try:
+                    backup.restore(malformed,temp/'invalid-restore')
+                    raise AssertionError('malformed manifest accepted')
+                except ValueError: pass
+                assert not (temp/'invalid-restore').exists()
+            passed('reject_malformed_manifest_and_path_traversal')
             try:
                 backup.restore(archived,restored)
                 raise AssertionError('existing restore target overwritten')

@@ -116,6 +116,29 @@ func TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation(t *testing.T) {
 
 func TestP7SettledJobCountersAndExpiredCredentialBoundary(t *testing.T) {
 	rt, _, _, root, _ := p6Runtime(t)
+	capabilities := request(t, rt.Handler, "GET", "/api/v1/capabilities", testToken, "", "", "")
+	wantStatus(t, capabilities, 200)
+	var catalog struct {
+		Data []struct {
+			ID, Availability string
+			Required         []string `json:"required_credentials"`
+		}
+	}
+	if e := json.Unmarshal(capabilities.Body.Bytes(), &catalog); e != nil {
+		t.Fatal(e)
+	}
+	found := false
+	for _, op := range catalog.Data {
+		if op.ID == "INT03" {
+			found = true
+			if len(op.Required) != 0 || op.Availability != "available" {
+				t.Fatal("local checksum incorrectly requires Baidu credentials", op)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("local checksum capability missing")
+	}
 	if e := os.WriteFile(filepath.Join(root, "metric-input"), []byte("fixture"), 0600); e != nil {
 		t.Fatal(e)
 	}

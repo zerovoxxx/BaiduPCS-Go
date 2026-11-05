@@ -24,7 +24,7 @@ func configureP6Capabilities(operations []system.Operation, legacyConfigured, se
 			v := value
 			op.Limits = append(op.Limits, system.Limit{Name: name, Value: &v, Unit: unit, Source: "service"})
 		}
-		if strings.HasPrefix(op.ID, "INT") || op.ID == "EXP01" || op.ID == "SYS06" {
+		if strings.HasPrefix(op.ID, "INT") && op.ID != "INT03" || op.ID == "EXP01" || op.ID == "SYS06" {
 			op.RequiredCredentials = []string{"bduss"}
 		}
 		switch op.ID {

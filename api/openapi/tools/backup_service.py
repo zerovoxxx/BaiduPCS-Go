@@ -95,7 +95,7 @@ def database_schema(root):
         tmp.chmod(0o700)
         for name in ('service.db', 'service.db-wal'):
             if (root / name).exists():
-                require(not (root / name).is_symlink(), 'invalid database journal')
+                require(not (root / name).is_symlink() and (root / name).is_file(), 'invalid database journal')
                 with (root / name).open('rb') as src, (tmp / name).open('xb') as dst:
                     os.fchmod(dst.fileno(), 0o600)
                     shutil.copyfileobj(src, dst, 1 << 20)
@@ -150,12 +150,15 @@ def copy_tree(source, dest, rows):
 
 
 def validate_manifest(value):
+    require(isinstance(value, dict), 'invalid manifest object')
     require(value.get('format') == 'baidupcs-stopped-backup-v1', 'unsupported backup manifest')
     rows = value.get('entries')
     require(isinstance(rows, list) and len(rows) <= MAX_ENTRIES, 'invalid manifest entry count')
     seen = set()
     for row in rows:
+        require(isinstance(row, dict), 'invalid manifest entry')
         name = row.get('path', '')
+        require(isinstance(name, str), 'invalid manifest path')
         p = PurePosixPath(name)
         require(name and not p.is_absolute() and '..' not in p.parts and str(p) == name and '\\' not in name and '\x00' not in name, 'unsafe manifest path')
         require(name not in seen and name not in (MANIFEST, 'service.lock'), 'duplicate or reserved manifest path')
