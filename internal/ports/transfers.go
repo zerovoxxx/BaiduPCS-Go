@@ -16,6 +16,13 @@ type AccountRepository interface {
 	Accounts(context.Context) ([]account.Entry, error)
 	CreateAccountOnce(context.Context, account.Entry, operation.Mutation) (account.Entry, error)
 	UpdateAccount(context.Context, account.Entry, uint64) error
+	MutateAccount(context.Context, string, uint64, *string, account.Patch, operation.Mutation) (account.Entry, bool, error)
+	DeleteAccount(context.Context, string, operation.Mutation) error
+	CredentialVersion(context.Context, string, uint64) (account.Credentials, error)
+}
+
+type QuotaReader interface {
+	AccountQuota(context.Context, configuration.Snapshot, account.Credentials) (account.Quota, error)
 }
 
 type AccountValidator interface {
@@ -33,6 +40,14 @@ type TransferRepository interface {
 	ControlTransfer(context.Context, string, []string, string, operation.Mutation) (transfer.Record, error)
 	ReplayControl(context.Context, operation.Mutation) (*transfer.Record, error)
 	ActiveTransferCount(context.Context) (int, error)
+	ListTransfers(context.Context, transfer.Filter, int, func(transfer.Record) bool) ([]transfer.Record, error)
+	TransferItems(context.Context, string, int) ([]transfer.Item, error)
+	TransferItemPage(context.Context, string, string, string, int) (QueryPage, error)
+	RetryTransferItems(context.Context, string, bool) ([]transfer.Item, error)
+	SaveScanItem(context.Context, string, transfer.Item, transfer.ScanResult) error
+	SaveScanResult(context.Context, string, transfer.ScanResult) error
+	EventSnapshot(context.Context, string) (transfer.Record, uint64, error)
+	TransferEvents(context.Context, string, uint64, int) (transfer.EventBatch, error)
 }
 
 type TransferEngine interface {

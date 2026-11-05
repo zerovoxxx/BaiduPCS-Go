@@ -57,42 +57,54 @@ func (s *Store) CreateAccount(ctx context.Context, a account.Entry) error {
 	return err
 }
 func (s *Store) Account(ctx context.Context, id string) (account.Entry, error) {
-	var data []byte
-	err := s.db.QueryRowContext(ctx, "SELECT record FROM accounts WHERE account_id=?", id).Scan(&data)
-	if errors.Is(err, sql.ErrNoRows) {
-		return account.Entry{}, fault.New(fault.NotFound, "RESOURCE_NOT_FOUND", "账号不存在")
-	}
-	if err != nil {
-		return account.Entry{}, err
-	}
-	var a storedAccount
-	if err = s.openValue("account/"+id, data, &a); err != nil {
-		return account.Entry{}, err
-	}
-	a.Entry.Credentials = account.Credentials{AccountID: id, Revision: a.Revision, UID: a.UID, Cookies: a.Cookies, AccessToken: a.AccessToken}
-	if a.Entry.Revision == 0 {
-		a.Entry.Revision = 1
-	}
-	if a.Entry.UpdatedAt == "" {
-		a.Entry.UpdatedAt = a.Entry.CreatedAt
-	}
-	if a.Entry.LoginState == "" {
-		a.Entry.LoginState = "unverified"
-	}
-	return a.Entry, nil
+	return s.account(ctx, s.db, id)
 }
+
 func (s *Store) CreateTransfer(ctx context.Context, r transfer.Record) (bool, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	if r.Request.Public {
+		a, err := s.account(ctx, tx, r.Request.AccountID)
+		if err != nil {
+			return false, err
+		}
+		if a.Credentials.Revision != r.CredentialRevision {
+			var revoked bool
+			err = tx.QueryRowContext(ctx, "SELECT revoked FROM account_credentials WHERE account_id=? AND revision=?", r.Request.AccountID, r.CredentialRevision).Scan(&revoked)
+			if errors.Is(err, sql.ErrNoRows) || err == nil && revoked {
+				return false, fault.New(fault.Unsupported, "CREDENTIAL_REVOKED", "任务凭据版本已撤销")
+			}
+			if err != nil {
+				return false, err
+			}
+		}
+	}
+	r.State = "queued"
+	r.Version = 1
 	data, err := s.sealValue("job/"+r.ID, r)
 	if err != nil {
 		return false, err
 	}
-	result, err := s.db.ExecContext(ctx, "INSERT INTO jobs(job_id,owner,account_id,kind,state,record,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(job_id) DO NOTHING", r.ID, r.Owner, r.Request.AccountID, r.Request.Kind, "queued", data, r.CreatedAt, r.CreatedAt)
+	res, err := tx.ExecContext(ctx, "INSERT INTO jobs(job_id,owner,account_id,kind,state,record,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(job_id) DO NOTHING", r.ID, r.Owner, r.Request.AccountID, r.Request.Kind, "queued", data, r.CreatedAt, r.CreatedAt)
 	if err != nil {
 		return false, err
 	}
-	n, err := result.RowsAffected()
-	return n == 1, err
+	n, err := res.RowsAffected()
+	if err != nil || n != 1 {
+		return false, err
+	}
+	if err = s.appendEvent(ctx, tx, r.ID, "job.created", nil); err != nil {
+		return false, err
+	}
+	if err = s.saveReplay(ctx, tx, r.Admission, r.ID, r); err != nil {
+		return false, err
+	}
+	return true, tx.Commit()
 }
+
 func (s *Store) Transfer(ctx context.Context, id string) (transfer.Record, error) {
 	return s.transfer(ctx, s.db, id)
 }
@@ -110,7 +122,11 @@ func (s *Store) transfer(ctx context.Context, q queryer, id string) (transfer.Re
 	if err != nil {
 		return r, err
 	}
-	if err = s.openValue("job/"+id, data, &r); err != nil {
+	return s.decodeTransfer(id, state, data, updated, started, finished, version)
+}
+func (s *Store) decodeTransfer(id, state string, data []byte, updated string, started, finished sql.NullString, version uint64) (transfer.Record, error) {
+	var r transfer.Record
+	if err := s.openValue("job/"+id, data, &r); err != nil {
 		return r, err
 	}
 	if bytes.Equal(r.Checkpoint, []byte("null")) {
@@ -127,6 +143,11 @@ func (s *Store) TransitionTransfer(ctx context.Context, id string, from []string
 	if len(from) == 0 {
 		return false, errors.New("missing expected task state")
 	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
 	now := time.Now().UTC().Format(time.RFC3339Nano)
 	args := []any{to, now}
 	q := "UPDATE jobs SET state=?,updated_at=?,version=version+1"
@@ -134,7 +155,7 @@ func (s *Store) TransitionTransfer(ctx context.Context, id string, from []string
 		q += ",started_at=COALESCE(started_at,?)"
 		args = append(args, now)
 	}
-	if to == "cancelled" {
+	if transfer.Terminal(to) {
 		q += ",finished_at=?"
 		args = append(args, now)
 	}
@@ -143,33 +164,50 @@ func (s *Store) TransitionTransfer(ctx context.Context, id string, from []string
 	for _, state := range from {
 		args = append(args, state)
 	}
-	result, err := s.db.ExecContext(ctx, q, args...)
+	res, err := tx.ExecContext(ctx, q, args...)
 	if err != nil {
 		return false, err
 	}
-	n, err := result.RowsAffected()
-	return n == 1, err
+	n, err := res.RowsAffected()
+	if err != nil || n != 1 {
+		return false, err
+	}
+	if err = s.appendEvent(ctx, tx, id, "job.state_changed", nil); err != nil {
+		return false, err
+	}
+	if transfer.Terminal(to) {
+		if err = s.appendEvent(ctx, tx, id, "job.finished", nil); err != nil {
+			return false, err
+		}
+	}
+	return true, tx.Commit()
 }
+
 func (s *Store) SaveTransferCheckpoint(ctx context.Context, id string, checkpoint json.RawMessage) error {
-	// Only an executing engine writes its record. State changes use a separate
-	// column, so saving a checkpoint cannot revive a cancelled or completed job.
-	r, err := s.Transfer(ctx, id)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
+	}
+	defer tx.Rollback()
+	r, err := s.transfer(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	if r.State != "running" && r.State != "cancelling" {
+		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
 	}
 	r.Checkpoint = append(json.RawMessage(nil), checkpoint...)
-	data, err := s.sealValue("job/"+id, r)
-	if err != nil {
+	if err = s.saveRecord(ctx, tx, r); err != nil {
 		return err
 	}
-	result, err := s.db.ExecContext(ctx, "UPDATE jobs SET record=?,updated_at=?,version=version+1 WHERE job_id=? AND state IN ('running','cancelling')", data, time.Now().UTC().Format(time.RFC3339Nano), id)
-	if err != nil {
+	if err = s.appendEvent(ctx, tx, id, "job.progress", nil); err != nil {
 		return err
 	}
-	return oneRow(result)
+	return tx.Commit()
 }
+
 func (s *Store) InterruptTransfers(ctx context.Context) error {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download') AND state='cancelling'")
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='cancelling'")
 	if err != nil {
 		return err
 	}
@@ -215,34 +253,86 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 			return err
 		}
 	}
-	_, err = s.db.ExecContext(ctx, "UPDATE jobs SET state='interrupted',updated_at=?,version=version+1 WHERE kind IN ('upload','download') AND state='running'", time.Now().UTC().Format(time.RFC3339Nano))
-	return err
-}
-
-func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) error {
-	r, err := s.Transfer(ctx, id)
+	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='running'")
 	if err != nil {
 		return err
 	}
+	ids := []string{}
+	for rows.Next() {
+		var id string
+		if err = rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		ids = append(ids, id)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if _, err = s.TransitionTransfer(ctx, id, []string{"running"}, "interrupted"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	r, err := s.transfer(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	if r.State != "running" && r.State != "cancelling" && !(code == "CREDENTIAL_REVOKED" && (r.State == "queued" || r.State == "interrupted")) {
+		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
+	}
 	r.FailureCode = code
+	if r.Request.Kind == "file_scan" && r.ScanResult != nil && state == "succeeded" && r.ScanResult.Counts.Failed > 0 {
+		state = "failed"
+		if r.ScanResult.Counts.Succeeded > 0 {
+			state = "partially_succeeded"
+		}
+	}
 	data, err := s.sealValue("job/"+id, r)
 	if err != nil {
 		return err
 	}
 	now := time.Now().UTC().Format(time.RFC3339Nano)
 	var finished any
-	if state == "succeeded" || state == "failed" || state == "cancelled" {
+	if transfer.Terminal(state) {
 		finished = now
 	}
-	result, err := s.db.ExecContext(ctx, "UPDATE jobs SET state=?,record=?,updated_at=?,finished_at=?,version=version+1 WHERE job_id=? AND state IN ('running','cancelling')", state, data, now, finished, id)
+	res, err := tx.ExecContext(ctx, "UPDATE jobs SET state=?,record=?,updated_at=?,finished_at=?,version=version+1 WHERE job_id=? AND version=?", state, data, now, finished, id, r.Version)
 	if err != nil {
 		return err
 	}
-	return oneRow(result)
+	if err = oneRow(res); err != nil {
+		return err
+	}
+	if err = s.appendEvent(ctx, tx, id, "job.state_changed", nil); err != nil {
+		return err
+	}
+	if transfer.Terminal(state) {
+		if r.Request.Kind != "file_scan" {
+			if err = s.appendEvent(ctx, tx, id, "item.completed", nil); err != nil {
+				return err
+			}
+		}
+		if err = s.appendEvent(ctx, tx, id, "job.finished", nil); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (s *Store) QueuedTransfers(ctx context.Context, limit int) ([]transfer.Record, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +372,7 @@ func (s *Store) ReplayControl(ctx context.Context, m operation.Mutation) (*trans
 
 func (s *Store) ActiveTransferCount(ctx context.Context) (int, error) {
 	var n int
-	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download') AND state IN ('queued','running','cancelling')").Scan(&n)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download','file_scan') AND state IN ('queued','running','cancelling')").Scan(&n)
 	return n, err
 }
 
@@ -321,6 +411,14 @@ func (s *Store) ControlTransfer(ctx context.Context, id string, from []string, t
 		}
 		if err = oneRow(result); err != nil {
 			return r, err
+		}
+		if err = s.appendEvent(ctx, tx, id, "job.state_changed", nil); err != nil {
+			return r, err
+		}
+		if transfer.Terminal(to) {
+			if err = s.appendEvent(ctx, tx, id, "job.finished", nil); err != nil {
+				return r, err
+			}
 		}
 		r, err = s.transfer(ctx, tx, id)
 		if err != nil {

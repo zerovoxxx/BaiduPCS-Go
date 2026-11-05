@@ -97,11 +97,25 @@ func (s *Store) migrate(ctx context.Context) error {
 	if err := s.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > 3 {
+	if version > 4 {
 		return errors.New("database schema is newer than this server")
 	}
-	if version == 3 {
+	if version == 4 {
 		return nil
+	}
+	if version == 3 {
+		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
+ CREATE TABLE account_credentials(account_id TEXT NOT NULL, revision INTEGER NOT NULL, revoked INTEGER NOT NULL DEFAULT 0, payload BLOB NOT NULL, PRIMARY KEY(account_id,revision));
+ ALTER TABLE jobs ADD COLUMN event_sequence INTEGER NOT NULL DEFAULT 0;
+ CREATE INDEX jobs_query ON jobs(owner,created_at,job_id);
+ CREATE TABLE query_snapshots(snapshot_id TEXT PRIMARY KEY, binding TEXT NOT NULL, payload BLOB NOT NULL, expires_at INTEGER NOT NULL);
+ CREATE INDEX query_snapshots_expiry ON query_snapshots(expires_at);
+ CREATE TABLE job_items(job_id TEXT NOT NULL REFERENCES jobs(job_id), item_index INTEGER NOT NULL, payload BLOB NOT NULL, state TEXT NOT NULL DEFAULT '', PRIMARY KEY(job_id,item_index));
+ CREATE TABLE artifacts(artifact_id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(job_id), record BLOB NOT NULL, expires_at INTEGER NOT NULL, state TEXT NOT NULL, size INTEGER NOT NULL DEFAULT 0);
+ CREATE INDEX artifacts_job ON artifacts(job_id);
+ PRAGMA user_version=4;
+ COMMIT;`)
+		return err
 	}
 	if version == 2 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
@@ -113,7 +127,10 @@ func (s *Store) migrate(ctx context.Context) error {
  CREATE INDEX request_replays_expiry ON request_replays(expires_at);
  PRAGMA user_version=3;
  COMMIT;`)
-		return err
+		if err != nil {
+			return err
+		}
+		return s.migrate(ctx)
 	}
 	if version == 1 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;

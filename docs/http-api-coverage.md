@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 源码覆盖矩阵
 
-日期：2026 年 11 月 2 日。基线提交：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。原有业务源码链接固定到该提交；P1新增server入口使用本地源码链接。机器清单随实现更新，P0冻结版本保存在api/openapi/baselines/p0-source-inventory.json。
+日期：2026 年 11 月 5 日。基线提交：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。原有业务源码链接固定到该提交；P1新增server入口使用本地源码链接。机器清单随实现更新，P0冻结版本保存在api/openapi/baselines/p0-source-inventory.json。
 
 本文中的路由 ID 对应[HTTP API 设计方案](http-api-design.md)，阶段和验收对应[实施计划](http-api-implementation-plan.md)。此表记录目标映射，尚不代表相关接口已经实现或完成上游验证。实施顺序已调整为P2先验证账号/实际上传下载/取消/重启恢复，context和CLI默认值等管理能力后置；目标映射不要求提前实现所有管理资源。P0 已保存 [机器清单](../api/openapi/source-inventory.json)、[OpenAPI 与示例](../api/openapi/README.md) 和 [核对报告](http-api-p0-baseline.md)；校验器同时检查 AST→本表→路由 ID，发现新增遗漏或过时行会失败。
 
@@ -12,13 +12,13 @@
 | 命令及子命令节点 | 52（P0为51） | 包含 5 个命令组和 47 个叶子命令；别名不重复计数 |
 | 命令参数 | 90（P0为86） | 每个命令的 Flags 字段，逐项映射 |
 | 全局参数 | 1 | verbose，另有框架自动提供的 help/version |
-| baidupcs 顶层包导出函数和方法 | 132 | Go AST FuncDecl；排除测试和块注释，包含底层 Prepare 与格式辅助 |
+| baidupcs 顶层包导出函数和方法 | 133（P2为132） | Go AST FuncDecl；排除测试和块注释，包含底层 Prepare 与格式辅助 |
 | PCSConfig 导出字段 | 24 | 2 个账号相关字段分域，其余 22 个类型化配置 |
 | pcscommand 导出函数 | 34 | 包括没有注册成命令的 RunFixMD5 |
 | pcsconfig 导出函数和方法 | 44 | 配置生命周期、账号和网络客户端适配 |
 | 12 个业务选项结构导出字段 | 45 | 包含 P0 补齐的 OrderOptions 两个字段；逐字段映射 |
 | 传输/任务相关导出函数和方法 | 193 | pcsupload 23、pcsdownload 14、taskframework 16、uploader 40、downloader 100 |
-| 机器清单合计 | 615（P0为609、P1为614） | 403 个导出函数/方法、52 个命令节点、90 个参数、1 个全局参数、24 个配置字段、45 个选项字段 |
+| 机器清单合计 | 616（P0为609、P1为614、P2为615） | 404 个导出函数/方法、52 个命令节点、90 个参数、1 个全局参数、24 个配置字段、45 个选项字段 |
 | 其他相关实现 | 分组核对 | 传输、调度、校验、错误、签名和本地工具；不把每个工具方法公开为路由 |
 
 清单反映当前代码实际定义，不从 README 的旧命令说明反推可用能力。`fixmd5`、`rapidupload` 没有注册为当前 CLI 命令；`upload2.go` 中的块注释不计入函数数。子包的缓存、签名、JSON、错误处理和平台工具按基础设施归属，不按函数数量制造 HTTP 端点。
@@ -434,6 +434,7 @@
 | *BaiduPCS.FilesDirectoriesMeta | FIL02 | HTTP 业务适配 | 转为应用服务结果，映射上游错误并绑定账号 | [baidupcs/file_directory.go:110](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L110) |
 | *BaiduPCS.FilesDirectoriesBatchMeta | FIL03 | HTTP 业务适配 | 转为应用服务结果，映射上游错误并绑定账号 | [baidupcs/file_directory.go:132](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L132) |
 | *BaiduPCS.FilesDirectoriesList | FIL01 | HTTP 业务适配 | 保留当前聚合分页；HTTP 单页另加最小 page 扩展并复用解析 | [baidupcs/file_directory.go:208](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L208) |
+| *BaiduPCS.FilesDirectoriesListPage | FIL01、FIL05；CLI 聚合读取 | P3 HTTP 业务适配 | 单页复用当前解析、MD5 规范化、排序；聚合读取的重复页/中途错误不得伪报完整 | [baidupcs/file_directory.go:248](../baidupcs/file_directory.go:248) |
 | *BaiduPCS.Search | FIL04 | HTTP 业务适配 | 转为应用服务结果，映射上游错误并绑定账号 | [baidupcs/file_directory.go:257](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L257) |
 | *BaiduPCS.FilesDirectoriesRecurseList | FIL05、UPL01、DWN01、EXP01 | HTTP 业务适配 | 回调逐项错误必须保存；大遍历进入 job，不能吞错后伪报完整 | [baidupcs/file_directory.go:314](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L314) |
 | *FileDirectory.String | FIL02；CLI | HTTP 等价表达 | 结构化元数据代替终端表格 | [baidupcs/file_directory.go:342](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/file_directory.go#L342) |
@@ -941,7 +942,7 @@
 | TaskUnitRunResult、DownloadStatus、上传状态与控制句柄 | Job/Progress/JobItem/CheckpointSummary/WorkerStatus；累计数量为字符串、未知总量 null、跳过与失败分开；空 Pause/Resume 不算成功实现 |
 | 配置/凭据 revision 与任务有效选项 | 任务提交时固定；普通配置更新不改变已有 job；凭据吊销使旧引用停止执行 |
 
-P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前615条均已映射。105个目标操作中12个系统/配置操作implemented、10个账号/单文件/任务操作partial、83个planned；67个schema边界用例通过，39组实际HTTP响应覆盖全部可调用操作；25组完整行为规格仍按后续阶段核销。P2的真实百度结果仅限用户授权账号和专用目录，见独立脱敏报告。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
+P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前616条均已映射。105个目标操作中40个implemented、3个partial、62个planned；P3的JSON/SSE/文件/HEAD/204实际响应和逐项验收见[P3记录](http-api-p3-verification.md)，67个原schema边界例及25组完整行为规格继续保留。P2的真实百度结果仅限用户授权账号和专用目录，见独立脱敏报告。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
 
 
 ## 14 P1 新分层代码归属
@@ -976,3 +977,21 @@ P0对609条记录完成初始映射；P1增加server及4个启动参数至614条
 上述组件已接入生产server及10个partial操作，12个P1操作保持implemented。明确支持1字节至32MiB普通文件、固定单文件选项、skip、零限速、查询/结果/取消/恢复。持久派发、同目标锁、控制幂等、关闭、文件故障窗口及四个SIGKILL点已经验证；真实百度的账号、上传回读、取消、重启恢复和清理通过，范围见[P2验证记录](http-api-p2-verification.md)及[脱敏结果](http-api-p2-upstream-verification.json)。目录、空文件、完整选项及旧并行下载monitor仍在P4。
 
 P2补充归属：domain/operation表达逻辑变更摘要；httpapi/p2.go、jobs.go负责十个partial的输入/公开映射；application/accounts与transfers处理权限、快照、幂等和派发；persistence/replays.go负责账号/控制同事务重放、过期与活动保留；localfs/open_*固定真实文件边界及不覆盖提交。新增内部函数不凭函数名增加HTTP端点；现有615项盘点边界和历史快照保持。
+
+
+## 16 P3 完整账号、读取、任务和结果文件
+
+| 组件 | 对应操作与实现/离线证据 |
+| --- | --- |
+| domain/account、application/accounts、persistence/accounts.go | ACC01—ACC09；presence/null、规范 Jar、强版本、历史凭据和撤销；账号集成与 credential patch 测试 |
+| infrastructure/legacyconfig、bootstrap startup | 固定 legacy_accounts_file 只读导入；规范凭据+源条目索引指纹、独立账号ID、持久重放；重复UID、冲突和重开测试 |
+| baidupcs.FilesDirectoriesListPage、infrastructure/baidu/files.go、application/files | FIL01—FIL06；共享分页解析、投影事实、绝对/base_path、批量逐项、搜索快照、通配符和扫描；1001/2000/2001、空页、失败和精度测试 |
+| application/query、persistence/queries.go | 搜索/任务快照绑定、密文游标、600秒TTL和总配额；大扫描逐项使用不可变条目高水位，避免复制全部结果 |
+| application/transfers、persistence/transfers.go/events.go | JOB01—JOB06、JOB09；持久派发继续单实例2执行/16等待；状态/检查点/逐项/控制与事件原子提交、retry新任务，保留P2提交不明与恢复规则 |
+| httpapi/events.go | JOB05；snapshot高水位→追踪、Last-Event-ID、410/409/400、终态发送、15秒心跳、64连接和128帧上限；慢消费者与真实本地HTTP流测试 |
+| application/artifacts、infrastructure/localfs/artifacts.go、persistence/artifacts.go | ART01—ART04、JOB11；流式JSONL、Range/If-Range/HEAD、TTL/配额、任务和响应引用、owner及原权限、删除摘要保留 |
+| application/local、localfs/list.go/space_* | LOC01；仅授权root ID/读写/可用空间状态，绝对路径不进入DTO |
+| pcscommand/ls_search.go、meta.go、tree.go | 触及读取路径的小接口适配，继续调用原聚合方法；终端排序、输出、fs_id、递归/深度与失败行为由reads_test.go回归 |
+| bootstrap/p3_test.go、persistence/p3_test.go及相关P3测试 | 逐项证据见[P3验收](http-api-p3-verification.md)；原P2受控TLS、取消隔离、SIGKILL窗口和兼容测试继续执行 |
+
+P3只将有完整实现与离线证据的28个操作核销，包含此前4个P2账号partial。UPL01、DWN01、JOB08继续partial，完整传输仍属P4；上游可用性按账号、参数和时间单独认定。P0/P1历史清单不重写，P2真实账号报告不扩写成P3实测。

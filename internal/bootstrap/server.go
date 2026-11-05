@@ -25,15 +25,21 @@ import (
 
 	contract "github.com/qjfoidnh/BaiduPCS-Go/api/openapi"
 	appaccounts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/accounts"
+	appartifacts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/artifacts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
+	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
+	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
+	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/httpapi"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/identity"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/legacyconfig"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/localfs"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/network"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/persistence"
@@ -52,12 +58,13 @@ type Options struct {
 	ClientTransport func(configuration.Client) *http.Transport
 }
 type startup struct {
-	Listen         string            `json:"listen"`
-	DataDir        string            `json:"data_dir"`
-	Principals     []identity.Record `json:"principals,omitempty"`
-	Roots          []localfs.Root    `json:"roots,omitempty"`
-	TLSCertificate string            `json:"tls_certificate"`
-	TLSKey         string            `json:"tls_key"`
+	LegacyAccountsFile string            `json:"legacy_accounts_file,omitempty"`
+	Listen             string            `json:"listen"`
+	DataDir            string            `json:"data_dir"`
+	Principals         []identity.Record `json:"principals,omitempty"`
+	Roots              []localfs.Root    `json:"roots,omitempty"`
+	TLSCertificate     string            `json:"tls_certificate"`
+	TLSKey             string            `json:"tls_key"`
 }
 
 // IsServerInvocation identifies only the server command through the existing
@@ -92,6 +99,7 @@ type Runtime struct {
 	cancel                   context.CancelFunc
 	once                     sync.Once
 	closeError               error
+	maintenanceDone          chan struct{}
 }
 
 func New(ctx context.Context, options Options) (*Runtime, error) {
@@ -128,6 +136,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 			return value
 		}
 		cfg.DataDir = resolve(cfg.DataDir)
+		cfg.LegacyAccountsFile = resolve(cfg.LegacyAccountsFile)
 		cfg.TLSCertificate = resolve(cfg.TLSCertificate)
 		cfg.TLSKey = resolve(cfg.TLSKey)
 	}
@@ -173,7 +182,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 			runtime.Close()
 		}
 	}()
-	roots, err := localfs.New(cfg.Roots, directory, options.ConfigFile, options.TokenFile, cfg.TLSKey)
+	roots, err := localfs.New(cfg.Roots, directory, options.ConfigFile, options.TokenFile, cfg.TLSKey, cfg.LegacyAccountsFile)
 	if err != nil {
 		return nil, err
 	}
@@ -234,12 +243,42 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	}
 	lifetime, cancel := context.WithCancel(context.Background())
 	runtime.cancel = cancel
-	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, baidu.NewSingleFileEngine(runtime.Clients, roots))
+	artifactFiles, err := localfs.NewArtifacts(directory, runtime.store)
 	if err != nil {
 		return nil, err
 	}
+	queries := appquery.New(runtime.store)
+	accountService := appaccounts.NewValidated(runtime.store, runtime.store, runtime.Clients)
+	if cfg.LegacyAccountsFile != "" {
+		legacy, err := legacyconfig.ReadAccounts(cfg.LegacyAccountsFile)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range legacy {
+			if _, err = accountService.ImportCanonical(ctx, auth.Principal{ID: "legacy-import", Scopes: []string{"admin"}, Accounts: []string{"*"}}, v.Label, v.Username, v.Key, v.Credentials); err != nil {
+				return nil, err
+			}
+		}
+	}
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{transfer: baidu.NewSingleFileEngine(runtime.Clients, roots), scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
+	if err != nil {
+		return nil, err
+	}
+	accountService.OnRevoke(func(ctx context.Context, id string) error {
+		before := ^uint64(0)
+		a, err := runtime.store.Account(ctx, id)
+		if err == nil {
+			before = a.Credentials.Revision
+		}
+		runtime.Clients.RevokeCredentials(id, before)
+		return runtime.Transfers.RevokeAccount(ctx, id)
+	})
+	if err = artifactFiles.Cleanup(ctx); err != nil {
+		return nil, err
+	}
 	configureP2Capabilities(operations)
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: appaccounts.NewValidated(runtime.store, runtime.store, runtime.Clients), Transfers: runtime.Transfers, System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	configureP3Capabilities(operations)
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: appfiles.New(runtime.store, runtime.store, runtime.Clients, queries), Queries: queries, Local: applocal.New(roots), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
 		if err := runtime.Transfers.Ready(ctx); err != nil {
 			return err
 		}
@@ -259,6 +298,25 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 		return nil, err
 	}
 	runtime.Handler = handler
+	runtime.maintenanceDone = make(chan struct{})
+	go func() {
+		defer close(runtime.maintenanceDone)
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-lifetime.Done():
+				return
+			case <-ticker.C:
+				clean, done := context.WithTimeout(lifetime, 10*time.Second)
+				err := errors.Join(artifactFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean))
+				done()
+				if err != nil && lifetime.Err() == nil && options.Logger != nil {
+					options.Logger.Error("service retention cleanup failed")
+				}
+			}
+		}
+	}()
 	runtime.server = &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10, BaseContext: func(net.Listener) context.Context { return lifetime }, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	ok = true
 	return runtime, nil
@@ -343,6 +401,9 @@ func (r *Runtime) Close() error {
 		}
 		if r.cancel != nil {
 			r.cancel()
+		}
+		if r.maintenanceDone != nil {
+			<-r.maintenanceDone
 		}
 		if r.Transfers != nil {
 			if err := r.Transfers.Close(); err != nil {

@@ -1,123 +1,84 @@
-# HTTP API 工程交接：P2 已交付，从 P3 继续
+# HTTP API 工程交接：P3 已交付，从 P4 继续
 
-日期：2026-11-05。分支 `codex/http-api-design`。P0/P1 历史基线保留；当前契约 `0.2.0-p2`。本文件描述本次工作树的最终交付，原业务源码基线仍为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。
+日期：2026-11-05。分支 `codex/http-api-design`；P3 开发基线 `4fc00ce`。契约 `0.3.0-p3`，SQLite schema v4。原业务源码基线仍为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1 历史清单保留。
 
-## 1 当前完成到哪里
+## 1 当前交付
 
-| 范围 | 当前事实 | 仍需区分 |
+| 范围 | 当前事实 | 验收口径 |
 | --- | --- | --- |
-| P0 | 105 个操作、89 个路径、190 个 schema；当前 615 条源码映射 | 目标契约覆盖不等于业务实现率；25 组完整行为规格仍按后续阶段核销 |
-| P1 | 配置快照、隔离客户端、Bearer、SQLite、生命周期与 12 个系统/配置操作 implemented | 保留全部成果及 CLI 构建范围 |
-| P2 | 账号/受限单文件/任务 HTTP、持久派发、取消、迁移、关闭及恢复已接入生产；离线/race、四个 SIGKILL 窗口和真实百度验证通过 | 10 个新开放操作是 partial；完整账号和任务仍在 P3，完整传输在 P4 |
-| QR | 本轮扫码仅用于显式授权的独立上游验收 | qrlogin CLI 和 HTTP 登录会话仍 planned；不将辅助扫码流程计为 LOG 操作实现 |
+| P0/P1 | 105 操作、89 路径、190 schema；12 个系统/配置操作保持 implemented | 当前源码映射 616 条；映射、实现、离线和上游实测分开统计 |
+| P2 | 账号/单文件/任务、持久派发、取消、关闭和恢复保留 | [P2 验收](http-api-p2-verification.md)及原真实百度脱敏报告不重写 |
+| P3 | 完整 ACC01—ACC09、FIL01—FIL06、JOB01—JOB06/JOB09/JOB11、ART01—ART04、LOC01 | [P3逐项验收](http-api-p3-verification.md)、[操作指南](http-api-p3-guide.md) |
+| 传输 | UPL01、DWN01、JOB08 继续 P2 子集 | 完整目录、策略、并发、暂停、暂存和内容代理仍在 P4 |
+| 上游 | 本轮没有继承已清理的真实凭据 | 已请求重新扫码；未取得凭据前 P3 真实百度记为未执行，不将受控TLS当作百度实测 |
 
-当前状态为 **12 implemented、10 partial、83 planned**。partial：ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08。planned 操作通过鉴权后仍返回 501。P2-01—P2-12 的逐项证据见[P2 验证记录](http-api-p2-verification.md)，真实范围见[脱敏记录](http-api-p2-upstream-verification.json)。
+当前为 **40 implemented、3 partial、62 planned**。P3 的24个归属操作和4个P2账号切片已完整核销。planned 操作授权后返回501。QR辅助认证不计为LOG操作实现；HTTP登录会话仍在P6。
 
-推荐顺序：本文件 → [P2 操作指南](http-api-p2-guide.md) → [P2 验证记录](http-api-p2-verification.md) → [实施计划](http-api-implementation-plan.md) → [设计](http-api-design.md) → [契约校验](../api/openapi/README.md)。逐项业务语义查[源码覆盖矩阵](http-api-coverage.md)。
+推荐先读：本文件 → [P3指南](http-api-p3-guide.md) → [P3验收](http-api-p3-verification.md) → [实施计划](http-api-implementation-plan.md) → [设计](http-api-design.md) → [源码覆盖](http-api-coverage.md) → [契约校验](../api/openapi/README.md)。
 
-## 2 代码接入点与后续缺口
+## 2 代码接入点
 
-| 位置 | P2 已有能力 | P3/P4 继续的工作 |
+| 位置 | 当前职责 | 后续扩展边界 |
 | --- | --- | --- |
-| internal/bootstrap/server.go | 独占目录锁后装配账号/唯一传输服务；恢复、ready、HTTP、任务和存储有序关闭 | 沿现有生命周期接事件、读取及其他引擎，不再重建运行基础 |
-| internal/httpapi/p2.go、jobs.go | 十个 partial handler、严格输入、脱敏 DTO、权限、字符串整数、固定有效选项及控制响应 | 分页、完整任务/结果模型、SSE 和全部选项；避免直接公开 Record/Entry |
-| internal/application/accounts/service.go | 三种凭据规范化、独立账号 ID、导入重放、列表/读取、在线校验和元数据 revision | 凭据更新/吊销、旧配置导入、完整身份字段和交互登录；保留 presence/null 语义 |
-| internal/application/transfers/service.go | 持久 queued 扫描、2 执行/16 等待、幂等提交/控制、可取消目标锁、有界关闭 | 任务/事件同事务、列表/逐项结果、重试与完整清理配额；不引入通用工作流 |
-| internal/infrastructure/persistence | schema v3 增量迁移、AES-GCM、状态/时间/version CAS、控制回复事务、活动重放保留 | 在 v3 上新增迁移与索引，不能重建用户 DB 代替迁移 |
-| internal/infrastructure/baidu | 实例网络/凭据绑定；PrepareUK 原请求构造；HTTPS 单文件传输、指纹/分片/提交结果核验 | 完整握手、目录、策略、上传 ID 失效、限速与并发；不复用旧全局上传客户端 |
-| internal/infrastructure/localfs | 真实目标键、Unix 目录描述符打开与不覆盖提交；只清理确认取消任务的随机临时文件 | 与完整目录、暂存、配额及各平台运行一起扩展；旧无记录文件不猜测归属 |
-| requester/downloader/context.go | 独立单连接、256 KiB 持久确认单位、严格 Range；请求空闲/取消由绑定客户端控制 | 旧 Execute/monitor/全局 cache 隔离仍在 P4，不把新增路径当作旧并行路径已完成 |
-| internal/bootstrap/live_test.go | 显式凭据文件/专用目录的 opt-in 真实测试；正常离线 CI 默认 skip | 对新增业务按账号能力追加明确实测，不使用日常文件、不输出凭据或目录内容 |
+| bootstrap/server.go、p3.go | 目录锁后装配唯一服务、固定旧账号来源、维护清理、ready和有序关闭；p3Engine按kind路由 | 沿现有生命周期加入P4引擎，不再重建任务基础 |
+| application/accounts、persistence/accounts.go | 规范凭据、独立ID、版本/归档/吊销、强ETag、配额、删除和幂等 | 交互登录在P6；身份未知字段保持null，UK不冒充UID |
+| infrastructure/legacyconfig | 显式legacy_accounts_file只读导入，不使用CLI全局对象 | 源指纹/索引永久重放，重复UID不合并；CLI默认值和客户端参数导入/管理在P6 |
+| application/files、infrastructure/baidu/files.go | 列表/元数据、搜索、通配符、流式扫描；实例客户端和有界上游响应 | 文件写业务P5复用读取；绝对/base_path先行，不依赖P6 context |
+| baidupcs/file_directory.go、pcscommand读取路径 | 新单页方法共用解析；旧聚合排序/输出保留，重复页/中途失败明确返回错误 | 不复制旧版分页解析；P3 CLI回归可直接复用 |
+| application/transfers、domain/transfer | 2执行/16等待、持久派发、取消、查询、逐项、retry与P2 resume | 不引入通用工作流。新kind按原始权限检查；未知提交先核验，不盲目retry |
+| persistence/transfers.go、events.go、queries.go | 任务/事件/控制重放同事务、独立序号、快照、逐项索引和高水位游标 | v4上增量迁移，保留旧记录/版本/检查点；不能重建DB代替迁移 |
+| httpapi/events.go | 一致snapshot→追踪、持久游标回放、心跳、有界慢消费者断开 | 每连接128帧、全局64连接；终态和序号同时可见，不漏最终事件 |
+| application/artifacts、localfs/artifacts.go、persistence/artifacts.go | 管理结果文件、授权、Range/HEAD、TTL/配额、引用、清理与tombstone | 暂存/上传接收在P4/P6；结果文件与用户root/秘密目录隔离 |
+| infrastructure/baidu/transfer.go、localfs/open_* | 已验证的单文件上传/下载、目标锁、指纹、提交核验和Unix目录描述符 | 按P4逐项扩展，不复用旧全局上传客户端或下载monitor/cache |
+| requester/downloader/context.go | 独立连接、256KiB持久确认、严格Range、请求取消/空闲期限 | 旧Execute并行路径的全局cache/monitor隔离仍属P4 |
 
-`transfer.Record` 包括代理和私有检查点/uploadid，只能加密持久化，不能作为 HTTP 数据。SQL 状态与版本是权威字段。账号 DTO 的未知 UID/UK、性别/年龄等必须为 null，不能以 UK 冒充 UID。
+内部 transfer.Record/Checkpoint 仍含代理、uploadid和私有临时文件信息，只能加密持久化，不能作为HTTP DTO或直接写日志。事件内部载荷同样加密，HTTP必须经公开投影。大小、ID、revision均为规范十进制字符串。
 
-## 3 已落实的接续决策
+## 3 P3 已固定的语义
 
-1. 保留同 module、标准库 HTTP、模块化单体、SQLite 和五层边界。每个新 port 必须有当前使用者；不增加外部队列、微服务或空管理框架。
-2. planned/partial/implemented 已贯穿契约、Catalog、路由、能力和校验器。partial 能执行但不算完整实现；`supported_option_values` 给规范字符串值，limits 只放数值上限；`x-phase` 仍是完整验收归属。
-3. P2 使用显式账号、单个 local 源/绝对远端文件、已有授权 root、固定选项及轮询。目录/空文件/暂存/其他参数明确拒绝，P3/P4 按完整契约补齐。
-4. 配置仍可保存 enable_https=false，但携带上游凭据的客户端明确拒绝创建；绑定 Transport 和重定向禁止 HTTP 降级，Cookie 是 Secure。原 HTTPS/HTTP Cookie 查询已按 PCS 协议校正；未使用 UID 的旧明文身份回退。
-5. 原始 Cookie 文本模型不等于结构化会话。STOKEN 仅安装在 Pan，PTOKEN 不广播到其他子域；P6 扩展 QR 会话仍需保存 domain/path/Secure/expires 等作用域，不合并 Passport 和 Pan 同名 Cookie。
-6. 取消不等于回滚。未知提交结果保留 interrupted；committing/done 的中断任务先 resume 核验，不能伪报 cancelled；已知 cancelled 不自动复活。配置和凭据版本绑定已入库任务，后续凭据更新要定义明确恢复规则。
-7. 本轮专用账号实测不把所有账号/所有操作标为 available。运行中百度业务仍 unverified、verified_at=null，需要按账号、平台、参数和时间单独认定；受控 TLS 与真实百度证据分别记录。
+1. 保留同module、标准库HTTP、五层、单实例SQLite和目录独占锁；每个port有当前使用者，不增加外部队列/微服务。
+2. 普通凭据更新归档旧版本，已有任务保持原绑定。null清除撤销旧版本并销毁历史秘密载荷，关闭对应任务及同步读取连接；删除有活动/待核验任务的账号返回409，成功删除时撤销全部版本。cookies=null保留独立token，bduss=null清除依赖Cookie会话；空字符串/混合Jar输入拒绝。
+3. 凭据吊销不代表远端回滚。committing/done或未知提交仍interrupted，不假报failed/cancelled，也不允许retry盲目重放。P4/P5继续补充需要新凭据参与的结果核对策略。
+4. 搜索/任务列表快照最多10000项、600秒，绑定查询/调用方/账号或原始权限。扫描逐项使用不可变条目高水位，支持大于10000项；不将后续新增项混入旧游标。retry只新建符合scope的项，最多10000项，重新准备并使用当前配置/凭据；不复制uploadid/下载临时文件。
+5. 扫描支持tree/recursive/statistics、depth、include_ids和节点/时间上限；截断complete=false。取消按未完成选择根保存重试单位，避免为遍历栈中的所有节点逐一执行取消。重启保留interrupted，扫描取消后retry，不宣传原位续读。
+6. 任务查询在原权限过滤后计数并保留时间精度；历史P2提交重放queued回执不改写当前任务。状态、检查点、逐项、控制重放与事件在相应事务内提交；单job序号独立持久化，清理不复用。SSE初次一致snapshot后追踪，重连400/409/410语义固定，慢消费者断开但不阻塞任务。
+7. Artifact写入完成同步后发布，结果完成后24小时TTL；256MiB单文件、1GiB总量、128文件；活动任务/响应引用保护物理文件。删除保留任务摘要，过期/删除读取410，HEAD任何状态无body。
+8. token-only只开放已实现的token验证/配额；能力的credential_alternatives表达替代凭据组合。implemented不自动等于上游available，verified_at无证据时null。
+9. P2 Request新增字段在空值时省略，保持4fc00ce的检查点绑定和幂等job_id算法；v3旧凭据首次变更前兼容读取、变更时归档。P3增加了专门兼容测试。
 
-## 4 P2 交付核销
+P2有效值继续见[P2指南](http-api-p2-guide.md)：普通文件1字节至32MiB；上传单文件/单分片并发、skip、norapid、retry=0；下载pcs/relative、并发1、校验开启、overwrite=false；两种速率字符串"0"。省略字段按配置继承，超出子集422，不静默改成固定值。
 
-P2-01—P2-12 全部有实现或明确实测结论，逐项测试名与复现见[P2 验证记录](http-api-p2-verification.md#逐项核销)。交接者可以从 P3 继续。
-
-当前受限值：上传 file_concurrency=1、parallel_per_file=1、max_retries=0、policy=skip、skip_rapid_check=true、check_filename=false、no_split_file=false；下载 mode=pcs、path_mode=relative、parallel=1、file_concurrency=1、max_retries=0、overwrite=false、verify_checksum=true，其余布尔 false、link_index=0；两种速率均为字符串 "0"。省略字段继续按契约继承配置，不静默改成固定值；超出受限能力返回 422。上传 skip 正确计 skipped/0 字节。
-
-P3/P4 的全量契约验收不因 P2 提前切片而完成。若新增能力超出现有 fixture，应先补对应测试，再演进 partial/implemented 声明。
-
-## 5 P3—P7：完整验收归属与不可遗漏项
-
-以下按当前 OpenAPI 的 `x-phase` 核对，共 105 个操作；P2 partial 提前切片不改写完整验收归属。
+## 4 后续完整验收归属
 
 | 阶段 | 操作数 | operationId |
 | --- | --- | --- |
-| P1 | 12 | CFG01、CFG02、CFG03、CFG04、CFG05、CFG07、SYS01、SYS02、SYS03、SYS04、SYS08、SYS09 |
-| P2 | 4 | ACC01、ACC02、ACC03、ACC07 |
-| P3 | 24 | ACC04、ACC05、ACC06、ACC08、ACC09、ART01、ART02、ART03、ART04、FIL01、FIL02、FIL03、FIL04、FIL05、FIL06、JOB01、JOB02、JOB03、JOB04、JOB05、JOB06、JOB09、JOB11、LOC01 |
 | P4 | 11 | DWN01、DWN02、DWN03、DWN04、DWN05、JOB07、JOB08、UPL01、UPL02、UPL03、UPL04 |
 | P5 | 23 | FIL07、FIL08、FIL09、FIL10、FIL11、JOB10、OFF01、OFF02、OFF03、OFF04、OFF05、OFF06、OFF07、REC01、REC02、REC03、REC04、SHR01、SHR02、SHR03、SHR04、TRF01、TRF02 |
 | P6 | 30 | CFG06、CFG08、CFG09、CTX01、CTX02、CTX03、CTX04、EXP01、FIL12、INT01、INT02、INT03、INT04、INT05、INT06、LOC02、LOC03、LOG01、LOG02、LOG03、LOG04、LOG05、LOG06、SYS05、SYS06、UPL05、UPL06、UPL07、UPL08、UPL09 |
 | P7 | 1 | SYS07 |
 
-| 阶段 | 必做的具体工作与边界 |
+| 阶段 | 不可遗漏的工作 |
 | --- | --- |
-| P3 | 完整账号与凭据版本/吊销、旧配置导入；只写字段更新需要 presence/null 语义，不能套用 P1 全局拒绝 null 的配置 decoder。补分页与搜索快照、批量逐项结果、文件扫描、任务/事件/幂等同事务、持久派发、retry 新任务、SSE 的 snapshot→追踪/重连/过期/慢消费者、artifact 的 Range/TTL/引用和授权。每次重开任务状态与版本仍正确；只迁移触及的 CLI 读取流程 |
-| P4 | 完整目录/空文件/策略与有效选项，秒传/非秒传、最新握手/-9 分支、上传id失效、同名下载与相对层级、文件/线程预算、完整限速、按实例暂停/取消/恢复、暂存引用与磁盘不足、代理/重定向/Range/HEAD/慢流及票据隔离。旧下载 monitor/全局 cache 和上传器全局停止仍需隔离，不能只增加 ClientFactory。按账号+目标+源指纹管理断点；相应 CLI 行为同步回归 |
-| P5 | 文件复制/移动/删除的冲突与部分成功；先修复 baidupcs.cpmvOp 丢失 prepare 错误的基线问题并加回归。分享 period/提取码/combined_link、整段分享文本与 fs_id 选择、检查分页、collect、转存后有界可见性与下载子任务。OFF03 >100 项拒绝，OFF02 不假报超过上游实际 1000 项的全量；回收站恢复保留实际成功 ID，LeftTime 单位不猜测；未知结果 reconcile 不盲目重试 |
-| P6 核心及管理 | 校验长度/MD5/slice MD5/CRC32、MD5修复、导出 root/格式/部分失败/结果文件、增量 cursor/reset/不可用结论。保留原有密码 challenge 的有效流程，未知 challenge 明确拒绝。加解密默认不删源文件，密钥只写、不可恢复情况明确。context、CLI 默认值、固定来源配置 reload、诊断后置；不共享可写 CLI 配置，不重新引入全局当前账号 |
-| P7 | 汇总从 P2 起的证据、全部核心覆盖、原 CLI 与目标平台运行、备份/迁移/回滚范围、故障注入、大目录/慢网络/磁盘不足/资源上限及发布文档。SYS07 指标不暴露账号/路径/令牌或形成无界 label。源码映射、完整实现、partial、离线验收及上游实测分别统计；CGO=0 交叉编译通过不等于目标机运行通过 |
+| P4 | 目录/空文件/策略和全部有效选项；秒传/非秒传、最新握手/-9分支、uploadid失效；同名/相对层级、线程与文件预算、完整限速、按实例暂停取消恢复；暂存引用/磁盘不足/不覆盖提交；代理重定向/Range/HEAD/慢流和票据隔离。旧下载monitor/cache、上传全局停止仍须隔离，不能只增加ClientFactory；相应CLI行为同步回归 |
+| P5 | 先修复baidupcs.cpmvOp丢失prepare错误并加回归；写入冲突与部分成功。分享任意有效period/提取码/combined_link、整段分享文本/fs_id/检查分页/collect、转存可见性和下载子任务。OFF03 >100项拒绝、OFF02不假报超过上游实际1000项的全量；回收站恢复实际ID、LeftTime不猜单位；未知结果reconcile不盲目重试 |
+| P6 | 长度/MD5/slice/CRC32、MD5修复、导出root/格式/部分失败/结果文件和增量cursor/reset/不可用状态；保留原password/challenge流程，未知challenge拒绝；加解密默认不删源、密钥只写、缺失秘密明确不可恢复。context/CLI默认值/固定配置reload/诊断后置，不共享可写CLI配置，不恢复全局当前账号 |
+| P7 | 汇总P2起的证据、完整核心覆盖、CLI及目标机运行、备份/迁移/回滚、故障注入/大目录/慢网络/磁盘不足/资源上限和发布；SYS07无秘密或无界label。映射率/实现率/离线/上游分别统计，CGO=0交叉编译不等于目标机运行 |
 
-扩展不阻塞核心业务版本：DWN05 短期下载票据、UPL05—UPL09 浏览器可续传接收、LOG03 及其他 LOG 操作的 qrcode 方法、xpan 与参考项目旧路由。LOG01/02/04/05/06 的原有 password/challenge 业务与 qrcode 扩展分开核销。INT06、NoSplitFile、Rname、SuperTransfer 等须有真实状态或明确不支持，不能把历史不可用能力写成成功；UI/CLI 选项映射不代表第三方上游已经恢复。
+浏览器续传接收、DWN05票据、qrcode登录扩展、xpan/旧参考路由单列扩展，不阻塞核心。INT06、NoSplitFile、Rname、SuperTransfer必须有真实状态或明确不支持；历史UI选项不代表上游已经恢复。LOG原password/challenge和qrcode分开核销，不把本轮辅助扫码算入LOG实现。
 
-## 6 存储、版本和安全边界
+## 5 存储、安全和生命周期
 
-- 服务数据目录独立，`master.key` 与数据库必须配对备份；不得为已有密文生成新 key。迁移保持旧记录可读，若修改内部 Record/Checkpoint 的编码或 Cookie 模型，增加版本/转换与回滚限制说明。已有 `baselines/p0-source-inventory.json` 与 `p1-source-inventory.json` 是历史快照，不随实现重写。
-- 当前目录锁在 bootstrap；transfers.New 会把遗留 running/cancelling 记录核验中断、保留 queued 派发，所以只能由获得锁的唯一实例调用。测试直接组合 Store/Service 不等于允许生产多实例。
-- 存储写入、检查点与终态必须检查实际提交结果；超时/失败不返回已持久化的假成功。保留周期、清理配额、备份一致性与主机掉电语义需明确；本轮证据未承诺主机掉电一致性。
-- account/credentials、proxy、uploadid、签名 URL、票据和本地绝对根目录不进入公共 DTO、日志或事件；按路由模板记录。服务 API 的 401 与百度凭据失效分开，401 不能被当作注销百度账号。
-- 本地文件按真实根目录和父目录/符号链接检查；最终文件不覆盖策略和临时文件归属在并发、取消及恢复时仍成立。需要处理文件打开/提交竞争，不能仅相信字符串前缀或 basename。
+- 数据目录独立，master.key/DB/artifacts配对备份，密文不能换新key解读。v4只能增量升级；P2二进制拒绝v4，回滚需恢复升级前一致备份。P0/P1冻结清单不重写。
+- bootstrap先获得目录锁再恢复/派发。直接组合Store/Service的单元测试不等于允许生产多实例。
+- 单独SQL状态/时间/version为权威，所有提交检查错误。维护每分钟处理事件/幂等/无引用到期结果；活动job重放保留，旧配置导入指纹长期保留。未承诺主机掉电一致性。
+- credentials、proxy、uploadid、签名URL/票据、本地绝对root不进DTO/日志。日志仅路由模板；401仍是服务API身份问题，百度失效为422。
+- 本地root按真实目录与软链接检查；Unix打开/提交复用目录描述符，不覆盖策略和临时文件归属必须在并发、取消和重启后保持。
+- HTTP排空最多10秒，任务检查点/终态等待15秒，必要时取消连接后再等5秒；存储不抢先关闭。SSE观察draining退出；流开始后错误只终止流，不追加JSON。
 
-## 7 干净环境复现与 CI
+## 6 验证与继续工作
 
-在仓库根目录运行，Go 最低 1.23.0，验证工具链固定 1.23.12；Python 3.10+。首次安装依赖需要网络，受控测试不访问真实百度。
+完整复现命令、测试名、实际响应及上游口径见[P3验收](http-api-p3-verification.md)。CI为`.github/workflows/http-api.yml`。相关包/race、旧CLI离线回归、105操作契约和13目标构建均应保持；已知原基线下载器测试/绝对路径/外网示例仍按[P0基线](http-api-p0-baseline.md)单列，不能以go test ./...替代明确验收范围。
 
-```sh
-export GOTOOLCHAIN=go1.23.12
-python3 -m venv /tmp/baidupcs-http-api-venv
-/tmp/baidupcs-http-api-venv/bin/python -m pip install -r api/openapi/tools/requirements.txt
+契约变更：YAML/设计/示例 → export_contract.py → 实际HTTP响应重新导出 → checker。源码或覆盖变化先人工审矩阵，再--write-inventory，最后不带该参数检查。当前616项包含新增FilesDirectoriesListPage；新分层内部协作者按覆盖矩阵分组管理，不按函数名制造HTTP端点。
 
-BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-http-responses.json \
-BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
-go test -race -count=1 -timeout=180s \
-  ./internal/domain/... ./internal/application/... \
-  ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
-
-/tmp/baidupcs-http-api-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-http-responses.json /tmp/baidupcs-p2-responses.json
-
-go test -count=1 -timeout=120s \
-  ./pcsliner/args ./pcsutil/cachepool ./pcsutil/converter \
-  ./pcsutil/escaper ./pcsutil/waitgroup ./pcsutil/taskframework \
-  ./baidupcs/netdisksign ./baidupcs/expires/cachemap \
-  ./requester ./requester/rio ./requester/rio/speeds \
-  ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
-
-python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-http-builds.json
-CGO_ENABLED=0 go build -o /tmp/baidupcs-http .
-/tmp/baidupcs-http server --help
-git diff --check
-```
-
-本轮结果：相关包/race 与 14 个既有离线包通过；39 组实际 HTTP 响应覆盖 12 个 implemented 和 10 个 partial；105 个目标操作、190 个 schema、67 个边界例、615 条映射通过；13 个 CLI 目标 CGO=0 构建通过，SQLite 仅在 5 个服务目标导入。真实百度、Linux/amd64 的范围另见脱敏报告。
-
-默认不要直接把 `go test ./...` 当作验收命令。已知原基线问题是 downloader 测试包 `ShowWorkers` 编译失败、pcsutil.TestWalkDir 和 checksum.TestChecksum 的开发者绝对路径；getip 和旧下载示例会访问外网/写文件。详情见[P0基线](http-api-p0-baseline.md)。P4 改动旧下载器时先修正其测试入口与 fixture，不能因为包当前不可测试而跳过新逻辑验证。
-
-契约变更流程：修改 YAML/设计/示例 → `python3 api/openapi/tools/export_contract.py` → 实际 HTTP 测试重新导出响应 → checker。源码或覆盖行变化时，先审人工矩阵，再运行 checker 的 `--write-inventory`，最后不带该参数检查；不能用重建清单掩盖未分类项。现有 CI 在 `.github/workflows/http-api.yml`，根 README/发布说明须在对外功能变化时更新。
-
-## 8 交接验收方式
-
-后续变更从 P3 完整账号/读取及任务完善开始，列出具体 operationId、支持的请求、仍不支持字段和运行证据。P2 逐项交付证据保留，不重写历史快照。每次只把有证据的项改为完成。P3—P7 按操作表和覆盖矩阵逐项核销，发现上游不可用则记录限制与证据，不补造成功响应。所有真实账号/协议实测均记录时间与范围；任何后续工程师不需要依赖这段聊天或本机 `/tmp` 文件才能判断还有什么没做。
+从P4完整传输继续，沿既有上传下载执行器、持久队列和P3查询/事件/结果能力扩展。用户已授权重新扫码，并要求成功后将凭据保存在本工作区0600的`.env`中供后续验证复用；该文件必须由Git忽略。当前手机确认仍待完成，尚无新凭据。远端文件操作仅限`/BaiduPCS-Go-P2-Verification/`；没有凭据不读取日常账号或文件。所有实测记录时间、平台、参数及范围，交接者无需依赖聊天或本机/tmp判断剩余工作。

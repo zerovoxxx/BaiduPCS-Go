@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 )
 
@@ -30,6 +31,14 @@ func publicProblem(f *fault.Error, requestID string) any {
 		status = 403
 	case fault.NotFound:
 		status = 404
+	case fault.TooLarge:
+		status = 413
+	case fault.Gone:
+		status = 410
+	case fault.Precondition:
+		status = 412
+	case fault.RateLimited:
+		status = 429
 	case fault.Conflict:
 		status = 409
 	case fault.Unsupported:
@@ -62,6 +71,12 @@ func checkpoint(r transfer.Record) publicCheckpoint {
 	return cp
 }
 func counters(r transfer.Record) map[string]string {
+	if r.Request.Kind == "file_scan" {
+		if r.ScanResult != nil {
+			return publicCounts(r.ScanResult.Counts)
+		}
+		return publicCounts(transfer.Counts{})
+	}
 	values := map[string]string{"total": "1", "processed": "0", "succeeded": "0", "failed": "0", "skipped": "0", "cancelled": "0"}
 	if r.Terminal() {
 		values["processed"] = "1"
@@ -131,27 +146,60 @@ func publicJob(r transfer.Record, requestID string) any {
 	actions := []string{}
 	if !r.Terminal() {
 		switch r.State {
-		case "queued", "running":
+		case "queued":
+			if cp.Phase != "committing" && cp.Phase != "done" {
+				actions = append(actions, "cancel")
+			}
+		case "running":
 			actions = append(actions, "cancel")
 		case "interrupted":
 			if cp.Phase != "committing" && cp.Phase != "done" {
 				actions = append(actions, "cancel")
 			}
 			actions = append(actions, "resume")
-			if cp.Phase == "committing" || cp.Phase == "done" {
-				actions = append(actions, "reconcile")
+
+		}
+	}
+	if r.FailureCode == "CREDENTIAL_REVOKED" {
+		filtered := []string{}
+		for _, action := range actions {
+			if action != "resume" && action != "reconcile" {
+				filtered = append(filtered, action)
 			}
 		}
+		actions = filtered
 	}
 	var problem any
 	if r.FailureCode != "" {
 		problem = publicProblem(jobFault(r.FailureCode), requestID)
 	}
 	result := map[string]any{
-		"job_id": r.ID, "owner": r.Owner, "account_id": r.Request.AccountID, "kind": r.Request.Kind, "state": r.State, "phase": phase, "created_at": r.CreatedAt, "dry_run": false, "started_at": nullable(r.StartedAt), "finished_at": nullable(r.FinishedAt), "config_revision": uintString(r.ConfigRevision), "credential_revision": uintString(r.CredentialRevision), "parent_job_id": nil, "child_job_ids": []string{}, "retry_of_job_id": nil,
+		"job_id": r.ID, "owner": r.Owner, "account_id": r.Request.AccountID, "kind": r.Request.Kind, "state": r.State, "phase": phase, "created_at": r.CreatedAt, "dry_run": false, "started_at": nullable(r.StartedAt), "finished_at": nullable(r.FinishedAt), "config_revision": uintString(r.ConfigRevision), "credential_revision": uintString(r.CredentialRevision), "parent_job_id": nil, "child_job_ids": []string{}, "retry_of_job_id": nullable(r.Request.RetryOf),
 		"resolved_paths": []string{r.Request.RemotePath}, "resolved_sources": []any{}, "local_files": []any{}, "destination": nil, "target_path": nil,
 		"progress":          map[string]any{"total_items": "1", "processed_items": counts["processed"], "succeeded_items": counts["succeeded"], "failed_items": counts["failed"], "skipped_items": counts["skipped"], "cancelled_items": counts["cancelled"], "total_bytes": totalBytes, "transferred_bytes": transferred, "written_bytes": written, "bytes_per_second": rate, "eta_seconds": eta},
 		"available_actions": actions, "problem": problem, "links": map[string]string{"self": "/api/v1/jobs/" + r.ID, "events": "/api/v1/jobs/" + r.ID + "/events", "result": "/api/v1/jobs/" + r.ID + "/result"}, "effective_options": r.EffectiveOptions,
+	}
+	if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0" || r.State == "failed" && r.FailureCode != "") {
+		result["available_actions"] = []string{"retry"}
+	}
+	if r.Request.Kind == "file_scan" {
+		var plan file.ScanPlan
+		_ = json.Unmarshal([]byte(r.Request.ScanPlan), &plan)
+		result["resolved_paths"] = plan.Paths
+		progress := result["progress"].(map[string]any)
+		progress["total_items"] = nil
+		progress["total_bytes"] = nil
+		if r.Terminal() && r.ScanResult != nil {
+			progress["total_items"] = counts["total"]
+		}
+		result["available_actions"] = []string{}
+		if !r.Terminal() && r.State != "cancelling" {
+			result["available_actions"] = []string{"cancel"}
+		}
+		if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0" || r.State == "failed" && r.FailureCode != "") {
+			result["available_actions"] = []string{"retry"}
+		}
+		return result
 	}
 	if r.Request.Kind == "upload" {
 		result["target_path"] = r.Request.RemotePath
@@ -167,7 +215,7 @@ func jobFault(code string) *fault.Error {
 	switch code {
 	case "REMOTE_RESULT_UNKNOWN", "LOCAL_RESULT_UNKNOWN", "TARGET_EXISTS", "CHECKSUM_MISMATCH", "CREDENTIAL_REVISION_MISMATCH":
 		kind = fault.Conflict
-	case "CHECKPOINT_SOURCE_CHANGED", "CHECKPOINT_BINDING_MISMATCH", "CHECKPOINT_VERSION_UNSUPPORTED", "CHECKSUM_UNAVAILABLE", "UNSUPPORTED_OPTION", "BAIDU_CREDENTIAL_EXPIRED", "HTTPS_REQUIRED":
+	case "CHECKPOINT_SOURCE_CHANGED", "CHECKPOINT_BINDING_MISMATCH", "CHECKPOINT_VERSION_UNSUPPORTED", "CHECKSUM_UNAVAILABLE", "UNSUPPORTED_OPTION", "BAIDU_CREDENTIAL_EXPIRED", "HTTPS_REQUIRED", "CREDENTIAL_REVOKED", "BAIDU_COOKIE_REQUIRED", "BAIDU_CREDENTIAL_MISSING":
 		kind = fault.Unsupported
 	case "LOCAL_PATH_FORBIDDEN":
 		kind = fault.Forbidden
@@ -183,6 +231,13 @@ func jobFault(code string) *fault.Error {
 	return fault.New(kind, code, "任务执行未完成；根据业务码核对或恢复")
 }
 func publicResult(r transfer.Record) any {
+	if r.Request.Kind == "file_scan" {
+		v := r.ScanResult
+		if v == nil {
+			v = &transfer.ScanResult{ArtifactIDs: []string{}}
+		}
+		return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": publicCounts(v.Counts), "complete": v.Complete, "truncation_reason": nullable(v.Truncation), "files": uintString(v.Files), "directories": uintString(v.Directories), "size_bytes": uintString(v.Bytes), "artifact_ids": append([]string{}, v.ArtifactIDs...)}}
+	}
 	transferred, written := bytesConfirmed(r)
 	return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": counters(r), "complete": true, "artifact_ids": []string{}, "transferred_bytes": transferred, "written_bytes": written, "child_job_ids": []string{}}}
 }

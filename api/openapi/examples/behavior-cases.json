@@ -54,7 +54,11 @@
     "given": "上游1001/2000/2001项，可能重复页或中途失败",
     "when": "逐页读取或聚合扫描",
     "then": "不为total拉全目录；has_more不确定为null；错误与complete=false保留，不能吞错",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+      "internal/pcscommand/reads_test.go#TestP3CLISharedReadsPreserveAggregationOrderingAndOutput"
+    ]
   },
   {
     "id": "PAGE-02",
@@ -64,7 +68,11 @@
     "given": "首次查询建立有界快照",
     "when": "携cursor改变keyword或快照过期",
     "then": "409 QUERY_CURSOR_MISMATCH / 410 QUERY_SNAPSHOT_EXPIRED；超容量413 QUERY_SNAPSHOT_LIMIT",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+      "internal/infrastructure/persistence/p3_test.go#TestP3SnapshotBindingExpirationAndEncryptedCursors"
+    ]
   },
   {
     "id": "OFF-01",
@@ -221,7 +229,14 @@
     "given": "有限事件窗口、慢消费者和Last-Event-ID",
     "when": "无游标订阅、合法重放、过期游标、未来游标、别的job游标",
     "then": "无游标先snapshot；重放ID单调可去重；过期410 EVENT_CURSOR_EXPIRED、未来409、跨job400；心跳注释；慢客户端不阻塞调度",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p3_test.go#TestP3SSESnapshotFollowsThroughTerminalCommit",
+      "internal/bootstrap/p3_test.go#TestP3SSESlowConsumerDisconnectsWithoutBlockingJob",
+      "internal/bootstrap/p3_test.go#TestP3SSEHeartbeatIsCommentWithoutID",
+      "internal/infrastructure/persistence/p3_test.go#TestP3JobEventTransactionsAndRestartSequence",
+      "internal/infrastructure/persistence/p3_test.go#TestP3EventCountRetentionNeverReusesSequence"
+    ]
   },
   {
     "id": "SHARE-01",
@@ -267,10 +282,14 @@
       "SYS04",
       "ACC09"
     ],
-    "given": "源码映射全部完成、HTTP均planned、上游未测",
+    "given": "源码映射已完成，HTTP分别为planned/partial/implemented，上游验证独立于实现状态",
     "when": "读取能力",
     "then": "implementation/availability/enabled/verified_at独立，不能报告available或100%实现",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p2_test.go#TestP2RuntimeAccountsCapabilitiesAndPersistence",
+      "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions"
+    ]
   },
   {
     "id": "COOKIE-01",
@@ -281,7 +300,12 @@
     "given": "Cookie主凭据、重复Cookie键、无尾部分号的BDUSS、单字段吊销及独立access_token",
     "when": "导入或清除cookies/bduss",
     "then": "使用真正Cookie解析器；无BDUSS或冲突格式400 INVALID_CREDENTIAL_FORMAT；不因正则sub[1]越界崩溃；维护唯一Jar；cookies=null清除所有Cookie凭据但保留access_token；单独删除bduss后不能被旧Cookie文本恢复",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/domain/account/import_test.go#TestCredentialImportCanonicalization",
+      "internal/domain/account/patch_test.go#TestP3CanonicalCredentialPatchPresenceAndRevocation",
+      "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions"
+    ]
   },
   {
     "id": "WRITE-ERROR-01",

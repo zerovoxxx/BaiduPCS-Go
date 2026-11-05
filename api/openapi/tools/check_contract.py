@@ -118,7 +118,7 @@ def inventory(observed, operation_ids, implemented_count=0, partial_count=0):
         'schema_version': 1,
         'source_baseline': '1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73',
         'generated_by': 'go run api/openapi/tools/inventory.go + check_contract.py --write-inventory',
-        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json'},
+        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json', 'p3_offline_evidence': 'docs/http-api-p3-verification.md', 'p3_upstream_verification': 'not_executed_no_credentials'},
         'counts': dict(sorted(collections.Counter(e['kind'] for e in entries).items())),
         'files': observed['files'], 'entries': entries,
     }
@@ -252,7 +252,13 @@ def main():
     for case in scenarios:
         for oid in case['operations']:
             require(oid in operations, f'{case["id"]}: unknown operation {oid}')
-        require(case['verification'] == 'acceptance_spec_only', f'{case["id"]}: cannot claim runtime tests in P0')
+        require(case['verification'] in ['acceptance_spec_only', 'offline_tests'], f'{case["id"]}: invalid evidence state')
+        if case['verification'] == 'offline_tests':
+            require(case.get('offline_evidence'), f'{case["id"]}: missing runtime evidence')
+            for evidence in case['offline_evidence']:
+                filename, function = evidence.split('#', 1)
+                require(filename.endswith('_test.go') and (ROOT/filename).is_file(), f'{case["id"]}: missing test file')
+                require(re.search(r'func\s+' + re.escape(function) + r'\s*\(', (ROOT/filename).read_text()), f'{case["id"]}: missing test function')
     # Validate actual SSE wire example payloads, not merely the string media type.
     stream = (API / 'examples/job-events.sse').read_text()
     sse_events = 0
@@ -336,12 +342,27 @@ def main():
             require(oid in operations, f'unknown live operation {oid}')
             response = resolve(operations[oid]['responses'][str(record['status'])])
             media_type = record['content_type']
-            require(media_type in response.get('content', {}), f'{oid}: unexpected live content type {media_type}')
-            valid(response['content'][media_type]['schema'],record['body'],f'{oid} live {record["status"]}')
+            if record['method'] == 'HEAD' or record['status'] == 204:
+                require(record['body'] is None, f'{oid}: HEAD/204 must have no body')
+            else:
+                require(media_type in response.get('content', {}), f'{oid}: unexpected live content type {media_type}')
+                valid(response['content'][media_type]['schema'],record['body'],f'{oid} live {record["status"]}')
+            if media_type == 'text/event-stream':
+                require(isinstance(record['body'], str), f'{oid}: live SSE must be text')
+                for frame in record['body'].split('\n\n'):
+                    if not frame.strip(): continue
+                    if frame.startswith(':'):
+                        require('id:' not in frame, f'{oid}: heartbeat must have no ID')
+                        continue
+                    fields = dict(line.split(': ', 1) for line in frame.splitlines() if ': ' in line)
+                    require(set(fields) == {'id', 'event', 'data'}, f'{oid}: malformed SSE frame')
+                    event = json.loads(fields['data'])
+                    valid({'$ref': '#/components/schemas/JobEvent'}, event, f'{oid} live SSE event')
+                    require(fields['id'] == event['event_id'] and fields['event'] == event['type'], f'{oid}: SSE envelope drift')
             headers={key.lower():value[0] for key,value in record['headers'].items()}
             if media_type == 'application/json' and oid != 'SYS08':
                 require(record['body']['meta']['request_id']==headers['x-request-id'],f'{oid}: live request ID mismatch')
-            if media_type == 'application/problem+json':
+            if media_type == 'application/problem+json' and record['method'] != 'HEAD':
                 require(record['body']['status']==record['status'],f'{oid}: live Problem status mismatch')
             if record['status'] < 300: covered.add(oid)
             if record['status'] >= 400: rejected.add(oid)
@@ -377,7 +398,8 @@ def main():
         require(json.loads(baseline_file.read_text()) == baseline, 'source or coverage matrix drift; review changes then run --write-inventory')
     print(f'PASS: OpenAPI 3.1.1; {len(routes)} operations / {len(spec["paths"])} paths / {len(schemas)} schemas')
     print(f'PASS: {len(request_examples)} typed request examples; {len(success_examples)} JSON response examples; {len(wire)} HTTP exchanges; {checks} instance validations')
-    print(f'PASS: {len(cases)} schema boundary cases; {len(scenarios)} behavior specifications (not executed); {sse_events} SSE frames')
+    backed = sum(case['verification'] == 'offline_tests' for case in scenarios)
+    print(f'PASS: {len(cases)} schema boundary cases; {len(scenarios)} behavior specifications ({backed} linked to offline tests, others pending); {sse_events} SSE frames')
     print(f'PASS: {len(observed["entries"])} AST entries mapped, no source/matrix drift; counts={baseline["counts"]}')
 
 

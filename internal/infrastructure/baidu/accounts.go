@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
@@ -22,7 +23,8 @@ func (f *ClientFactory) ValidateAccount(ctx context.Context, snapshot configurat
 	}
 	defer s.Close()
 	if c.AccessToken != "" && len(c.Cookies) == 0 {
-		return identity, validateTokenQuota(ctx, s, snapshot.Client(), c.AccessToken)
+		_, err := tokenQuota(ctx, s, snapshot.Client(), c.AccessToken)
+		return identity, err
 	}
 	if _, _, err := s.PCS.QuotaInfo(); err != nil {
 		return identity, upstreamFault(err)
@@ -67,7 +69,7 @@ func (f *ClientFactory) ValidateAccount(ctx context.Context, snapshot configurat
 	return identity, nil
 }
 
-func validateTokenQuota(ctx context.Context, s *Session, cfg configuration.Client, token string) error {
+func tokenQuota(ctx context.Context, s *Session, cfg configuration.Client, token string) (account.Quota, error) {
 	// The legacy SetaccessToken only applies to rapid-upload requests. Do not
 	// mistake a cookie-only QuotaInfo call for validation of an OAuth token.
 	u := s.PCS.URL()
@@ -79,12 +81,12 @@ func validateTokenQuota(ctx context.Context, s *Session, cfg configuration.Clien
 	u.RawQuery = query.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
-		return fault.New(fault.Internal, "INTERNAL_ERROR", "无法构造凭据验证请求")
+		return account.Quota{}, fault.New(fault.Internal, "INTERNAL_ERROR", "无法构造凭据验证请求")
 	}
 	req.Header.Set("User-Agent", cfg.UserAgent)
 	response, err := s.HTTP.Client.Do(req)
 	if err != nil {
-		return upstreamFault(err)
+		return account.Quota{}, upstreamFault(err)
 	}
 	defer response.Body.Close()
 	var result struct {
@@ -93,22 +95,43 @@ func validateTokenQuota(ctx context.Context, s *Session, cfg configuration.Clien
 		Used  *json.Number `json:"used"`
 	}
 	if json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&result) != nil {
-		return fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度token验证响应格式异常")
+		return account.Quota{}, fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度token验证响应格式异常")
 	}
 	if result.Code == 110 || result.Code == 111 {
-		return fault.New(fault.Unsupported, "BAIDU_CREDENTIAL_EXPIRED", "百度access token无效或已过期")
+		return account.Quota{}, fault.New(fault.Unsupported, "BAIDU_CREDENTIAL_EXPIRED", "百度access token无效或已过期")
 	}
 	if result.Code != 0 {
-		return fault.New(fault.Unsupported, "BAIDU_TOKEN_REJECTED", "百度未授予该token的PCS容量访问能力")
+		return account.Quota{}, fault.New(fault.Unsupported, "BAIDU_TOKEN_REJECTED", "百度未授予该token的PCS容量访问能力")
 	}
 	if response.StatusCode != 200 || result.Quota == nil || result.Used == nil {
-		return fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度token验证未返回有效容量结构")
+		return account.Quota{}, fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度token验证未返回有效容量结构")
 	}
 	if _, err := strconv.ParseUint(string(*result.Quota), 10, 64); err != nil {
-		return fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度容量字段无效")
+		return account.Quota{}, fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度容量字段无效")
 	}
 	if _, err := strconv.ParseUint(string(*result.Used), 10, 64); err != nil {
-		return fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度容量字段无效")
+		return account.Quota{}, fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度容量字段无效")
 	}
-	return nil
+	total, _ := strconv.ParseUint(string(*result.Quota), 10, 64)
+	used, _ := strconv.ParseUint(string(*result.Used), 10, 64)
+	return account.Quota{Total: total, Used: used, Free: total - min(total, used), CollectedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
+}
+
+func (f *ClientFactory) AccountQuota(ctx context.Context, cfg configuration.Snapshot, c account.Credentials) (account.Quota, error) {
+	s, err := f.New(ctx, cfg, c)
+	if err != nil {
+		return account.Quota{}, err
+	}
+	defer s.Close()
+	if c.Cookies["BDUSS"] == "" {
+		return tokenQuota(ctx, s, cfg.Client(), c.AccessToken)
+	}
+	total, used, err := s.PCS.QuotaInfo()
+	if err != nil {
+		return account.Quota{}, upstreamFault(err)
+	}
+	if total < 0 || used < 0 {
+		return account.Quota{}, fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度容量字段无效")
+	}
+	return account.Quota{Total: uint64(total), Used: uint64(used), Free: uint64(total - min(total, used)), CollectedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
 }

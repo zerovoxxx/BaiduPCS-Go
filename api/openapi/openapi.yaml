@@ -2,8 +2,8 @@ openapi: 3.1.1
 jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
 info:
   title: BaiduPCS-Go HTTP API
-  version: 0.2.0-p2
-  description: P1运行基础契约，2026-11-02。12个系统/配置操作已实现，其他操作按x-capability声明planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
+  version: 0.3.0-p3
+  description: P3账号、文件读取、扫描、任务、事件和结果文件契约，2026-11-05。40个操作implemented、3个partial，其余62个planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
 servers:
 - url: http://127.0.0.1:5299
   description: 服务默认监听地址；实际地址由启动参数指定。
@@ -746,7 +746,7 @@ paths:
       tags:
       - accounts
       summary: 导入 BDUSS 配合 PTOKEN/STOKEN/SBOXTKN/BAIDUID，或完整 Cookie，或 access token；返回脱敏账号
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P2
       x-authorization:
         scopes:
@@ -755,7 +755,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC01
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -857,18 +857,14 @@ paths:
                     kind: bduss
                     bduss: example
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
     get:
       operationId: ACC02
       tags:
       - accounts
       summary: 当前调用方可访问的账号清单
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P2
       x-authorization:
         scopes:
@@ -877,7 +873,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC02
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -909,6 +905,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/TooLarge'
         '422':
           $ref: '#/components/responses/Unprocessable'
         '429':
@@ -935,19 +933,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
   /api/v1/accounts/{account_id}:
     get:
       operationId: ACC03
       tags:
       - accounts
       summary: 账号资料、登录状态、credential_revision、凭据存在标志
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P2
       x-authorization:
         scopes:
@@ -957,7 +951,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC03
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -1040,18 +1034,17 @@ paths:
       parameters:
       - $ref: '#/components/parameters/account_id'
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
     patch:
       operationId: ACC04
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - accounts
       summary: 修改 label 等非秘密属性，If-Match
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -1061,7 +1054,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -1166,10 +1159,13 @@ paths:
                   label: example
     delete:
       operationId: ACC05
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - accounts
       summary: 删除本地账号及凭据；活动任务存在时 409；不声称注销百度全局登录
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -1179,7 +1175,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -1231,10 +1227,13 @@ paths:
   /api/v1/accounts/{account_id}/credentials:
     patch:
       operationId: ACC06
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - accounts
       summary: 写入或清除指定凭据，更新版本；不返回原值
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -1244,7 +1243,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -1353,7 +1352,7 @@ paths:
       tags:
       - accounts
       summary: 检查账号状态和可获取的百度身份；不因失败删除凭据
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P2
       x-authorization:
         scopes:
@@ -1363,7 +1362,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC07
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -1448,19 +1447,18 @@ paths:
       parameters:
       - $ref: '#/components/parameters/account_id'
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
   /api/v1/accounts/{account_id}/quota:
     get:
       operationId: ACC08
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - accounts
       summary: total、used、free、采集时间
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -1470,7 +1468,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC08
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -1536,10 +1534,13 @@ paths:
   /api/v1/accounts/{account_id}/capabilities:
     get:
       operationId: ACC09
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - accounts
       summary: 此账号在当前凭据和配置下可使用的能力
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -1549,7 +1550,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ACC09
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -1580,7 +1581,7 @@ paths:
                       limits: []
                       verified_at: null
                     - id: UPL01
-                      implementation: partial
+                      implementation: implemented
                       availability: unverified
                       enabled: true
                       reason: P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证
@@ -2556,10 +2557,13 @@ paths:
   /api/v1/accounts/{account_id}/files:
     get:
       operationId: FIL01
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: path、排序、页码、page_size、fields；目录列表
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 默认 path=/；page_size<=1000。排序并列项以 fs_id 辅助稳定化，不承诺动态目录快照。 base_path 与 context_id
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
         同时出现400；相对路径且两者皆无400；context账号不匹配409。
       x-phase: P3
       x-authorization:
@@ -2570,7 +2574,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -2691,10 +2695,13 @@ paths:
   /api/v1/accounts/{account_id}/files/metadata:
     get:
       operationId: FIL02
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: path；完整元信息、目录标志、blocklist 和摘要可信状态
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -2704,7 +2711,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -2787,10 +2794,13 @@ paths:
       - $ref: '#/components/parameters/ContextID'
     post:
       operationId: FIL03
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: paths；逐项批量元信息及失败明细
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -2800,7 +2810,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -2912,10 +2922,13 @@ paths:
   /api/v1/accounts/{account_id}/files/search:
     get:
       operationId: FIL04
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: path、keyword、recursive、fields；快照分页或有界结果
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 首个请求固定 path、keyword、recursive、fields、page_size；后续 cursor 绑定原查询，参数变化 409，过期
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
         410。结果容量超限返回 413 QUERY_SNAPSHOT_LIMIT，改用 FIL05 扫描。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
       x-phase: P3
       x-authorization:
@@ -2926,7 +2939,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -2983,6 +2996,8 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '413':
+          $ref: '#/components/responses/TooLarge'
         '422':
           $ref: '#/components/responses/Unprocessable'
         '429':
@@ -3042,10 +3057,13 @@ paths:
   /api/v1/accounts/{account_id}/file-scans:
     post:
       operationId: FIL05
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: paths、mode=tree|recursive|statistics、depth、include_ids；返回扫描 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 扫描参数统一在 options 中；输出通过 JOB04 和 artifact。遍历达到配额返回 complete=false，不能将截断计为完整成功。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -3055,7 +3073,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -3183,10 +3201,13 @@ paths:
   /api/v1/accounts/{account_id}/path-matches:
     post:
       operationId: FIL06
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - files
       summary: patterns、base_path 或 context_id；返回解析后的绝对路径
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -3196,7 +3217,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -5711,10 +5732,13 @@ paths:
   /api/v1/jobs:
     get:
       operationId: JOB01
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - jobs
       summary: 调用方、账号、kind、state、时间过滤；游标分页
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -5724,7 +5748,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -5763,6 +5787,8 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '413':
+          $ref: '#/components/responses/TooLarge'
         '422':
           $ref: '#/components/responses/Unprocessable'
         '429':
@@ -5832,7 +5858,7 @@ paths:
       tags:
       - jobs
       summary: 状态、进度、阶段、有效选项、可用操作和结果摘要
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-early-validation: P2
       x-phase: P3
       x-authorization:
@@ -5843,7 +5869,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB02
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -5951,19 +5977,18 @@ paths:
       parameters:
       - $ref: '#/components/parameters/job_id'
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
   /api/v1/jobs/{job_id}/items:
     get:
       operationId: JOB03
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - jobs
       summary: 逐文件或逐项状态、错误和断点摘要；分页
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -5973,7 +5998,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -6012,6 +6037,8 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '413':
+          $ref: '#/components/responses/TooLarge'
         '422':
           $ref: '#/components/responses/Unprocessable'
         '429':
@@ -6047,7 +6074,7 @@ paths:
       tags:
       - jobs
       summary: 最终结构化结果；未完成时 409
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-early-validation: P2
       x-phase: P3
       x-authorization:
@@ -6058,7 +6085,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB04
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -6133,19 +6160,18 @@ paths:
       parameters:
       - $ref: '#/components/parameters/job_id'
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
   /api/v1/jobs/{job_id}/events:
     get:
       operationId: JOB05
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - jobs
       summary: SSE 和 Last-Event-ID，有限事件回放
-      description: '目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 无 Last-Event-ID 时先发送 event: job.snapshot，带最新持久化事件 ID 的任务快照，再跟随事件；心跳为注释 :
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
         heartbeat，无 ID。回放过期410；流开始后的错误终止流，不追加 Problem JSON。'
       x-phase: P3
       x-authorization:
@@ -6156,7 +6182,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -6180,25 +6206,25 @@ paths:
               example: ': heartbeat
 
 
-                id: evt_1
+                id: evt_job_example_1
 
                 event: job.snapshot
 
-                data: {"event_id":"evt_1","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.snapshot","payload":{"job_id":"job_example","owner":"principal_example","account_id":"acct_example","state":"queued","phase":"pending","created_at":"2026-11-02T08:00:00Z","dry_run":false,"started_at":null,"finished_at":null,"config_revision":"7","credential_revision":"3","parent_job_id":null,"child_job_ids":[],"retry_of_job_id":null,"resolved_paths":["/资料"],"resolved_sources":[],"local_files":[],"destination":{"root_id":"root_example","directory":"archive"},"target_path":null,"progress":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null},"available_actions":["cancel"],"problem":null,"links":{"self":"/api/v1/jobs/job_example","events":"/api/v1/jobs/job_example/events","result":"/api/v1/jobs/job_example/result"},"kind":"download","effective_options":{"mode":"locate","path_mode":"relative","parallel":1,"file_concurrency":1,"max_retries":3,"overwrite":false,"verify_checksum":false,"preserve_mtime":false,"executable":false,"link_index":0,"test":false,"report_workers":false,"max_rate_bytes_per_second":"0"}}}
+                data: {"event_id":"evt_job_example_1","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.snapshot","payload":{"job_id":"job_example","owner":"principal_example","account_id":"acct_example","state":"queued","phase":"pending","created_at":"2026-11-02T08:00:00Z","dry_run":false,"started_at":null,"finished_at":null,"config_revision":"7","credential_revision":"3","parent_job_id":null,"child_job_ids":[],"retry_of_job_id":null,"resolved_paths":["/资料"],"resolved_sources":[],"local_files":[],"destination":{"root_id":"root_example","directory":"archive"},"target_path":null,"progress":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null},"available_actions":["cancel"],"problem":null,"links":{"self":"/api/v1/jobs/job_example","events":"/api/v1/jobs/job_example/events","result":"/api/v1/jobs/job_example/result"},"kind":"download","effective_options":{"mode":"locate","path_mode":"relative","parallel":1,"file_concurrency":1,"max_retries":3,"overwrite":false,"verify_checksum":false,"preserve_mtime":false,"executable":false,"link_index":0,"test":false,"report_workers":false,"max_rate_bytes_per_second":"0"}}}
 
 
-                id: evt_2
+                id: evt_job_example_2
 
                 event: job.progress
 
-                data: {"event_id":"evt_2","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.progress","payload":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null}}
+                data: {"event_id":"evt_job_example_2","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.progress","payload":{"total_items":null,"processed_items":"0","succeeded_items":"0","failed_items":"0","skipped_items":"0","cancelled_items":"0","total_bytes":null,"transferred_bytes":"0","written_bytes":"0","bytes_per_second":"0","eta_seconds":null}}
 
 
-                id: evt_3
+                id: evt_job_example_3
 
                 event: job.finished
 
-                data: {"event_id":"evt_3","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.finished","payload":{"job_id":"job_example","kind":"download","result":{"summary":{"total":"1","processed":"1","succeeded":"1","failed":"0","skipped":"0","cancelled":"0"},"complete":true,"artifact_ids":[],"transferred_bytes":"1024","written_bytes":"1024","child_job_ids":[]}}}
+                data: {"event_id":"evt_job_example_3","job_id":"job_example","occurred_at":"2026-11-02T08:00:00Z","type":"job.finished","payload":{"job_id":"job_example","kind":"download","result":{"summary":{"total":"1","processed":"1","succeeded":"1","failed":"0","skipped":"0","cancelled":"0"},"complete":true,"artifact_ids":[],"transferred_bytes":"1024","written_bytes":"1024","child_job_ids":[]}}}
 
 
                 '
@@ -6248,7 +6274,7 @@ paths:
       tags:
       - jobs
       summary: 按任务取消；等待已提交远端操作结束并保存已知状态
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 控制请求202表示已接受意图，不表示已取消。重复有效控制返回当前 job；已终态也返回当前 job。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-early-validation: P2
       x-phase: P3
       x-authorization:
@@ -6259,7 +6285,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB06
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -6382,12 +6408,8 @@ paths:
                 summary: 合成请求；凭据均为占位示例
                 value: {}
       x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
-      x-p2-limits:
-        scope: single_file_p2
-        upstream_verification: unverified
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
   /api/v1/jobs/{job_id}/pause:
     post:
       operationId: JOB07
@@ -6675,10 +6697,13 @@ paths:
   /api/v1/jobs/{job_id}/retry:
     post:
       operationId: JOB09
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - jobs
       summary: 创建新 job，默认只重试失败项；返回 retry_of_job_id
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 重试创建新 job，默认仅失败项。远端结果未知且未经 reconcile 的项409，不能盲目重放。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -6688,7 +6713,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB09
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -6953,10 +6978,13 @@ paths:
   /api/v1/jobs/{job_id}/artifacts:
     get:
       operationId: JOB11
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - jobs
       summary: 导出或扫描等任务的结果文件元数据
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -6966,7 +6994,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB11
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -11034,10 +11062,13 @@ paths:
   /api/v1/local/roots:
     get:
       operationId: LOC01
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - local
       summary: 调用方可访问的 root_id、读写能力、可用空间状态
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes:
@@ -11047,7 +11078,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: LOC01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -11405,10 +11436,13 @@ paths:
   /api/v1/artifacts/{artifact_id}:
     get:
       operationId: ART01
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - artifacts
       summary: 结果文件元数据和过期时间
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -11418,7 +11452,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ART01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -11490,10 +11524,13 @@ paths:
       - $ref: '#/components/parameters/artifact_id'
     delete:
       operationId: ART04
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - artifacts
       summary: 删除不再使用的结果；保留任务中的结果摘要
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -11503,7 +11540,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ART04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -11555,10 +11592,13 @@ paths:
   /api/v1/artifacts/{artifact_id}/content:
     get:
       operationId: ART02
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - artifacts
       summary: 经授权下载结果文件，支持 Range
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -11568,7 +11608,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ART02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -11661,10 +11701,13 @@ paths:
       - $ref: '#/components/parameters/IfRange'
     head:
       operationId: ART03
+      x-offline-evidence:
+      - internal/bootstrap/p3_test.go
+      - internal/infrastructure/persistence/p3_test.go
       tags:
       - artifacts
       summary: 内容元信息
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
       x-phase: P3
       x-authorization:
         scopes: []
@@ -11674,7 +11717,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: ART03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -12023,7 +12066,7 @@ components:
       description: 单 job 的持久化序号编码；只回放此 ID 之后的事件，重复可去重。超过保留窗 410；属于别的 job 或非法编码 400；不存在的未来序号 409。
       schema:
         $ref: '#/components/schemas/OpaqueID'
-      example: evt_1
+      example: evt_job_example_1
     UploadOffset:
       name: Upload-Offset
       in: header
@@ -13261,6 +13304,19 @@ components:
             items:
               type: string
               maxLength: 256
+        credential_alternatives:
+          type: array
+          description: 若存在，至少满足一个凭据组合；组合内的字段全部必需。required_credentials仍为共同必需字段。
+          minItems: 1
+          maxItems: 8
+          items:
+            type: array
+            minItems: 1
+            maxItems: 7
+            uniqueItems: true
+            items:
+              type: string
+              enum: [bduss, ptoken, stoken, sboxtkn, baiduid, cookies, access_token]
       required:
       - id
       - implementation

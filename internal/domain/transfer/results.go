@@ -1,0 +1,41 @@
+package transfer
+
+import "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+
+type Item struct {
+	ID                                string
+	Index                             uint64
+	Path, RootID, RelativePath, State string
+	Attempts                          int
+	Size                              *int64
+	Transferred, Written              int64
+	Failure                           *fault.Error
+	CheckpointAvailable               bool
+	Offset                            *int64
+}
+type Counts struct{ Total, Processed, Succeeded, Failed, Skipped, Cancelled uint64 }
+type ScanResult struct {
+	Counts                    Counts
+	Complete                  bool
+	Truncation                string
+	Files, Directories, Bytes uint64
+	ArtifactIDs               []string
+}
+type Event struct {
+	Sequence         uint64
+	Type, OccurredAt string
+	Record           *Record
+	Item             *Item
+}
+type EventBatch struct {
+	Events       []Event
+	Head, Oldest uint64
+}
+type Filter struct {
+	AccountID, Kind, State, After, Before string
+	Owner                                 string `json:"-"`
+}
+
+func Terminal(state string) bool {
+	return state == "succeeded" || state == "partially_succeeded" || state == "failed" || state == "cancelled"
+}

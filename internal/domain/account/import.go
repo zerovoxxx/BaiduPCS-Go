@@ -19,6 +19,79 @@ type Entry struct {
 	Revision              uint64
 	Identity              Identity
 	Present               map[string]bool
+	// Public metadata survives idempotent replay without serializing secrets.
+	CredentialVersion uint64
+}
+
+type Quota struct {
+	Total, Used, Free uint64
+	CollectedAt       string
+}
+
+// Patch is presence aware: a missing key preserves a secret, nil revokes it.
+type Patch map[string]*string
+
+func Update(c Credentials, patch Patch) (Credentials, bool, error) {
+	c = c.Clone()
+	if len(patch) == 0 {
+		return c, false, fault.New(fault.Invalid, "INVALID_CREDENTIAL_FORMAT", "凭据更新不能为空")
+	}
+	invalid := func() (Credentials, bool, error) {
+		return Credentials{}, false, fault.New(fault.Invalid, "INVALID_CREDENTIAL_FORMAT", "凭据更新格式无效")
+	}
+	_, jar := patch["cookies"]
+	revoked := false
+	for k, v := range patch {
+		if k != "cookies" && k != "access_token" && k != "bduss" && k != "ptoken" && k != "stoken" && k != "sboxtkn" && k != "baiduid" {
+			return invalid()
+		}
+		if jar && k != "cookies" && k != "access_token" {
+			return invalid()
+		}
+		if v != nil && (*v == "" || strings.ContainsAny(*v, "\r\n\x00")) {
+			return invalid()
+		}
+		if v == nil {
+			revoked = true
+		}
+		if k == "access_token" {
+			c.AccessToken = ""
+			if v != nil {
+				if len(*v) > 8192 {
+					return invalid()
+				}
+				c.AccessToken = *v
+			}
+		} else if k == "cookies" {
+			c.Cookies = map[string]string{}
+			if v != nil {
+				n, err := Normalize(Import{Kind: "cookies", Cookies: *v})
+				if err != nil {
+					return invalid()
+				}
+				c.Cookies = n.Cookies
+			}
+		} else {
+			name := strings.ToUpper(k)
+			delete(c.Cookies, name)
+			if v != nil {
+				if len(*v) > 8192 || (&http.Cookie{Name: name, Value: *v}).Valid() != nil {
+					return invalid()
+				}
+				c.Cookies[name] = *v
+			}
+		}
+	}
+	// Clearing BDUSS also removes the dependent cookie session. It cannot leave
+	// a usable jar with a missing primary credential.
+	if v, ok := patch["bduss"]; ok && v == nil {
+		c.Cookies = map[string]string{}
+	}
+	if len(c.Cookies) > 0 && c.Cookies["BDUSS"] == "" {
+		return invalid()
+	}
+	c.Revision++
+	return c, revoked, nil
 }
 
 // Identity deliberately distinguishes a Baidu UID from the netdisk UK. Unknown

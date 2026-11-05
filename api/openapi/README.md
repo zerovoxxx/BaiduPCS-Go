@@ -1,20 +1,20 @@
 # HTTP API 契约与验证
 
-日期：2026-11-05。版本：`0.2.0-p2`。状态：12个系统/配置操作implemented，10个账号/单文件/任务操作partial，83个planned；P2受控TLS/race、进程恢复及用户授权专用目录的真实百度结果见[P2记录](../../docs/http-api-p2-verification.md)。程序源码基线为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`；P1实施与验证见[记录](../../docs/http-api-p1-verification.md)，操作说明见[启动指南](../../docs/http-api-server.md)。P0冻结基线保留在baselines/目录。
+日期：2026-11-05。版本：`0.3.0-p3`。状态：40 implemented、3 partial、62 planned；[P3指南](../../docs/http-api-p3-guide.md)和[逐项验收](../../docs/http-api-p3-verification.md)记录完整账号、文件读取/扫描、任务/事件及结果文件。UPL01/DWN01/JOB08保留P2子集，完整传输在P4。P2真实百度证据保留其原账号/时间/范围；本轮实测另列。原业务基线 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1历史清单保留在baselines/。
 
 [openapi.yaml](openapi.yaml) 是 HTTP 字段、类型、约束和 operationId 的唯一契约源。共 105 个 operation、89 个 path、190 个 schema。operationId 固定使用设计中的 SYS01、ACC01 等 ID。`/api/v1/openapi.json` 已在 P1 原样提供由 YAML 生成的内嵌 JSON。
 
 | 资料 | 用途 |
 | --- | --- |
-| [工程交接](../../docs/http-api-handoff.md) | P2交付、从P3继续的代码落点、边界和完整阶段核销 |
+| [工程交接](../../docs/http-api-handoff.md) | P3交付、从P4继续的代码落点、边界和完整阶段核销 |
 | [设计](../../docs/http-api-design.md) | 分层、领域、依赖和流程 |
 | [覆盖矩阵](../../docs/http-api-coverage.md) | 逐项人工映射和源码证据 |
 | [P0 核对与基线报告](../../docs/http-api-p0-baseline.md) | 修正结论、已有失败、平台和存储探测 |
-| [source-inventory.json](source-inventory.json) | 当前615条AST清单、源码哈希、映射和处理分类；[P0冻结清单](baselines/p0-source-inventory.json)保留原609条，P1清单另存baselines/p1-source-inventory.json |
+| [source-inventory.json](source-inventory.json) | 当前616条AST清单、源码哈希、映射和处理分类；[P0冻结清单](baselines/p0-source-inventory.json)保留原609条，P1清单另存baselines/p1-source-inventory.json |
 | [http-exchanges.json](examples/http-exchanges.json) | 全部 105 个操作的合成 HTTP 请求与响应，含头、流和二进制示例 |
 | [requests.http](examples/requests.http) | 常见读取、上传下载、SSE、ETag、Range 和票据调用格式 |
 | [schema-cases.json](examples/schema-cases.json) | 67 个可执行的 schema 正反例 |
-| [behavior-cases.json](examples/behavior-cases.json) | 25 组供 P1—P7 实现的行为验收规格，当前未执行 |
+| [behavior-cases.json](examples/behavior-cases.json) | 25 组行为规格；5组链接到已运行离线测试，其余按后续阶段核销 |
 | [job-events.sse](examples/job-events.sse) | 快照、进度、终态和注释心跳的实际 SSE 帧 |
 
 所有示例均为合成数据，`EXAMPLE_ONLY` 不是有效凭据；示例之间各自独立，不表示已经创建资源。图像响应中的 1×1 PNG 仅演示媒体类型，不是登录二维码。已实现的P1操作可以按启动指南实际调用，未来操作的示例保留为目标契约。
@@ -31,7 +31,7 @@ python3 -m venv /tmp/baidupcs-http-p0-venv
 
 校验器固定 `openapi-spec-validator==0.7.2`、`jsonschema==4.23.0`、`PyYAML==6.0.2`，已实际验证 OpenAPI **3.1.1**，包括 `oneOf`、条件约束、null 联合类型和 `unevaluatedProperties`。工具安装、首次下载 Go 工具链或 SQLite 探测需要网络；安装后的契约检查仅访问本地契约和源码。不引入Go业务代码生成器；P1手写DTO通过真实HTTP响应验收。openapi.json由export_contract.py生成并嵌入服务，校验器核对它与YAML一致，不把3.1降级成3.0。
 
-检查覆盖：重复 YAML key、OpenAPI 结构、本地 `$ref`、schema 合法性、设计路由及阶段逐项一致、path 参数、认证与权限决策、幂等头、ETag 错误、任务 202、HEAD/204 空 body、全部内嵌示例、外部正反例、SSE 帧、全量 HTTP exchanges，以及当前 AST 与人工矩阵/持久清单的一致性。行为规格的检查只确认引用有效，不能计为 HTTP 运行测试通过。
+检查覆盖：重复 YAML key、OpenAPI 结构、本地 `$ref`、schema 合法性、设计路由及阶段逐项一致、path 参数、认证与权限决策、幂等头、ETag 错误、任务 202、HEAD/204 空 body、全部内嵌示例、外部正反例、SSE 帧、全量 HTTP exchanges，以及当前 AST 与人工矩阵/持久清单的一致性。行为规格检查确认操作和测试函数引用有效；5组有独立Go运行证据，链接检查本身不计为测试执行。
 
 升级上游时先查看新 AST 和源码差异，再更新人工矩阵与契约，最后重建已分类清单：
 
@@ -41,7 +41,7 @@ go run api/openapi/tools/inventory.go > /tmp/baidupcs-http-observed.json
 /tmp/baidupcs-http-p0-venv/bin/python api/openapi/tools/check_contract.py
 ```
 
-缺少人工映射时重建会失败；不能用更新数量掩盖遗漏。AST 工具只解析代码，不导入、执行或初始化 CLI。当前包含403个导出函数/方法、52个命令节点、90个命令参数、1个全局参数、24个配置字段和45个业务选项字段，共615条；P1增量为server命令及4个启动参数，P2新增一个内部ExecuteContext原语。签名、缓存、网络和通用工具子包另由覆盖矩阵的基础设施归属表管理。
+缺少人工映射时重建会失败；不能用更新数量掩盖遗漏。AST 工具只解析代码，不导入、执行或初始化 CLI。当前包含404个导出函数/方法、52个命令节点、90个命令参数、1个全局参数、24个配置字段和45个业务选项字段，共616条；P1增量为server命令及4个启动参数，P2新增一个内部ExecuteContext原语，P3新增共用解析的FilesDirectoriesListPage。签名、缓存、网络和通用工具子包另由覆盖矩阵的基础设施归属表管理。
 
 ## 公共协议与待验证目标
 
@@ -60,7 +60,7 @@ go run api/openapi/tools/inventory.go > /tmp/baidupcs-http-observed.json
 | selector | `kind=paths\|fs_ids\|patterns`，values 非空；按字面量处理 paths 中的 `*`；提交时固定选择，不在排队后重算 |
 | 文件分页 | fields 默认 all；page 从 1 开始，page_size 默认 100、最大 1000；total/has_more 可以 null；fields 只投影非必填字段；summary 只统计本页 |
 | 上游固定分页 | 回收站每页 100；分享不开放 page_size，无法确认上游页容量时 meta.pagination.page_size=null |
-| 快照分页 | 搜索、job/item、分享检查、离线列表用 opaque cursor；绑定查询、owner、账号；搜索参数改变 409、过期 410 |
+| 快照分页 | 搜索、job列表、分享检查、离线列表用 opaque cursor；扫描job/item用固定高水位游标；绑定查询、owner、账号；搜索参数改变 409、过期 410 |
 | 离线列表 | 主项目固定 `start=0&limit=1000`；服务快照只覆盖实际收到的集合，不能宣称已获得所有历史任务 |
 | 批量写入 | 包括 OFF01 批量创建及 OFF06 清空，统一返回 202 job；百度 offline_task_id 在最终 result.items，不与 job_id 混用 |
 | 批量查询 | 保留每个输入的成功或失败；OFF03 最多 100 个唯一 ID，101 项直接 413，不能静默截断 |
@@ -129,30 +129,34 @@ OpenAPI 固定字段格式、字符串长度、集合上限及有界数值。应
 错误采用 `application/problem+json`；百度错误必须结合 operation、ErrType 和远端码适配，不按一个整数做全局映射。503 在适合稍后重试时带 Retry-After；INT06 等长期不可用能力 `retryable=false`，不应诱发循环重试。流开始后只能终止流并记录错误，不追加 JSON。/healthz、/readyz 可匿名且只返回最小状态；readyz 只检查当前启用的运行子系统，不要求百度在线，也不要求尚未开放的阶段能力准备完成。
 
 
-## P1/P2 实际响应与持续校验
+## P1—P3 实际响应与持续校验
 
-P1/P2测试通过httptest运行生产handler并导出39组实际响应；P2另有HTTP子进程SIGKILL和专用账号opt-in测试。先安装上述校验依赖，再执行：
+P1—P3测试运行生产handler并导出JSON、SSE、文件内容以及HEAD/204实际响应；P2保留HTTP子进程SIGKILL和专用账号opt-in测试。先安装上述校验依赖，再执行：
 
 ```sh
 BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
 BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
+BAIDUPCS_P3_ACCOUNT_RESPONSES=/tmp/baidupcs-p3-accounts.json \
+BAIDUPCS_P3_CONTRACT_RESPONSES=/tmp/baidupcs-p3-responses.json \
 GOTOOLCHAIN=go1.23.12 go test -race -count=1 -timeout=180s \
   ./internal/domain/... ./internal/application/... \
   ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
 /tmp/baidupcs-http-p0-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json
+  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json
 python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p2-builds.json
 ```
 
 修改YAML后运行 `python3 api/openapi/tools/export_contract.py` 或 `go generate ./api/openapi`，生成JSON再编译。持续校验工作流为 `.github/workflows/http-api.yml`；原构建工作流的目标矩阵保持。
 
-P0已有的25组完整行为规格仍供后续阶段逐项核销；P1的鉴权/配置和P2的受限账号/传输/任务由真实集成测试分别覆盖。P2已经在P1表结构上增量接入持久派发与任务执行；未开放的完整任务、事件与传输选项仍在P3/P4。普通401与百度账号失效的422保持独立含义。
+P0已有的25组完整行为规格仍供后续阶段逐项核销；P1的鉴权/配置和P2的受限账号/传输/任务由真实集成测试分别覆盖。P3已在v3上增量迁移到v4，完整读取、任务、事件与结果文件已开放；完整传输选项仍在P4。普通401与百度账号失效的422保持独立含义。
 
 幂等重放保持首次逻辑结果、HTTP状态与资源版本；每次HTTP请求仍生成自己的request_id，并与X-Request-ID一致。
 
 
 ## 调整后的实施顺序
 
-P1及受限P2已收尾：12个implemented、10个partial、83个planned。P2开放ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08；完整读取/任务在P3、全部传输选项在P4。P2受控TLS和真实百度分别记录；[操作指南](../../docs/http-api-p2-guide.md)给出可运行请求和限制，[验收](../../docs/http-api-p2-verification.md)给出逐项证据。
+P3已收尾：40 implemented、3 partial、62 planned，完整范围与限制见P3指南/验收。UPL01、DWN01、JOB08继续保留P2受限路径；完整传输在P4。P3没有将辅助扫码或历史上游能力记为已实现。
 
-planned/partial/implemented已同步到Capability schema、Catalog、路由、示例和checker。partial可以执行，但不计完整实现。supported_option_values返回规范字符串形式的明确值约束，limits仍只接受数值资源上限；x-p2-limits固定支持的请求子集。实际响应检查要求所有开放操作的成功路径及每个partial的拒绝路径，并核对运行能力与目标操作一致。
+planned/partial/implemented贯穿Capability、Catalog、路由和checker；supported_option_values表达规范字符串值，limits只放数值上限。credential_alternatives表达至少满足一组凭据，token-only不得据此取得Cookie能力。实际响应检查覆盖所有开放操作的成功路径和partial拒绝路径，并核对运行能力、SSE帧、HEAD/204与目标契约。
+
+查询快照默认10000项/600秒、128个活跃快照/128MiB；扫描逐项改用不可变条目高水位游标，支持更大任务。事件每job10000个/86400秒、心跳15秒、128帧/连接及全局64连接。Artifact完成后TTL86400秒、单文件256MiB、总量1GiB/128文件；活动任务/响应引用阻止物理清理，过期读取410。详情及schema v4回滚说明见P3文档。

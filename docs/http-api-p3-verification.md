@@ -1,0 +1,94 @@
+# P3 实现与逐项验收
+
+日期：2026-11-05。基线 `4fc00ce`，工作分支 `codex/http-api-design`。契约 `0.3.0-p3`；40 implemented、3 partial、62 planned。P3 的 24 个归属操作和 P2 的 4 个账号切片均已补齐；P2 传输范围保留，完整 UPL01/DWN01/JOB08 仍在 P4。
+
+本轮离线验收通过：相关包race、P2四个SIGKILL窗口和传输回归、14个原CLI离线包、102组实际HTTP响应及完整契约、616条映射和13目标CGO=0构建。构建原始结果保存在[构建记录](http-api-p3-build-verification.json)，摘要见[机器记录](http-api-p3-verification.json)。本机服务运行范围为Linux/amd64，其他目标只验证编译。
+
+本记录区分可重复离线验收和真实百度实测；不会将受控TLS计为真实百度。
+
+## 逐项核销
+
+| ID | 范围 | 验收证据 |
+| --- | --- | --- |
+| P3-01 | ACC01—ACC03：三种导入、独立 ID、后备显示名、脱敏、列表/读取和重放 | `TestP3AccountsCredentialsQuotaAndVersions`；保留 P2 凭据规范化与跨账号测试 |
+| P3-02 | ACC04/ACC06：强 ETag、presence/null、规范化 Cookie Jar、独立 token、版本和吊销 | `TestP3CanonicalCredentialPatchPresenceAndRevocation`、`TestP3AccountsCredentialsQuotaAndVersions`；缺失 428、冲突 412、重复/混合/空值 400 |
+| P3-03 | ACC05/ACC07—ACC09：删除、验证、配额、token-only 能力 | `TestP3AccountsCredentialsQuotaAndVersions`、P2 token-only 验证测试；未知身份为 null，Cookie 能力 disabled，不假报全局上游 available |
+| P3-04 | 普通更新保留已提交版本，清除/删除撤销旧引用并关闭上游连接 | `TestP3ScanLimitsCancellationRevocationAndRestart`；旧加密凭据归档，撤销销毁秘密载荷；结果不明的传输仍 interrupted |
+| P3-05 | 固定来源旧账号导入、重复 UID、只读、重启稳定 | `TestP3ExplicitLegacyAccountsImportIsStableAndReadOnly`、`TestP3LegacyImportRejectsConflictingCookieCopies`；不导入 CLI 当前账号/客户端参数，不重写源文件 |
+| P3-06 | FIL01/02：分页、排序、投影、元数据和数值精度 | `TestP3FileReadingSnapshotsScansJobsAndArtifacts`：1001/2000/2001、空页、base_path、重复参数和大 fs_id；`TestP3CLISharedReadsPreserveAggregationOrderingAndOutput` 检查共享聚合解析 |
+| P3-07 | FIL03/04/06：逐输入错误、搜索快照、查询/账号绑定、超限、通配符 | 同一 HTTP 测试；`TestP3SnapshotBindingExpirationAndEncryptedCursors` 覆盖损坏/过期/重开，10001 项 413 |
+| P3-08 | FIL05：tree/recursive/statistics、深度/ID、资源截断、部分结果 | HTTP 扫描与 `TestP3ScanLimitsCancellationRevocationAndRestart`；完整成功、全部失败、部分成功、max_nodes、取消、重开后 retry |
+| P3-09 | JOB01—JOB04：过滤、固定范围、逐项结果、终态和摘要 | HTTP 集成；`TestP3ItemPaginationHighWaterBeyondTenThousand`：10001项分页且后续新增项不混入旧游标；`TestP3JobQueriesApplyVisibilityBeforeLimitAndKeepTimePrecision` 验证权限先于上限和纳秒边界 |
+| P3-10 | JOB06/JOB09：独立取消、重试新任务、scope、幂等和版本 | HTTP 集成和原 P2 任务/控制/恢复测试；`TestP3RetryScanPreparationFailureCreatesFreshJob` 覆盖尚无逐项记录的准备失败；新任务重新准备，原任务和检查点保留 |
+| P3-11 | JOB05：持久事件、原子提交、重启序号、过期和重连 | `TestP3JobEventTransactionsAndRestartSequence`：创建/状态/检查点/取消/终态事件故障注入全部回滚；HTTP Last-Event-ID 正常回放、跨任务 400、未来 409；存储过期410，`TestP3EventCountRetentionNeverReusesSequence` 验证10000个保留上限 |
+| P3-12 | SSE snapshot→跟随、终态发送、慢消费者和有界队列 | `TestP3SSESnapshotFollowsThroughTerminalCommit`、`TestP3SSESlowConsumerDisconnectsWithoutBlockingJob`、`TestP3SSEHeartbeatIsCommentWithoutID`；任务不受慢连接阻塞，断开后持久回放保留 |
+| P3-13 | ART01—ART04/JOB11：元数据、Range、HEAD、TTL、引用、授权和清理 | HTTP 200/206/400/403/410/416；`TestP3ArtifactSingleRangeBoundaries`；`TestP3ArtifactReservationsEnforceAndReleaseTotalQuota` 验证预留/释放和总配额，`TestP3ArtifactTTLReferencesCleanupAndSummaryRetention` 检查活动任务/响应引用、到期、物理清理和摘要不丢失 |
+| P3-14 | LOC01 以及受影响 CLI 读取 | HTTP root 权限/脱敏；`TestP3CLISharedReadsPreserveAggregationOrderingAndOutput` 检查 ls/search/meta/tree、排序、完整 ID、1001/2000/2001 聚合、重复页和中途错误 |
+| P3-15 | P2 传输、取消、恢复和旧数据兼容 | 原受控 TLS、A/B/C 隔离、四个 HTTP SIGKILL 窗口、状态 CAS/迁移回归保留；`TestP3MigrationFromV3PreservesJobsAndCheckpoints`、`TestP3PreservesP2CheckpointBinding`、`TestP3PreservesP2IdempotentAdmissionIdentity`、`TestP3LegacyAdmissionReplaysInitialReceiptWithoutResettingJob` 专门核对兼容；`TestP3QueuedUnknownCommitSurvivesCancellationAndRevocation` 覆盖恢复排队窗口；v1/v2/v3→v4 增量迁移，不重建数据库 |
+| P3-16 | 契约、能力、源码映射和构建范围 | 实际 HTTP JSON/SSE/二进制/HEAD/204 导出及 schema 检查；105 操作、89 路径、190 schema；原 CLI 目标矩阵不缩减 |
+
+## 复现
+
+Go 工具链 1.23.12；Python 依赖见 api/openapi/tools/requirements.txt。全部离线测试只连接受控本地 TLS；真实凭据测试默认 skip。
+
+```sh
+BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
+BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
+BAIDUPCS_P3_ACCOUNT_RESPONSES=/tmp/baidupcs-p3-accounts.json \
+BAIDUPCS_P3_CONTRACT_RESPONSES=/tmp/baidupcs-p3-responses.json \
+go test -race -count=1 -timeout=180s \
+  ./internal/domain/... ./internal/application/... \
+  ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
+
+python api/openapi/tools/check_contract.py --live-responses \
+  /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json \
+  /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json
+
+# 范围与 P2 相同，新增 CLI 读取回归在 pcscommand 包内执行。
+go test -count=1 -timeout=120s \
+  ./pcsliner/args ./pcsutil/cachepool ./pcsutil/converter \
+  ./pcsutil/escaper ./pcsutil/waitgroup ./pcsutil/taskframework \
+  ./baidupcs/netdisksign ./baidupcs/expires/cachemap \
+  ./requester ./requester/rio ./requester/rio/speeds \
+  ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
+python api/openapi/tools/check_builds.py --report /tmp/baidupcs-p3-builds.json
+CGO_ENABLED=0 go build -o /tmp/baidupcs-http .
+/tmp/baidupcs-http server --help
+git diff --check
+```
+
+25组原行为规格中PAGE-01/PAGE-02/SSE-01/COOKIE-01/CAP-01已链接到实际离线测试，其他跨P4—P7规格继续待核销；链接检查本身不代替运行测试。新增的实际响应校验覆盖 SSE 事件 schema/帧 ID、文件内容以及所有 HEAD/204 空 body，不能只以合成示例代替 handler 运行。原有 downloader 编译测试、固定开发者路径和外网示例仍按 P0 基线分类，本阶段没有改动旧并行下载器。
+
+## 持久化和恢复边界
+
+schema v4 在 v3 上增加凭据历史/吊销、查询快照、逐项结果、artifact 索引和持久事件计数。旧账号凭据先兼容读取、首次更新时归档；旧 Record/Checkpoint 字段保持兼容，新增 Request 字段在空值时不参与编码，P2 的检查点绑定和幂等 job_id 算法保持。状态、时间和 version 仍以 SQL 列为准；事件清理不重用序号。
+
+备份需同时保留数据库、master.key 和 artifacts；P2 二进制拒绝 schema v4。回滚须恢复升级前一致备份，不在已迁移数据库上直接降级。服务仍单实例、持久队列 2 执行/16 等待；有活动引用不清理结果文件。相关提交结果都检查错误，不能以超时或失败冒充已持久化成功。未新增主机掉电一致性承诺。
+
+## 真实百度范围
+
+P2 的真实凭据已按交接清理，本轮不会读取 CLI 的当前账号。用户已授权重新扫码及在本工作区0600的`.env`中保留凭据，供后续验证复用；该文件已加入Git忽略规则。目前仍等待手机确认；未取得新的显式测试凭据前，本轮真实百度 P3 验证记为 **未执行**。后续仅允许 `/BaiduPCS-Go-P2-Verification/`，认证/配额与专用目录内的列表、元数据、搜索、扫描、SSE、结果文件及 P2 上传回读应另存脱敏报告；不得访问日常目录或把离线结果当作上游通过。
+
+已有 [P2 脱敏证据](http-api-p2-upstream-verification.json) 继续保留其原始账号/时间/操作范围，不扩写为 P3 的实测。
+
+
+真实P3复验入口已经提供，默认skip；取得新的私有凭据文件后显式运行：
+
+```sh
+BAIDUPCS_P3_LIVE_CREDENTIAL_FILE=/absolute/private/credentials.json \
+BAIDUPCS_P3_LIVE_REMOTE_DIR=/BaiduPCS-Go-P2-Verification \
+BAIDUPCS_P3_LIVE_REPORT=/absolute/private/p3-sanitized-report.json \
+go test -count=1 -timeout=600s ./internal/bootstrap -run '^TestP3UpstreamDedicatedAccount$'
+```
+
+已保存私有`.env`时可复用；不要打印其内容或启用shell tracing：
+
+```sh
+set -a
+. ./.env
+set +a
+BAIDUPCS_P3_LIVE_REPORT=/tmp/baidupcs-p3-upstream-verification.json \
+go test -count=1 -timeout=600s ./internal/bootstrap -run '^TestP3UpstreamDedicatedAccount$'
+```
+
+该测试只在批准目录内创建本轮子目录和上传fixture，然后读取/搜索/扫描，验证事件及artifact，最后删除本轮子目录。不会列举正常根目录。报告仅保存阶段、时间和平台，不含身份值、路径内容或秘密。

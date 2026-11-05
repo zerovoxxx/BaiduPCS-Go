@@ -46,6 +46,9 @@ func (c credentialInput) domain() (account.Import, error) {
 		return account.Import{}, invalid("凭据kind无效")
 	}
 	for k, v := range map[string]*string{"bduss": c.BDUSS, "ptoken": c.PToken, "stoken": c.SToken, "sboxtkn": c.SBoxTKN, "baiduid": c.BAIDUID, "cookies": c.Cookies, "access_token": c.AccessToken} {
+		if v != nil && *v == "" {
+			return account.Import{}, fault.New(fault.Invalid, "INVALID_CREDENTIAL_FORMAT", "凭据字段不能为空")
+		}
 		if v != nil && !allowed[k] {
 			return account.Import{}, invalid("凭据输入不能混合类型")
 		}
@@ -101,7 +104,7 @@ func publicAccount(v account.Entry) any {
 	}
 	present["cookies"] = len(v.Credentials.Cookies) > 0 || v.Present["cookies"]
 	present["access_token"] = v.Credentials.AccessToken != "" || v.Present["access_token"]
-	return map[string]any{"account_id": v.ID, "label": v.Label, "baidu_uid": v.Identity.UID, "baidu_uk": v.Identity.UK, "username": v.Identity.Username, "sex": v.Identity.Sex, "age": v.Identity.Age, "identity_verified": v.Identity.Verified, "login_state": v.LoginState, "revision": uintString(v.Revision), "credential_revision": uintString(max(v.Credentials.Revision, 1)), "credentials_present": present, "created_at": v.CreatedAt, "updated_at": v.UpdatedAt}
+	return map[string]any{"account_id": v.ID, "label": v.Label, "baidu_uid": v.Identity.UID, "baidu_uk": v.Identity.UK, "username": v.Identity.Username, "sex": v.Identity.Sex, "age": v.Identity.Age, "identity_verified": v.Identity.Verified, "login_state": v.LoginState, "revision": uintString(v.Revision), "credential_revision": uintString(max(v.CredentialVersion, v.Credentials.Revision, 1)), "credentials_present": present, "created_at": v.CreatedAt, "updated_at": v.UpdatedAt}
 }
 func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 	ctx, p := r.Context(), principal(r.Context())
@@ -122,7 +125,6 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 			if *input.ForceUsername == "" || utf8.RuneCountInString(*input.ForceUsername) > 256 {
 				return invalid("force_login_username格式无效")
 			}
-			return unsupportedP2()
 		}
 		credentials, err := input.Credentials.domain()
 		if err != nil {
@@ -132,7 +134,7 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		entry, err := a.deps.Accounts.ImportOnce(ctx, p, input.Label, credentials, key)
+		entry, err := a.deps.Accounts.ImportNamed(ctx, p, input.Label, credentials, key, deref(input.ForceUsername, ""))
 		if err != nil {
 			return err
 		}

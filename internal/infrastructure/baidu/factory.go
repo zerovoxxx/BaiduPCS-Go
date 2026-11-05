@@ -32,6 +32,7 @@ func DefaultConfiguration() configuration.Client {
 type ClientFactory struct {
 	mu           sync.Mutex
 	closed       bool
+	revoked      map[string]uint64
 	sessions     map[*Session]struct{}
 	newTransport func(configuration.Client) *http.Transport
 }
@@ -88,6 +89,12 @@ func (f *ClientFactory) Close() error {
 func (f *ClientFactory) New(ctx context.Context, snapshot configuration.Snapshot, credentials account.Credentials) (*Session, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	f.mu.Lock()
+	floor := f.revoked[credentials.AccountID]
+	f.mu.Unlock()
+	if floor > 0 && credentials.Revision < floor {
+		return nil, fault.New(fault.Unsupported, "CREDENTIAL_REVOKED", "账号凭据已撤销")
 	}
 	cfg := snapshot.Client()
 	credentials = credentials.Clone()
@@ -151,9 +158,12 @@ func (f *ClientFactory) New(ctx context.Context, snapshot configuration.Snapshot
 	session := &Session{PCS: pcs, HTTP: client, AccountID: credentials.AccountID, ConfigRevision: snapshot.Revision(), CredentialRevision: credentials.Revision, cancel: cancel, transport: transport, owner: f}
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if f.closed {
+	if f.closed || f.revoked[credentials.AccountID] > credentials.Revision {
 		cancel()
 		transport.CloseIdleConnections()
+		if !f.closed {
+			return nil, fault.New(fault.Unsupported, "CREDENTIAL_REVOKED", "账号凭据已撤销")
+		}
 		return nil, fault.New(fault.Unavailable, "SERVICE_DRAINING", "客户端工厂正在关闭")
 	}
 	f.sessions[session] = struct{}{}
@@ -257,3 +267,23 @@ func (b *boundBody) Read(p []byte) (int, error) {
 	return n, err
 }
 func (b *boundBody) Close() error { err := b.ReadCloser.Close(); b.once.Do(b.release); return err }
+
+// RevokeCredentials closes both synchronous reads and executing job sessions.
+// The floor also rejects a stale version racing with registration of a session.
+func (f *ClientFactory) RevokeCredentials(id string, before uint64) {
+	f.mu.Lock()
+	if f.revoked == nil {
+		f.revoked = map[string]uint64{}
+	}
+	f.revoked[id] = max(f.revoked[id], before)
+	sessions := []*Session{}
+	for s := range f.sessions {
+		if s.AccountID == id && s.CredentialRevision < before {
+			sessions = append(sessions, s)
+		}
+	}
+	f.mu.Unlock()
+	for _, s := range sessions {
+		_ = s.Close()
+	}
+}

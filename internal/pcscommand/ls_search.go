@@ -2,11 +2,12 @@ package pcscommand
 
 import (
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
+	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs/pcserror"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcstable"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/converter"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/pcstime"
-	"github.com/olekukonko/tablewriter"
 	"os"
 	"strconv"
 )
@@ -37,7 +38,10 @@ func RunLs(pcspath string, lsOptions *LsOptions, orderOptions *baidupcs.OrderOpt
 		return
 	}
 
-	files, err := GetBaiduPCS().FilesDirectoriesList(pcspath, orderOptions)
+	runLs(GetBaiduPCS(), pcspath, lsOptions, orderOptions)
+}
+func runLs(client fileReadClient, pcspath string, lsOptions *LsOptions, orderOptions *baidupcs.OrderOptions) {
+	files, err := client.FilesDirectoriesList(pcspath, orderOptions)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -65,7 +69,10 @@ func RunSearch(targetPath, keyword string, opt *SearchOptions) {
 		opt = &SearchOptions{}
 	}
 
-	files, err := GetBaiduPCS().Search(targetPath, keyword, opt.Recurse)
+	runSearch(GetBaiduPCS(), targetPath, keyword, opt)
+}
+func runSearch(client fileReadClient, targetPath, keyword string, opt *SearchOptions) {
+	files, err := client.Search(targetPath, keyword, opt.Recurse)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -141,4 +148,10 @@ func renderTable(op int, isTotal bool, path string, files baidupcs.FileDirectory
 	}
 
 	fmt.Printf("----\n")
+}
+
+type fileReadClient interface {
+	FilesDirectoriesList(string, *baidupcs.OrderOptions) (baidupcs.FileDirectoryList, pcserror.Error)
+	FilesDirectoriesMeta(string) (*baidupcs.FileDirectory, pcserror.Error)
+	Search(string, string, bool) (baidupcs.FileDirectoryList, pcserror.Error)
 }

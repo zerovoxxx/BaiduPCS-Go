@@ -2,6 +2,8 @@ package transfers_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -267,4 +269,106 @@ func TestInterruptedCommitCannotBeReportedCancelled(t *testing.T) {
 		t.Fatal("unknown commit was discarded", err)
 	}
 	waitState(t, service, r.ID, "interrupted")
+}
+
+func TestP3PreservesP2IdempotentAdmissionIdentity(t *testing.T) {
+	store, engine, accountID := setup(t)
+	service, err := apptransfers.New(context.Background(), store, store, store, engine)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer service.Close()
+	req := transfer.Request{Kind: "upload", AccountID: accountID, RootID: "root", RelativePath: "source", RemotePath: "/target"}
+	r, err := service.Submit(context.Background(), admin, req, "p2-existing-key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal([]string{admin.ID, accountID, "upload", "p2-existing-key"})
+	sum := sha256.Sum256(raw)
+	if r.ID != "job_"+hex.EncodeToString(sum[:]) {
+		t.Fatal("P3 changed a P2 idempotent job ID")
+	}
+}
+
+func TestP3LegacyAdmissionReplaysInitialReceiptWithoutResettingJob(t *testing.T) {
+	store, engine, accountID := setup(t)
+	ctx := context.Background()
+	req := transfer.Request{Kind: "upload", AccountID: accountID, RootID: "root", RelativePath: "source", RemotePath: "/target"}
+	raw, _ := json.Marshal([]string{admin.ID, accountID, "upload", "legacy-receipt"})
+	sum := sha256.Sum256(raw)
+	cfg, err := store.Read(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy := transfer.Record{ID: "job_" + hex.EncodeToString(sum[:]), Owner: admin.ID, Request: req, CreatedAt: time.Now().UTC().Format(time.RFC3339Nano), Config: cfg.Client(), ConfigRevision: cfg.Revision(), CredentialRevision: 1}
+	if _, err = store.CreateTransfer(ctx, legacy); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.TransitionTransfer(ctx, legacy.ID, []string{"queued"}, "running"); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.SaveTransferCheckpoint(ctx, legacy.ID, json.RawMessage(`{"Phase":"done","Size":1}`)); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.FinishTransfer(ctx, legacy.ID, "succeeded", ""); err != nil {
+		t.Fatal(err)
+	}
+	service, err := apptransfers.New(ctx, store, store, store, engine)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer service.Close()
+	receipt, err := service.Submit(ctx, admin, req, "legacy-receipt")
+	if err != nil || receipt.State != "queued" || receipt.Version != 1 || receipt.FinishedAt != "" || len(receipt.Checkpoint) != 0 {
+		t.Fatal("legacy submission did not replay its first receipt", err)
+	}
+	current, err := service.Get(ctx, admin, legacy.ID)
+	if err != nil || current.State != "succeeded" || len(current.Checkpoint) == 0 {
+		t.Fatal("receipt replay reset actual job state", err)
+	}
+}
+
+func TestP3QueuedUnknownCommitSurvivesCancellationAndRevocation(t *testing.T) {
+	store, engine, accountID := setup(t)
+	ctx := context.Background()
+	cfg, err := store.Read(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := transfer.Record{ID: "job_p3_unknown", Owner: admin.ID, CreatedAt: time.Now().UTC().Format(time.RFC3339Nano), Request: transfer.Request{Kind: "upload", AccountID: accountID, RootID: "root", RelativePath: "source", RemotePath: "/unknown"}, Config: cfg.Client(), ConfigRevision: cfg.Revision(), CredentialRevision: 1, Checkpoint: json.RawMessage(`{"Phase":"committing"}`)}
+	if _, err = store.CreateTransfer(ctx, r); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.TransitionTransfer(ctx, r.ID, []string{"queued"}, "running"); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.FinishTransfer(ctx, r.ID, "interrupted", "REMOTE_RESULT_UNKNOWN"); err != nil {
+		t.Fatal(err)
+	}
+	service, err := apptransfers.New(ctx, store, store, store, engine)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer service.Close()
+	for _, remote := range []string{"/block-a", "/block-b"} {
+		if _, err = service.Submit(ctx, admin, transfer.Request{Kind: "upload", AccountID: accountID, RootID: "root", RelativePath: "source", RemotePath: remote}, ""); err != nil {
+			t.Fatal(err)
+		}
+		_ = nextStart(t, engine)
+	}
+	if _, err = service.Resume(ctx, admin, r.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = service.Cancel(ctx, admin, r.ID); fault.As(err).Code != "RECONCILIATION_REQUIRED" {
+		t.Fatal("queued recovery falsely allowed cancellation", err)
+	}
+	accounts := appaccounts.New(store)
+	accounts.OnRevoke(service.RevokeAccount)
+	if _, err = accounts.Patch(ctx, admin, accountID, 1, nil, account.Patch{"cookies": nil}, ""); err != nil {
+		t.Fatal(err)
+	}
+	restored := waitState(t, service, r.ID, "interrupted")
+	if restored.FailureCode != "CREDENTIAL_REVOKED" {
+		t.Fatal("revocation lost uncertain commit state", restored.FailureCode)
+	}
 }

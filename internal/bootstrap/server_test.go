@@ -127,7 +127,7 @@ func TestRuntimeHTTPConfigurationAndAuth(t *testing.T) {
 	}
 	wantStatus(t, request(t, h, "GET", "/api/v1/configuration", readToken, "", "", ""), 403)
 	wantStatus(t, request(t, h, "GET", "/api/v1/accounts/account_b/files", readToken, "", "", ""), 403)
-	wantStatus(t, request(t, h, "GET", "/api/v1/accounts/account_a/files", readToken, "", "", ""), 501)
+	wantStatus(t, request(t, h, "GET", "/api/v1/accounts/account_a/files", readToken, "", "", ""), 404)
 	wantStatus(t, request(t, h, "GET", "/unknown", testToken, "", "", ""), 404)
 	snapshot, err := runtime.store.Read(context.Background())
 	if err != nil {
@@ -418,7 +418,7 @@ func TestLiveContractResponses(t *testing.T) {
 		{"CFG02", "PATCH", "/api/v1/configuration", testToken, "", `{"no_check":false}`, 428},
 		{"CFG02", "PATCH", "/api/v1/configuration", testToken, `"1"`, `{"no_check":false}`, 412},
 		{"CFG02", "PATCH", "/api/v1/configuration", testToken, `"3"`, `{"no_check":null}`, 400},
-		{"FIL01", "GET", "/api/v1/accounts/account_a/files", readToken, "", "", 501},
+		{"FIL01", "GET", "/api/v1/accounts/account_a/files", readToken, "", "", 404},
 	}
 	type row struct {
 		OperationID string      `json:"operation_id"`

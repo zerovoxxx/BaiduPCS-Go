@@ -17,7 +17,7 @@ func (s *Store) replayRequest(ctx context.Context, q queryer, m operation.Mutati
 		return false, nil
 	}
 	var hash, data []byte
-	err := q.QueryRowContext(ctx, `SELECT request_hash,reply FROM request_replays WHERE principal=? AND operation=? AND key_hash=? AND (expires_at>? OR resource_id IN (SELECT job_id FROM jobs WHERE state NOT IN ('succeeded','failed','cancelled')))`, m.Principal, m.Operation, m.KeyHash[:], time.Now().Unix()).Scan(&hash, &data)
+	err := q.QueryRowContext(ctx, `SELECT request_hash,reply FROM request_replays WHERE principal=? AND operation=? AND key_hash=? AND (expires_at>? OR operation='ACC01/legacy' OR resource_id IN (SELECT job_id FROM jobs WHERE state NOT IN ('succeeded','partially_succeeded','failed','cancelled')))`, m.Principal, m.Operation, m.KeyHash[:], time.Now().Unix()).Scan(&hash, &data)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -146,6 +146,6 @@ func oneRow(result sql.Result) error {
 // CleanupReplays never expires the replay of an active job. Jobs and their
 // checkpoints are retained; P2 does not silently discard recovery evidence.
 func (s *Store) CleanupReplays(ctx context.Context) error {
-	_, err := s.db.ExecContext(ctx, `DELETE FROM request_replays WHERE expires_at<=? AND resource_id NOT IN (SELECT job_id FROM jobs WHERE state NOT IN ('succeeded','failed','cancelled'))`, time.Now().Unix())
+	_, err := s.db.ExecContext(ctx, `DELETE FROM request_replays WHERE expires_at<=? AND operation!='ACC01/legacy' AND resource_id NOT IN (SELECT job_id FROM jobs WHERE state NOT IN ('succeeded','partially_succeeded','failed','cancelled'))`, time.Now().Unix())
 	return err
 }

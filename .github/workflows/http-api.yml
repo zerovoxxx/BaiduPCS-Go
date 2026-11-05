@@ -1,4 +1,4 @@
-name: HTTP API contract and P2 transfers
+name: HTTP API P3 contract, reads and transfers
 on: [push, pull_request]
 permissions:
   contents: read
@@ -20,6 +20,8 @@ jobs:
         env:
           BAIDUPCS_P1_CONTRACT_RESPONSES: /tmp/baidupcs-p1-responses.json
           BAIDUPCS_P2_CONTRACT_RESPONSES: /tmp/baidupcs-p2-responses.json
+          BAIDUPCS_P3_ACCOUNT_RESPONSES: /tmp/baidupcs-p3-accounts.json
+          BAIDUPCS_P3_CONTRACT_RESPONSES: /tmp/baidupcs-p3-responses.json
         run: >-
           go test -race -count=1 -timeout=180s
           ./internal/domain/... ./internal/application/...
@@ -33,6 +35,6 @@ jobs:
           ./requester ./requester/rio ./requester/rio/speeds
           ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
       - name: Contract, embedded document and actual HTTP responses
-        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json
+        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json
       - name: Preserve CLI build targets and isolate SQLite
         run: python api/openapi/tools/check_builds.py

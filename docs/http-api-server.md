@@ -1,6 +1,6 @@
-# HTTP API 服务启动与 P2 范围
+# HTTP API 服务启动与 P3 范围
 
-当前版本：契约 `0.2.0-p2`。12 个 P1 系统/配置操作保持 implemented，另开放账号、单文件传输和任务控制的 10 个 partial 操作，其余 83 个仍 planned。配置快照、隔离 ClientFactory、Bearer 和 SQLite 沿用 P1；具体限制和 HTTP body 见[P2 操作指南](http-api-p2-guide.md)，证据见[P2 验证记录](http-api-p2-verification.md)，继续开发从[工程交接](http-api-handoff.md)进入 P3。
+当前版本：契约 `0.3.0-p3`。40 个 implemented、3 个 partial、62 个 planned。P3 完整账号、文件读取/扫描、任务/事件及结果文件已接入，使用见[P3指南](http-api-p3-guide.md)，逐项证据见[P3验收](http-api-p3-verification.md)。UPL01、DWN01、JOB08保留[P2受限传输](http-api-p2-guide.md)，继续开发从[工程交接](http-api-handoff.md)进入P4。
 
 ## 启动
 
@@ -19,6 +19,7 @@ CGO_ENABLED=0 go build -o /tmp/baidupcs-go .
 | client-token | 初始管理员的客户端凭据交接文件，0600；启动输出只给路径，不打印 token |
 | master.key | 32 字节本地主密钥，0600；加密配置中包括代理秘密的持久化内容 |
 | service.db、service.db-wal、service.db-shm | SQLite 元数据、配置历史、幂等记录和初始任务表 |
+| artifacts/ | P3受保护的结果文件、TTL及引用生命周期；与数据库和master.key配对备份 |
 | service.lock | 数据目录独占锁；第二个服务实例不能调度或修改同一数据目录 |
 
 后续启动从 `principals.json` 读取摘要，不需要再次读取交接文件。客户端取走凭据后可移动或删除 `client-token`；不会因此重置服务身份。备份和迁移时保留数据库及对应 `master.key`，不能为已有数据库重新生成密钥。
@@ -69,7 +70,8 @@ false、0、空代理字符串会保留含义；null、重复 JSON key、未知�
 | POST /api/v1/configuration/validate | admin；候选校验，不写入 |
 | POST /api/v1/configuration/reset | admin；强 If-Match，支持幂等 |
 | GET /api/v1/configuration/defaults | admin；源码默认值与平台模板，默认 savedir 为 null |
-| ACC01/02/03/07、UPL01、DWN01、JOB02/04/06/08 | P2受限账号、单文件与任务；必须遵守固定选项、权限和大小限制，详见P2指南 |
+| ACC01—ACC09、FIL01—FIL06、JOB01—JOB06/JOB09/JOB11、ART01—ART04、LOC01 | P3完整账号、读取/扫描、任务、事件和结果文件，详见P3指南 |
+| UPL01、DWN01、JOB08 | P2单文件传输/恢复；固定选项、权限和大小限制继续生效 |
 | 其他 planned 操作 | 先检查服务身份、scope 和路径账号 allowlist，随后 501 |
 
 `/docs` 本身也需要 Authorization。可以通过能设置此头的客户端访问；调试页只向同源 `/api/v1/` 发出请求，token 不写浏览器存储。CORS 默认关闭，不采信未配置的反向代理身份头。日志只记录路由模板、operationId、状态、请求 ID 和耗时，不记录原 URL、请求体、Cookie 或 Authorization。服务使用结构化日志，不转发可能含上游签名的 CLI 原始 verbose 输出。
@@ -86,7 +88,7 @@ false、0、空代理字符串会保留含义；null、重复 JSON key、未知�
 }
 ```
 
-通过 `server --config /absolute/path/server.json` 加载；CLI 显式的 `--listen`、`--data-dir` 优先。配置文件里的 data_dir、TLS 路径相对配置文件目录解析，root.path 必须为绝对路径。root 需要实际存在，且不能包含服务数据、启动配置、API token 输入或 TLS 私钥，或位于这些私有路径内。未知 root、越界路径、断开的软链接和逃逸链接会被拒绝；本阶段校验目录，不创建传输目标或读写用户文件。
+通过 `server --config /absolute/path/server.json` 加载；CLI 显式的 `--listen`、`--data-dir` 优先。配置文件里的 data_dir、TLS 路径相对配置文件目录解析，legacy_accounts_file 同样相对配置文件解析，显式开启旧账号只读导入；root.path 必须为绝对路径。root 需要实际存在，且不能包含服务数据、启动配置、API token 输入或 TLS 私钥，或位于这些私有路径内。未知 root、越界路径、断开的软链接和逃逸链接会被拒绝；P2传输和P3结果文件操作均遵守目录授权，不能把私有存储注册为用户root。
 
 自定义身份时增加 `principals`，每项包含 id、token_sha256、scopes、accounts、roots；token_sha256 必须是自己 token 的 64 位十六进制 SHA-256。scope 只接受 read、write、transfer、local.read、local.write、admin。admin 可满足业务 scope，但账号/root allowlist 仍独立检查，`*` 需显式填写。配置更新接口只给 admin；普通身份无法通过修改请求 body 自行声明账号或权限。
 
@@ -94,8 +96,8 @@ TLS 使用启动字段 `tls_certificate`、`tls_key`，两者须同时给出，�
 
 ## 生命周期与后续接入
 
-进程入口处理 SIGINT/SIGTERM。关闭时先使 readiness 不就绪、停止接收新请求，HTTP 最多等待 10 秒排空，再取消任务并等待检查点/终态，随后关闭客户端、数据库和目录锁。任务关闭最多等待 15 秒，必要时取消网络后再有界等待 5 秒；未结束的执行器仍保留存储，错误会返回，不抢先关闭 DB。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；SSE 和内容路径预留独立空闲策略，实际流与任务排空在 P3/P4 接入。
+进程入口处理 SIGINT/SIGTERM。关闭时先使 readiness 不就绪、停止接收新请求，HTTP 最多等待 10 秒排空，再取消任务并等待检查点/终态，随后关闭客户端、数据库和目录锁。任务关闭最多等待 15 秒，必要时取消网络后再有界等待 5 秒；未结束的执行器仍保留存储，错误会返回，不抢先关闭 DB。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；P3 SSE/结果文件使用独立30秒写入空闲期限；SSE观察draining后退出，内容代理在P4继续扩展。
 
 ClientFactory 是基础设施内部协作者，由 bootstrap 持有，供 P2 的百度适配器和 P4 的传输适配器使用。每次 New 明确给出 account_id、凭据 revision、配置 Snapshot 和 context，并在结束时 Close；返回全新 PCS、Cookie Jar、Transport、Resolver 和签名/缓存状态。更新配置或修改调用方原切片/凭据 map 不会改掉已绑定实例。新路径使用证书校验、精确代理主机规则和实例网卡配置，不回退到进程代理环境或 requester 全局设置。
 
-同步请求保留30秒期限；P2传输绑定独立任务context，不使用整体30秒客户端超时。连接/响应头有界，流式body每次读取空闲超过30秒会取消；按任务取消和服务关闭到达实际连接。账号及传输已装配到server，queued记录持久扫描派发，未知提交结果核验后恢复。完整账号和文件读取在P3、完整传输在P4、CLI默认值管理在P6；事件、列表和逐项结果仍按完整阶段补齐。
+同步请求保留30秒期限；P2传输绑定独立任务context，不使用整体30秒客户端超时。连接/响应头有界，流式body每次读取空闲超过30秒会取消；按任务取消和服务关闭到达实际连接。账号及传输已装配到server，queued记录持久扫描派发，未知提交结果核验后恢复。P3账号/读取/扫描、事件/列表/逐项结果与artifact已经完成；完整传输在P4、CLI默认值管理在P6。schema v4增量迁移及回滚边界见P3验收。

@@ -60,6 +60,12 @@ func New(ctx context.Context, repo ports.TransferRepository, accounts ports.Acco
 	return s, nil
 }
 func permission(p auth.Principal, r transfer.Record) error {
+	if r.Request.Kind == "file_scan" {
+		if !p.Has("read") || !p.AllowsAccount(r.Request.AccountID) || (r.Owner != p.ID && !p.Has("admin")) {
+			return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问扫描任务")
+		}
+		return nil
+	}
 	local := "local.read"
 	if r.Request.Kind == "download" {
 		local = "local.write"
@@ -86,11 +92,15 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if err := permission(p, r); err != nil {
 		return r, err
 	}
-	if req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128 {
+	if req.Kind != "file_scan" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
 		return r, fault.New(fault.Invalid, "INVALID_REQUEST", "单文件传输输入无效")
 	}
 	if key != "" {
-		b, _ := json.Marshal([]string{p.ID, req.AccountID, req.Kind, key})
+		binding := []string{p.ID, req.AccountID, req.Kind, key}
+		if req.RetryOf != "" {
+			binding = append(binding, req.RetryOf)
+		}
+		b, _ := json.Marshal(binding)
 		sum := sha256.Sum256(b)
 		r.ID = "job_" + hex.EncodeToString(sum[:])
 	} else {
@@ -100,13 +110,29 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		}
 		r.ID = "job_" + hex.EncodeToString(random[:])
 	}
+	op := "UPL01/" + req.AccountID
+	if req.Kind == "download" {
+		op = "DWN01/" + req.AccountID
+	}
+	if req.Kind == "file_scan" {
+		op = "FIL05/" + req.AccountID
+	}
+	if req.RetryOf != "" {
+		op = "JOB09/" + req.RetryOf
+	}
+	r.Admission = operation.New(p.ID, op, key, req)
+	if replay, err := s.repo.ReplayControl(ctx, r.Admission); err != nil {
+		return r, err
+	} else if replay != nil {
+		return *replay, nil
+	}
 	// Replay before resolving defaults: later configuration changes must not alter
 	// an accepted task's snapshot or turn its replay into an unsupported request.
 	if old, err := s.repo.Transfer(ctx, r.ID); err == nil {
 		if old.Request != req || old.Owner != p.ID {
 			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
 		}
-		return old, nil
+		return initialReceipt(old), nil
 	} else if fault.As(err).Kind != fault.NotFound {
 		return r, err
 	}
@@ -119,7 +145,13 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		return r, err
 	}
 	r.Config, r.ConfigRevision, r.CredentialRevision = cfg.Client(), cfg.Revision(), a.Credentials.Revision
-	if err = resolveOptions(&r); err != nil {
+	if req.Kind == "file_scan" {
+		var plan struct{ Options json.RawMessage }
+		if err = json.Unmarshal([]byte(req.ScanPlan), &plan); err != nil {
+			return r, err
+		}
+		r.EffectiveOptions = plan.Options
+	} else if err = resolveOptions(&r); err != nil {
 		return r, err
 	}
 	if preparer, ok := s.engine.(ports.TransferPreparer); ok {
@@ -140,7 +172,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		if old.Request != req || old.Owner != p.ID {
 			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
 		}
-		return old, nil
+		return initialReceipt(old), nil
 	} else if fault.As(err).Kind != fault.NotFound {
 		return r, err
 	}
@@ -251,6 +283,21 @@ func (s *Service) schedule(r transfer.Record) {
 		case s.workers <- struct{}{}:
 			defer func() { <-s.workers }()
 		case <-ctx.Done():
+			flush, done := context.WithTimeout(context.Background(), 5*time.Second)
+			defer done()
+			if _, err := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); err != nil && fault.As(err).Code == "CREDENTIAL_REVOKED" {
+				state := "failed"
+				var cp struct{ Phase string }
+				_ = json.Unmarshal(r.Checkpoint, &cp)
+				if cp.Phase == "committing" || cp.Phase == "done" {
+					state = "interrupted"
+				}
+				err = s.repo.FinishTransfer(flush, r.ID, state, "CREDENTIAL_REVOKED")
+				if fault.As(err).Kind != fault.Conflict {
+					s.recordStorageError(err)
+				}
+				return
+			}
 			_, err := s.transition(r.ID, []string{"queued"}, "interrupted")
 			s.recordStorageError(err)
 			return
@@ -270,15 +317,15 @@ func (s *Service) schedule(r transfer.Record) {
 		}
 		var aErr error
 		if err == nil {
-			a, aErr2 := s.accounts.Account(ctx, r.Request.AccountID)
-			aErr = aErr2
-			if aErr == nil && a.Credentials.Revision != r.CredentialRevision {
-				aErr = fault.New(fault.Conflict, "CREDENTIAL_REVISION_MISMATCH", "凭据版本已变更，拒绝恢复旧任务")
-			}
+			c, credentialErr := s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision)
+			aErr = credentialErr
 			if aErr == nil {
-				aErr = s.engine.Execute(ctx, r, a.Credentials, func(cp json.RawMessage) error {
+				aErr = s.engine.Execute(ctx, r, c, func(cp json.RawMessage) error {
 					flush, done := context.WithTimeout(context.Background(), 5*time.Second)
 					defer done()
+					if _, err := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); err != nil {
+						return err
+					}
 					return s.repo.SaveTransferCheckpoint(flush, r.ID, cp)
 				})
 			}
@@ -289,6 +336,9 @@ func (s *Service) schedule(r transfer.Record) {
 		state, code := "succeeded", ""
 		if err != nil {
 			code = fault.As(err).Code
+			if _, credentialErr := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); credentialErr != nil && fault.As(credentialErr).Code == "CREDENTIAL_REVOKED" {
+				code = "CREDENTIAL_REVOKED"
+			}
 			current, readErr := s.repo.Transfer(flush, r.ID)
 			s.recordStorageError(readErr)
 			var cp struct{ Phase string }
@@ -296,6 +346,8 @@ func (s *Service) schedule(r transfer.Record) {
 			switch {
 			case code == "REMOTE_RESULT_UNKNOWN" || code == "LOCAL_RESULT_UNKNOWN" || cp.Phase == "committing" || cp.Phase == "done":
 				state = "interrupted"
+			case code == "CREDENTIAL_REVOKED":
+				state = "failed"
 			case readErr == nil && current.State == "cancelling":
 				state = "cancelled"
 				code = ""
@@ -326,7 +378,7 @@ func (s *Service) Get(ctx context.Context, p auth.Principal, id string) (transfe
 	if err = permission(p, r); err != nil {
 		return transfer.Record{}, err
 	}
-	if len(r.EffectiveOptions) == 0 {
+	if len(r.EffectiveOptions) == 0 && r.Request.Kind != "file_scan" {
 		legacy := r
 		legacy.Request.Public = false
 		if err = resolveOptions(&legacy); err != nil {
@@ -374,18 +426,17 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 	}
 	state := ""
 	if resume {
+		if r.Request.Kind == "file_scan" {
+			return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "扫描中断后可取消，再重试创建新任务")
+		}
 		if _, active := s.running[id]; active {
 			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务仍在排空")
 		}
 		if r.State != "interrupted" {
 			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "仅可恢复中断任务")
 		}
-		a, err := s.accounts.Account(ctx, r.Request.AccountID)
-		if err != nil {
+		if _, err := s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision); err != nil {
 			return r, err
-		}
-		if a.Credentials.Revision != r.CredentialRevision {
-			return r, fault.New(fault.Conflict, "CREDENTIAL_REVISION_MISMATCH", "凭据版本已改变")
 		}
 		n, err := s.repo.ActiveTransferCount(ctx)
 		if err != nil {
@@ -400,7 +451,7 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 		if len(r.Checkpoint) > 0 && json.Unmarshal(r.Checkpoint, &cp) != nil {
 			return r, fault.New(fault.Internal, "CHECKPOINT_INVALID", "任务检查点损坏")
 		}
-		if r.State == "interrupted" && (cp.Phase == "committing" || cp.Phase == "done") {
+		if (r.State == "interrupted" || r.State == "queued") && (cp.Phase == "committing" || cp.Phase == "done") {
 			return r, fault.New(fault.Conflict, "RECONCILIATION_REQUIRED", "提交结果尚未核对，请恢复任务以核验结果")
 		}
 		state = "cancelling"
@@ -472,4 +523,20 @@ func (s *Service) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	return s.CloseContext(ctx)
+}
+
+// Public P2 admission was always queued. Its immutable fields and option
+// snapshot let v3 records replay that receipt even before submission replays
+// were persisted separately. This projection never rewrites current job state.
+func initialReceipt(r transfer.Record) transfer.Record {
+	r = r.Clone()
+	r.State = "queued"
+	r.Version = 1
+	r.UpdatedAt = r.CreatedAt
+	r.StartedAt = ""
+	r.FinishedAt = ""
+	r.Checkpoint = nil
+	r.FailureCode = ""
+	r.ScanResult = nil
+	return r
 }

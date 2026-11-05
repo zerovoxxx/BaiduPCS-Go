@@ -197,7 +197,8 @@ func (p patchInput) domain() (configuration.Patch, error) {
 
 // StrictJSON rejects unknown fields, duplicate keys, null and multiple values.
 // It is also used for service startup files, without ever logging their contents.
-func StrictJSON(data []byte, target any) error {
+func StrictJSON(data []byte, target any) error { return strictJSON(data, target, false) }
+func strictJSON(data []byte, target any, allowNull bool) error {
 	if !utf8.Valid(data) {
 		return invalid("JSON必须使用有效UTF-8")
 	}
@@ -209,7 +210,7 @@ func StrictJSON(data []byte, target any) error {
 		if err != nil {
 			return err
 		}
-		if token == nil {
+		if token == nil && !allowNull {
 			return errors.New("null is not supported")
 		}
 		switch delimiter := token.(type) {
@@ -316,6 +317,9 @@ func decodeRequest(w http.ResponseWriter, r *http.Request, target any) error {
 	return decodeObject(w, r, target, false)
 }
 func decodeObject(w http.ResponseWriter, r *http.Request, target any, allowEmpty bool) error {
+	return decodeObjectMode(w, r, target, allowEmpty, false)
+}
+func decodeObjectMode(w http.ResponseWriter, r *http.Request, target any, allowEmpty, allowNull bool) error {
 	mt, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mt != "application/json" {
 		return &httpError{status: 415, code: "UNSUPPORTED_MEDIA_TYPE", message: "需要application/json请求体"}
@@ -331,7 +335,7 @@ func decodeObject(w http.ResponseWriter, r *http.Request, target any, allowEmpty
 	if len(bytes.TrimSpace(body)) == 0 || !allowEmpty && bytes.Equal(bytes.TrimSpace(body), []byte("{}")) {
 		return invalid("请求对象不能为空")
 	}
-	if err := StrictJSON(body, target); err != nil {
+	if err := strictJSON(body, target, allowNull); err != nil {
 		return err
 	}
 	var properties map[string]json.RawMessage

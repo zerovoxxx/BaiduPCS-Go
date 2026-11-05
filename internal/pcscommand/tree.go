@@ -20,11 +20,14 @@ type (
 )
 
 func getTree(pcspath string, depth int, option *TreeOptions) {
+	getTreeFrom(GetBaiduPCS(), pcspath, depth, option, true)
+}
+func getTreeFrom(client fileReadClient, pcspath string, depth int, option *TreeOptions, resolve bool) {
 	var (
 		err   error
 		files baidupcs.FileDirectoryList
 	)
-	if depth == 0 {
+	if depth == 0 && resolve {
 		err := matchPathByShellPatternOnce(&pcspath)
 		if err != nil {
 			fmt.Println(err)
@@ -32,7 +35,7 @@ func getTree(pcspath string, depth int, option *TreeOptions) {
 		}
 	}
 
-	files, err = GetBaiduPCS().FilesDirectoriesList(pcspath, baidupcs.DefaultOrderOptions)
+	files, err = client.FilesDirectoriesList(pcspath, baidupcs.DefaultOrderOptions)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -51,7 +54,7 @@ func getTree(pcspath string, depth int, option *TreeOptions) {
 				fmt.Printf("%v%v %v/\n", indentPrefixStr, pathPrefix, file.Filename)
 			}
 			if option.Depth < 0 || depth < option.Depth {
-				getTree(file.Path, depth+1, option)
+				getTreeFrom(client, file.Path, depth+1, option, false)
 			}
 			continue
 		}

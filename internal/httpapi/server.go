@@ -16,8 +16,12 @@ import (
 	"time"
 
 	appaccounts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/accounts"
+	appartifacts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/artifacts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
+	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
+	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
+	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
@@ -33,6 +37,10 @@ type Dependencies struct {
 	System        *appsystem.Service
 	Accounts      *appaccounts.Service
 	Transfers     *apptransfers.Service
+	Files         *appfiles.Service
+	Queries       *appquery.Service
+	Artifacts     *appartifacts.Service
+	Local         *applocal.Service
 	Operations    []system.Operation
 	Contract      []byte
 	Ready         func(context.Context) error
@@ -40,9 +48,10 @@ type Dependencies struct {
 	Logger        *slog.Logger
 }
 type API struct {
-	deps   Dependencies
-	mux    *http.ServeMux
-	schema configSchema
+	deps     Dependencies
+	mux      *http.ServeMux
+	schema   configSchema
+	sseSlots chan struct{}
 }
 type contextKey uint8
 
@@ -59,7 +68,7 @@ func principal(ctx context.Context) auth.Principal {
 
 func Implemented(id string) bool {
 	switch id {
-	case "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07":
+	case "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
 		return true
 	}
 	return false
@@ -69,7 +78,7 @@ func Implementation(id string) string {
 		return "implemented"
 	}
 	switch id {
-	case "ACC01", "ACC02", "ACC03", "ACC07", "UPL01", "DWN01", "JOB02", "JOB04", "JOB06", "JOB08":
+	case "UPL01", "DWN01", "JOB08":
 		return "partial"
 	}
 	return "planned"
@@ -89,7 +98,7 @@ func New(deps Dependencies) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	api := &API{deps: deps, mux: http.NewServeMux(), schema: schema}
+	api := &API{deps: deps, mux: http.NewServeMux(), schema: schema, sseSlots: make(chan struct{}, 64)}
 	grouped := map[string]map[string]system.Operation{}
 	for _, op := range deps.Operations {
 		if op.Implementation != Implementation(op.ID) || op.Implemented != Implemented(op.ID) {
@@ -149,7 +158,7 @@ func New(deps Dependencies) (http.Handler, error) {
 				api.problem(w, r, fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在排空"))
 				return
 			}
-			if r.URL.RawQuery != "" {
+			if r.URL.RawQuery != "" && !acceptsQuery(op.ID) {
 				api.problem(w, r, invalid("此接口不接受查询参数"))
 				return
 			}
@@ -379,6 +388,9 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 		}{publicClient(defaults), runtime.GOOS + "/" + runtime.GOARCH, origin, template, defaults.SaveDir != nil})
 		return nil
 	}
+	if p3Operation(id) {
+		return a.serveP3(id, w, r)
+	}
 	return a.serveP2(id, w, r)
 }
 func etag(revision uint64) string { return `"` + strconv.FormatUint(revision, 10) + `"` }
@@ -465,6 +477,10 @@ func (a *API) problem(w http.ResponseWriter, r *http.Request, err error) {
 			status = 403
 		case fault.NotFound:
 			status = 404
+		case fault.Gone:
+			status = 410
+		case fault.TooLarge:
+			status = 413
 		case fault.Conflict:
 			status = 409
 		case fault.Precondition:

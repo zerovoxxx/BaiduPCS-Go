@@ -17,6 +17,7 @@ type Service struct {
 func New(version, baseline string, started time.Time, operations []system.Operation) *Service {
 	copied := append([]system.Operation{}, operations...)
 	for i := range copied {
+		copied[i].CredentialAlternatives = cloneAlternatives(copied[i].CredentialAlternatives)
 		copied[i].Scopes = append([]string(nil), copied[i].Scopes...)
 		copied[i].SupportedOptions = append([]string(nil), copied[i].SupportedOptions...)
 		copied[i].RequiredCredentials = append([]string(nil), copied[i].RequiredCredentials...)
@@ -38,7 +39,7 @@ func (s *Service) Capabilities() []system.Capability {
 		if op.Implemented {
 			implementation = "implemented"
 			availability = "available"
-			reason = "本地HTTP能力已实现，离线契约验收见P1报告"
+			reason = "本地HTTP能力已实现，离线契约验收见对应阶段报告"
 		}
 		if op.Implementation == "partial" {
 			implementation = "partial"
@@ -48,6 +49,10 @@ func (s *Service) Capabilities() []system.Capability {
 			availability = "upstream_unavailable"
 			reason = "旧式秒传上游能力不可用"
 		}
+		if op.Implemented && (len(op.RequiredCredentials) > 0 || len(op.CredentialAlternatives) > 0) {
+			availability = "unverified"
+			reason = "本地实现已验收，上游能力须按账号、环境和时间验证"
+		}
 		options := []string{}
 		options = append(options, op.SupportedOptions...)
 		if op.ID == "CFG02" || op.ID == "CFG04" {
@@ -56,7 +61,7 @@ func (s *Service) Capabilities() []system.Capability {
 			options = []string{"fields"}
 		}
 		limits := append([]system.Limit{}, op.Limits...)
-		result = append(result, system.Capability{ID: op.ID, Implementation: implementation, Availability: availability, Enabled: op.Implemented || op.Implementation == "partial", Reason: &reason, RequiredCredentials: append([]string{}, op.RequiredCredentials...), SupportedOptions: options, SupportedValues: cloneValues(op.SupportedValues), Limits: limits})
+		result = append(result, system.Capability{ID: op.ID, Implementation: implementation, Availability: availability, Enabled: op.Implemented || op.Implementation == "partial", Reason: &reason, RequiredCredentials: append([]string{}, op.RequiredCredentials...), CredentialAlternatives: cloneAlternatives(op.CredentialAlternatives), SupportedOptions: options, SupportedValues: cloneValues(op.SupportedValues), Limits: limits})
 	}
 	return result
 }
@@ -69,4 +74,15 @@ func cloneValues(values map[string][]string) map[string][]string {
 		result[name] = append([]string(nil), allowed...)
 	}
 	return result
+}
+
+func cloneAlternatives(v [][]string) [][]string {
+	if v == nil {
+		return nil
+	}
+	out := make([][]string, len(v))
+	for i := range v {
+		out[i] = append([]string{}, v[i]...)
+	}
+	return out
 }

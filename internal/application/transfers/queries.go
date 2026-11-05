@@ -1,0 +1,221 @@
+package transfers
+
+import (
+	"context"
+	"encoding/json"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+)
+
+func (s *Service) SubmitScan(ctx context.Context, p auth.Principal, id string, plan file.ScanPlan, key string) (transfer.Record, error) {
+	if len(plan.Paths) == 0 {
+		return transfer.Record{}, fault.New(fault.Invalid, "INVALID_REQUEST", "扫描路径不能为空")
+	}
+	unique := make([]string, 0, len(plan.Paths))
+	seen := map[string]bool{}
+	for _, p := range plan.Paths {
+		if !seen[p] {
+			unique = append(unique, p)
+			seen[p] = true
+		}
+	}
+	plan.Paths = unique
+	encoded, err := json.Marshal(plan)
+	if err != nil {
+		return transfer.Record{}, err
+	}
+	return s.Submit(ctx, p, transfer.Request{Kind: "file_scan", AccountID: id, RemotePath: plan.Paths[0], ScanPlan: string(encoded), Public: true}, key)
+}
+func (s *Service) List(ctx context.Context, p auth.Principal, f transfer.Filter) ([]transfer.Record, error) {
+	if f.AccountID != "" && !p.AllowsAccount(f.AccountID) {
+		return nil, fault.New(fault.Forbidden, "FORBIDDEN", "无权访问此账号")
+	}
+	if !p.Has("admin") {
+		f.Owner = p.ID
+	}
+	all, err := s.repo.ListTransfers(ctx, f, 10001, func(r transfer.Record) bool { return permission(p, r) == nil })
+	if err != nil {
+		return nil, err
+	}
+	out := []transfer.Record{}
+	for _, r := range all {
+		if permission(p, r) == nil {
+			out = append(out, r)
+		}
+	}
+	if len(all) > 10000 {
+		return nil, fault.New(fault.TooLarge, "QUERY_SNAPSHOT_LIMIT", "任务查询超过10000项，请收紧过滤条件")
+	}
+	return out, nil
+}
+func (s *Service) Items(ctx context.Context, p auth.Principal, id string) ([]transfer.Item, error) {
+	r, err := s.Get(ctx, p, id)
+	if err != nil {
+		return nil, err
+	}
+	if r.Request.Kind == "file_scan" {
+		return s.repo.TransferItems(ctx, id, 10001)
+	}
+	// Transfers currently execute one unit. Its public summary is projected from
+	// the durable checkpoint without exposing uploadid, filenames or URLs.
+	return []transfer.Item{TransferItem(r)}, nil
+}
+func (s *Service) ItemPage(ctx context.Context, p auth.Principal, id, cursor string, size int, q *query.Service) (query.Page, error) {
+	r, err := s.Get(ctx, p, id)
+	if err != nil {
+		return query.Page{}, err
+	}
+	if r.Request.Kind == "file_scan" {
+		return s.repo.TransferItemPage(ctx, id, p.ID, cursor, size)
+	}
+	return q.Page(ctx, []any{"items", p.ID, id, size}, cursor, size, func() ([]json.RawMessage, error) {
+		items, err := s.Items(ctx, p, id)
+		if err != nil {
+			return nil, err
+		}
+		return query.Encode(items)
+	})
+}
+func (s *Service) Retry(ctx context.Context, p auth.Principal, id, scope, key string) (transfer.Record, error) {
+	r, err := s.Get(ctx, p, id)
+	if err != nil {
+		return r, err
+	}
+	if !r.Terminal() {
+		return r, fault.New(fault.Conflict, "JOB_NOT_FINISHED", "重试需要原任务处于终态")
+	}
+	req := r.Request
+	req.RetryOf = id
+	req.RetryScope = scope
+	if r.Request.Kind == "file_scan" {
+		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
+		if err != nil {
+			return r, err
+		}
+		paths := []string{}
+		seen := map[string]bool{}
+		for _, v := range items {
+			if v.State == "failed" || scope == "failed_and_cancelled" && v.State == "cancelled" {
+				if !seen[v.Path] {
+					paths = append(paths, v.Path)
+					seen[v.Path] = true
+				}
+			}
+		}
+		if len(paths) == 0 && r.State == "failed" && r.FailureCode != "" {
+			// A preparation/output failure can fail a read-only scan before it creates
+			// item rows. The failed selection is then the original request itself.
+			var original file.ScanPlan
+			if err = json.Unmarshal([]byte(req.ScanPlan), &original); err != nil {
+				return r, err
+			}
+			paths = original.Paths
+		}
+		if len(paths) == 0 {
+			return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有符合重试范围的项目")
+		}
+		var plan file.ScanPlan
+		if err = json.Unmarshal([]byte(req.ScanPlan), &plan); err != nil {
+			return r, err
+		}
+		plan.Paths = paths
+		b, _ := json.Marshal(plan)
+		req.ScanPlan = string(b)
+		req.RemotePath = paths[0]
+	} else if r.State != "failed" && !(scope == "failed_and_cancelled" && r.State == "cancelled") {
+		return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有符合重试范围的项目")
+	}
+	return s.Submit(ctx, p, req, key)
+}
+func (s *Service) RevokeAccount(ctx context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for job, cancel := range s.running {
+		r, err := s.repo.Transfer(ctx, job)
+		if err != nil {
+			return err
+		}
+		if r.Request.AccountID != id || r.Terminal() {
+			continue
+		}
+		if _, err = s.accounts.CredentialVersion(ctx, id, r.CredentialRevision); err == nil {
+			continue
+		} else if fault.As(err).Code != "CREDENTIAL_REVOKED" {
+			return err
+		}
+		cancel()
+	}
+	s.notify()
+	return nil
+}
+func (s *Service) EventSnapshot(ctx context.Context, p auth.Principal, id string) (transfer.Record, uint64, error) {
+	if _, err := s.Get(ctx, p, id); err != nil {
+		return transfer.Record{}, 0, err
+	}
+	return s.repo.EventSnapshot(ctx, id)
+}
+func (s *Service) Events(ctx context.Context, p auth.Principal, id string, after uint64, limit int) (transfer.EventBatch, error) {
+	if _, err := s.Get(ctx, p, id); err != nil {
+		return transfer.EventBatch{}, err
+	}
+	return s.repo.TransferEvents(ctx, id, after, limit)
+}
+func TransferItem(r transfer.Record) transfer.Item {
+	var cp struct {
+		Phase        string
+		Size, Offset int64
+		Skipped      bool
+		Upload       *struct {
+			BlockList []struct {
+				Range    struct{ Begin, End int64 }
+				CheckSum string `json:"checksum"`
+			} `json:"block_list"`
+		}
+	}
+	_ = json.Unmarshal(r.Checkpoint, &cp)
+	state := r.State
+	if state == "queued" {
+		state = "pending"
+	}
+	if state == "cancelling" {
+		state = "running"
+	}
+	if state == "succeeded" && cp.Skipped {
+		state = "skipped"
+	}
+	item := transfer.Item{ID: "item_0", Path: r.Request.RemotePath, RootID: r.Request.RootID, RelativePath: r.Request.RelativePath, State: state, CheckpointAvailable: len(r.Checkpoint) > 0}
+	if r.StartedAt != "" {
+		item.Attempts = 1
+	}
+	if cp.Size > 0 {
+		item.Size = &cp.Size
+	}
+	offset := cp.Offset
+	if r.Request.Kind == "upload" {
+		offset = 0
+		if cp.Upload != nil {
+			for _, b := range cp.Upload.BlockList {
+				if b.CheckSum != "" {
+					offset += b.Range.End - b.Range.Begin
+				}
+			}
+		}
+		if cp.Phase == "done" && !cp.Skipped {
+			offset = cp.Size
+		}
+	}
+	item.Transferred = max(offset, 0)
+	if r.Request.Kind == "download" {
+		item.Written = item.Transferred
+	}
+	if len(r.Checkpoint) > 0 {
+		item.Offset = &item.Transferred
+	}
+	if r.FailureCode != "" {
+		item.Failure = fault.New(fault.Internal, r.FailureCode, "任务执行失败")
+	}
+	return item
+}

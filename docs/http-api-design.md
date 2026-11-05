@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 5 日。状态：P0、P1及受限P2已交付；12个系统/配置操作implemented，账号/单文件/任务的10个操作partial，其余83个planned。P2生产HTTP、受控TLS/race、子进程故障窗口及专用目录真实上游验证通过；完整读取、事件、传输选项和管理按P3以后核销。
+日期：2026 年 11 月 5 日。状态：P0—P3已交付；40个操作implemented、3个传输操作partial、62个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；完整传输在P4。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -8,7 +8,7 @@
 
 配套文档：
 
-- [从P3继续的工程交接清单](http-api-handoff.md)
+- [从P4继续的工程交接清单](http-api-handoff.md)
 - [分阶段实施计划](http-api-implementation-plan.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
 - [OpenAPI 3.1.1 契约与全部示例](../api/openapi/README.md)
@@ -39,7 +39,7 @@
 
 核心覆盖以主项目有效业务为准。context 会话、CLI 默认值管理、配置重载和诊断在 P6 实施，不作为核心账号/传输的前置。浏览器可续传接收、短期票据、QR 扩展等另列验收，不因列出路由就进入核心发布门槛。
 
-公共身份、路径、错误、数值编码与已实现 P1 的语义保持稳定；planned 字段、状态和组件边界是可修订目标，依据最小链路的证据同步调整 OpenAPI、示例及本设计。operationId 保持稳定。覆盖数量不代表实现或验证率。P2已按[交接决策](http-api-handoff.md#3-已落实的接续决策)同步planned/partial/implemented、能力、路由和校验；supported_option_values明确允许值，limits只表达数值资源上限。
+公共身份、路径、错误、数值编码与已实现 P1 的语义保持稳定；planned 字段、状态和组件边界是可修订目标，依据最小链路的证据同步调整 OpenAPI、示例及本设计。operationId 保持稳定。覆盖数量不代表实现或验证率。P2已按[交接决策](http-api-handoff.md#3-p3-已固定的语义)同步planned/partial/implemented、能力、路由和校验；supported_option_values明确允许值，limits只表达数值资源上限。
 
 五层只约束职责和依赖；按实际使用者定义小 port，不为简单操作建立五套转发对象。最小调度先满足持久化、有界队列、按任务取消和安全恢复，不提前建立通用工作流平台或复杂公平调度。
 
@@ -246,7 +246,7 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 ## 6 HTTP 接口目录
 
-当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径已在P2以partial开放；完整验收仍在原阶段。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P1已实现SYS01—04、SYS08—09、CFG01—05和CFG07，其他操作授权后返回501；逐项状态以OpenAPI中的x-capability为准。
+当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径已在P2以partial开放；完整验收仍在原阶段。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P3交付后40个操作implemented、3个传输操作partial；其余planned授权后501，逐项状态以OpenAPI中的x-capability为准。
 
 ### 6.1 系统和诊断
 
@@ -284,7 +284,7 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 ACC01 的三类主凭据互斥，补充 Cookie 字段可随其兼容类型提交。Access token 账号不强求同时具备 BDUSS；无法查询的百度 UID 可以为空。token-only 账号只开放经过实现和验证的 token 能力。`force_login_username` 后备导入须显式标记 `identity_verified=false`。
 
-Cookie 导入使用完整解析器，不能依赖必须有尾部分号的正则；格式错误或缺少 BDUSS 返回 400。只保存一个规范化 Cookie Jar，单字段修改和清除同步作用于 Jar；cookies=null 清除 Cookie 类凭据并保留独立 access_token，避免旧 Cookie 文本恢复已吊销字段。
+Cookie 导入使用完整解析器，不能依赖必须有尾部分号的正则；格式错误或缺少 BDUSS 返回 400。只保存一个规范化 Cookie Jar，普通更新归档旧版本，已提交任务继续绑定旧版本；显式清除/删除撤销旧引用并停止相关连接，未知提交结果仍保留 interrupted。单字段修改和清除同步作用于 Jar；cookies=null 清除 Cookie 类凭据并保留独立 access_token，避免旧 Cookie 文本恢复已吊销字段。
 
 密码、验证码、QR 临时令牌保存在短期秘密存储。手机和邮箱验证有完整的服务流程后才发布相应 challenge，不能调用会阻塞终端输入的 `RunLogin`。二维码登录流程可参考副项目，但会话绑定、过期清理和凭据输出按本方案实现。
 
@@ -634,7 +634,7 @@ context 的账号变更必须重新检查 allowlist。缓存、artifact、暂存
 
 ## 11 运行能力和历史行为
 
-每项 capability 包含 `id`、`implementation`、`availability`、`reason`、`required_credentials`、`supported_options`、`limits`、`verified_at`。实现状态与上游可用性分开：`planned|implemented`；`available|unverified|upstream_unavailable|disabled`。`available` 必须有适用账号或上游验证依据，不能仅因为存在函数名就报告可用。
+每项 capability 包含 `id`、`implementation`、`availability`、`reason`、`required_credentials`、`supported_options`、`limits`、`verified_at`（可选 credential_alternatives 表达替代凭据组合）。实现状态与上游可用性分开：`planned|partial|implemented`；`available|unverified|upstream_unavailable|disabled`。`available` 必须有适用账号或上游验证依据，不能仅因为存在函数名就报告可用。
 
 | 能力 | 当前源码状态 | 目标处理 |
 | --- | --- | --- |
@@ -680,3 +680,12 @@ context 的账号变更必须重新检查 allowlist。缓存、artifact、暂存
 - [全局上传停止](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L18)
 - [分享转存最新流程](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/transfer.go#L15)
 - [OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html)、[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html)、[Go net/http](https://pkg.go.dev/net/http)
+
+
+## 15 P3 落地补充
+
+当前实现与限制以[P3指南](http-api-p3-guide.md)、[验收](http-api-p3-verification.md)为准。搜索和任务列表使用有界600秒快照；扫描逐项游标固定不可变条目的高水位，支持超过10000项的任务。任务查询、逐项结果、取消和retry覆盖当前三个已启用kind；retry固定scope并新建任务，不复用原传输检查点。扫描中断后取消再retry，JOB08继续只开放P2传输恢复子集。
+
+SQLite从v3增量到v4；状态/检查点/逐项与持久事件同事务提交，事件序号独立于保留行。SSE最多64连接/128帧/15秒心跳，慢消费者断开后按持久游标重连。artifact使用受保护目录、流式写入、完成后24小时TTL、256MiB单文件/1GiB总配额，任务/读取引用保护物理清理。文件Range/HEAD沿统一协议，删除不移除任务摘要。
+
+legacy_accounts_file在启动时显式选定，导入规范凭据和未验证显示名，不读取全局当前账号、不修改源配置；旧客户端字段及CLI默认值管理仍在P6。P3触及的CLI读取继续共享核心分页解析，保留聚合和输出，重复页及中途错误明确报告不完整。P2 checkpoint绑定/幂等ID保持兼容，回滚schema v4需要恢复一致备份。

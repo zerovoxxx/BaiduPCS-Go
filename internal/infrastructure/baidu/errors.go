@@ -28,6 +28,9 @@ func upstreamFault(err error) error {
 	}
 	var pcs pcserror.Error
 	if errors.As(err, &pcs) {
+		if pcs.GetErrType() == pcserror.ErrTypeJSONParseError {
+			return fault.New(fault.BadGateway, "UPSTREAM_PROTOCOL_ERROR", "百度响应格式异常")
+		}
 		switch pcs.GetRemoteErrCode() {
 		case 110, 111, 31023, 31024, 31041, 31045, -6:
 			return fault.New(fault.Unsupported, "BAIDU_CREDENTIAL_EXPIRED", "百度凭据无效或已过期")

@@ -7,6 +7,8 @@ type Kind string
 
 const (
 	Invalid      Kind = "invalid"
+	Gone         Kind = "gone"
+	TooLarge     Kind = "too_large"
 	Unauthorized Kind = "unauthorized"
 	Forbidden    Kind = "forbidden"
 	NotFound     Kind = "not_found"
