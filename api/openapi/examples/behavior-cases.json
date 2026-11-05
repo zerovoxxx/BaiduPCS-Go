@@ -170,7 +170,10 @@
     "given": "两个同名multipart与被job引用的暂存文件",
     "when": "并发接收、删除占用文件",
     "then": "随机独立ID不覆盖；占用409 STAGED_FILE_IN_USE；不因接收文件名写出暂存根",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+    ]
   },
   {
     "id": "DOWN-01",
@@ -204,7 +207,11 @@
     "given": "上游重定向到非允许主机或有Cookie要求的直链",
     "when": "代理内容",
     "then": "逐跳校验主机，不泄露Cookie；取消请求停止上游读取，不缓冲整个文件",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/factory_test.go#TestFactoryBindsCancellationAndRejectsUnsafeRedirect",
+      "internal/infrastructure/baidu/p4_test.go#TestP4ContentSlowStreamDisconnectReleasesUpstream"
+    ]
   },
   {
     "id": "JOB-01",
@@ -219,7 +226,12 @@
     "given": "持久化job可能执行、暂停、中断或已终态",
     "when": "重复控制、重启、迟到进度、重试远端未知结果",
     "then": "终态不可覆盖；控制202只表示意图；retry创建新job；结果未知先reconcile，不能自动重放",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+      "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+      "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
+    ]
   },
   {
     "id": "SSE-01",
@@ -249,7 +261,11 @@
     "given": "链接pwd、独立提取码、整段分享文本以及多页子目录",
     "when": "解析、指定fs_ids、collect、download_after",
     "then": "显式码优先URL再文本；inspection可翻页展开；randomize_name=true为422；下载子任务有依赖；未知分享字段不伪造",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild",
+      "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection"
+    ]
   },
   {
     "id": "LEGACY-01",
@@ -314,9 +330,14 @@
       "FIL10",
       "FIL11"
     ],
-    "given": "当前BaiduPCS.cpmvOp在prepareCpMvOp失败后裸return会丢失err",
+    "given": "历史BaiduPCS.cpmvOp曾在prepare错误后丢失err",
     "when": "准备复制/移动/重命名请求失败",
-    "then": "应用服务必须收到明确失败并保存JobItem.problem，不能因为现有核心返回nil而伪报succeeded；在P5修复并增加受控失败路径验收",
-    "verification": "acceptance_spec_only"
+    "then": "核心保留错误；确知失败保存逐项problem，提交结果可能未知则interrupted并核验；不能因nil而伪报成功",
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
+      "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
+      "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
+    ]
   }
 ]

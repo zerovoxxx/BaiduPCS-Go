@@ -27,7 +27,7 @@ func p3Operation(id string) bool {
 }
 func acceptsQuery(id string) bool {
 	switch id {
-	case "FIL01", "FIL02", "FIL04", "JOB01", "JOB03", "DWN03", "DWN04":
+	case "FIL01", "FIL02", "FIL04", "JOB01", "JOB03", "DWN03", "DWN04", "SHR02", "OFF02", "REC01":
 		return true
 	}
 	return false
@@ -143,7 +143,17 @@ func publicItem(v transfer.Item, requestID string) any {
 	if v.Failure != nil {
 		problem = publicProblem(jobFault(v.Failure.Code), requestID)
 	}
-	return map[string]any{"item_id": v.ID, "index": uintString(v.Index), "path": nullable(v.Path), "local_file": local, "state": v.State, "attempts": v.Attempts, "size_bytes": size, "transferred_bytes": strconv.FormatInt(v.Transferred, 10), "written_bytes": strconv.FormatInt(v.Written, 10), "problem": problem, "checkpoint": map[string]any{"available": v.CheckpointAvailable, "verified": false, "offset_bytes": offset, "reason": nil}, "workers": publicWorkers(v.Workers)}
+	out := map[string]any{"item_id": v.ID, "index": uintString(v.Index), "path": nullable(v.Path), "local_file": local, "state": v.State, "attempts": v.Attempts, "size_bytes": size, "transferred_bytes": strconv.FormatInt(v.Transferred, 10), "written_bytes": strconv.FormatInt(v.Written, 10), "problem": problem, "checkpoint": map[string]any{"available": v.CheckpointAvailable, "verified": false, "offset_bytes": offset, "reason": nil}, "workers": publicWorkers(v.Workers)}
+	if v.RemoteEffect != "" {
+		out["input"] = v.Input
+		out["fs_id"] = nullable(v.ResultID)
+		out["offline_task_id"] = nullable(v.OfflineID)
+		out["remote_effect"] = v.RemoteEffect
+		if v.Failure != nil {
+			out["problem"] = publicProblem(v.Failure, requestID)
+		}
+	}
+	return out
 }
 func (a *API) serveP3(id string, w http.ResponseWriter, r *http.Request) error {
 	ctx, p := r.Context(), principal(r.Context())

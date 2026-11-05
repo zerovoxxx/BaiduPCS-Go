@@ -13,12 +13,17 @@ type Request struct {
 	Kind, AccountID, RootID, RelativePath, RemotePath string
 	// Options contains canonical request options, not secrets. Public requests
 	// resolve omitted values against their one persisted configuration snapshot.
-	Options    string
-	Batch      string `json:",omitempty"`
-	ScanPlan   string `json:",omitempty"`
-	RetryOf    string `json:",omitempty"`
-	RetryScope string `json:",omitempty"`
-	Public     bool
+	Options       string
+	SemanticInput string `json:",omitempty"`
+	WritePlan     string `json:",omitempty"`
+	Reconcile     bool   `json:",omitempty"`
+	ReconcileDry  bool   `json:",omitempty"`
+	Batch         string `json:",omitempty"`
+	ScanPlan      string `json:",omitempty"`
+	ParentJobID   string `json:",omitempty"`
+	RetryOf       string `json:",omitempty"`
+	RetryScope    string `json:",omitempty"`
+	Public        bool
 }
 
 type Record struct {
@@ -47,6 +52,8 @@ func (r Record) Clone() Record {
 	if r.ScanResult != nil {
 		cp := *r.ScanResult
 		cp.ArtifactIDs = append([]string{}, cp.ArtifactIDs...)
+		cp.ChildJobIDs = append([]string{}, cp.ChildJobIDs...)
+		cp.MutationItems = append([]Item{}, cp.MutationItems...)
 		r.ScanResult = &cp
 	}
 	r.Plan = append(json.RawMessage(nil), r.Plan...)

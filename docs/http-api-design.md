@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 5 日。状态：P0—P4已交付；51个操作implemented、0个partial、54个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；P4完整传输及票据扩展见[P4记录](http-api-p4-verification.md)。
+日期：2026 年 11 月 5 日。状态：P0—P5已交付；74个操作implemented、0个partial、31个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；P4完整传输及票据扩展见[P4记录](http-api-p4-verification.md)。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -8,7 +8,7 @@
 
 配套文档：
 
-- [从P4继续的工程交接清单](http-api-handoff.md)
+- [P4/P5完成后的工程交接清单](http-api-handoff.md)
 - [分阶段实施计划](http-api-implementation-plan.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
 - [OpenAPI 3.1.1 契约与全部示例](../api/openapi/README.md)
@@ -691,3 +691,13 @@ SQLite从v3增量到v4；状态/检查点/逐项与持久事件同事务提交�
 legacy_accounts_file在启动时显式选定，导入规范凭据和未验证显示名，不读取全局当前账号、不修改源配置；旧客户端字段及CLI默认值管理仍在P6。P3触及的CLI读取继续共享核心分页解析，保留聚合和输出，重复页及中途错误明确报告不完整。P2 checkpoint绑定/幂等ID保持兼容，回滚schema v4需要恢复一致备份。
 
 P4实现补充：传输计划在入库前冻结至多10000单位，执行器分离准备、实例执行和逐项收集。CLI TaskUnit显式注入客户端、限速、调用控制，signal归main；旧下载worker cache按实例分配。JOB07排空后paused，JOB08新网络上下文核验原检查点。暂存使用v5加法表和任务事务引用；DWN03/04的Range与流独立期限，DWN05作为独立扩展。实现限制与上游范围见[P4指南](http-api-p4-guide.md)和[验收](http-api-p4-verification.md)。
+
+## 16 P5 落地补充
+
+P5全部23项沿原有任务和分层接入，当前契约0.5.0-p5、SQLite v6；范围与逐项证据见[P5指南](http-api-p5-guide.md)和[验收](http-api-p5-verification.md)。文件写入保存源/目标身份并明确处理fail/skip/overwrite；核心prepare错误不再丢失，覆盖不预先删除目标。文件ID选择在job准备中逐项解析，缺失ID保留部分成功和ignore_missing语义。
+
+分享接受任意上游有效period，HTTP/CLI共用整段文本和提取码优先级解析；检查聚合所有根页并提供有界快照与目录展开，fs_id必须来自检查。真实分享页可能把ID编码为字符串，按整数直接解析避免float精度损失。collect建立任务独占目录，转存后核验可见性，按既有下载任务提供父子依赖。JobItem新增可选input/fs_id/offline_task_id/remote_effect，保留P3字段，完整逐项和item.completed都能读取实际写入结果。
+
+离线source URL只提交百度，API不抓取；OFF03超过100拒绝，OFF02提供显式1000项上游窗口说明，不伪造全量或远端分页。回收站返回原始LeftTime字符串和实际恢复ID；授权范围内write接口可显式全局清空，真实验收不触发账号级破坏操作。
+
+写入前持久化committing，未知保持interrupted。JOB10使用当前凭据，只读核验后落本地结果，不重发百度写请求；换凭据要求百度UK与原计划相同。证据不足保持未知。取消只影响本地执行意图，已提交百度事务不承诺回滚。SHR01同步创建使用单独加密意图/回执，避免响应丢失后用同Key重复分享。v6只增量添加两张业务表，旧任务/检查点/控制回执和暂存引用兼容；回滚必须恢复升级前一致备份。

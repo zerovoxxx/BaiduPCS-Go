@@ -10,6 +10,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 )
 
 func uintString(n uint64) string { return strconv.FormatUint(n, 10) }
@@ -71,6 +72,15 @@ func checkpoint(r transfer.Record) publicCheckpoint {
 	return cp
 }
 func counters(r transfer.Record) map[string]string {
+	if r.Request.WritePlan != "" {
+		if r.ScanResult != nil {
+			return publicCounts(r.ScanResult.Counts)
+		}
+		var plan write.Plan
+		_ = json.Unmarshal([]byte(r.Request.WritePlan), &plan)
+		return publicCounts(transfer.Counts{Total: uint64(len(plan.Units))})
+	}
+
 	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
 		if r.ScanResult != nil {
 			return publicCounts(r.ScanResult.Counts)
@@ -183,13 +193,50 @@ func publicJob(r transfer.Record, requestID string) any {
 		problem = publicProblem(jobFault(r.FailureCode), requestID)
 	}
 	result := map[string]any{
-		"job_id": r.ID, "owner": r.Owner, "account_id": r.Request.AccountID, "kind": r.Request.Kind, "state": r.State, "phase": phase, "created_at": r.CreatedAt, "dry_run": false, "started_at": nullable(r.StartedAt), "finished_at": nullable(r.FinishedAt), "config_revision": uintString(r.ConfigRevision), "credential_revision": uintString(r.CredentialRevision), "parent_job_id": nil, "child_job_ids": []string{}, "retry_of_job_id": nullable(r.Request.RetryOf),
+		"job_id": r.ID, "owner": r.Owner, "account_id": r.Request.AccountID, "kind": r.Request.Kind, "state": r.State, "phase": phase, "created_at": r.CreatedAt, "dry_run": false, "started_at": nullable(r.StartedAt), "finished_at": nullable(r.FinishedAt), "config_revision": uintString(r.ConfigRevision), "credential_revision": uintString(r.CredentialRevision), "parent_job_id": nullable(r.Request.ParentJobID), "child_job_ids": []string{}, "retry_of_job_id": nullable(r.Request.RetryOf),
 		"resolved_paths": []string{r.Request.RemotePath}, "resolved_sources": []any{}, "local_files": []any{}, "destination": nil, "target_path": nil,
 		"progress":          map[string]any{"total_items": counts["total"], "processed_items": counts["processed"], "succeeded_items": counts["succeeded"], "failed_items": counts["failed"], "skipped_items": counts["skipped"], "cancelled_items": counts["cancelled"], "total_bytes": totalBytes, "transferred_bytes": transferred, "written_bytes": written, "bytes_per_second": rate, "eta_seconds": eta},
 		"available_actions": actions, "problem": problem, "links": map[string]string{"self": "/api/v1/jobs/" + r.ID, "events": "/api/v1/jobs/" + r.ID + "/events", "result": "/api/v1/jobs/" + r.ID + "/result"}, "effective_options": r.EffectiveOptions,
 	}
 	if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0" || r.State == "failed" && r.FailureCode != "") {
 		result["available_actions"] = []string{"retry"}
+	}
+	if r.Request.WritePlan != "" {
+		var plan write.Plan
+		raw := r.Plan
+		if len(raw) == 0 {
+			raw = []byte(r.Request.WritePlan)
+		}
+		_ = json.Unmarshal(raw, &plan)
+		paths := []string{}
+		for _, u := range plan.Units {
+			target := u.To
+			if target == "" {
+				target = u.From
+			}
+			if strings.HasPrefix(target, "/") {
+				paths = append(paths, target)
+			}
+		}
+		result["resolved_paths"] = paths
+		result["target_path"] = nullable(r.Request.RemotePath)
+		result["progress"].(map[string]any)["total_items"] = uintString(uint64(len(plan.Units)))
+		if r.ScanResult != nil {
+			result["child_job_ids"] = append([]string{}, r.ScanResult.ChildJobIDs...)
+		}
+		controls := []string{}
+		if r.State == "interrupted" {
+			controls = append(controls, "reconcile")
+			if cp.Phase != "committing" && cp.Phase != "done" {
+				controls = append(controls, "cancel")
+			}
+		} else if r.State == "queued" || r.State == "running" {
+			controls = append(controls, "cancel")
+		} else if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0") {
+			controls = append(controls, "retry")
+		}
+		result["available_actions"] = controls
+		return result
 	}
 	if len(r.Plan) > 0 {
 		var plan transfer.Plan
@@ -276,7 +323,30 @@ func jobFault(code string) *fault.Error {
 	}
 	return fault.New(kind, code, "任务执行未完成；根据业务码核对或恢复")
 }
-func publicResult(r transfer.Record) any {
+func publicResult(r transfer.Record, requestIDs ...string) any {
+	requestID := "req_result"
+	if len(requestIDs) > 0 {
+		requestID = requestIDs[0]
+	}
+	if r.Request.WritePlan != "" {
+		v := r.ScanResult
+		if v == nil {
+			v = &transfer.ScanResult{}
+		}
+		if r.Request.Kind == "share_transfer" {
+			return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": publicCounts(v.Counts), "complete": r.Terminal() && v.Counts.Total > 0 && v.Counts.Processed == v.Counts.Total, "artifact_ids": []string{}, "transferred_bytes": "0", "written_bytes": "0", "child_job_ids": append([]string{}, v.ChildJobIDs...)}}
+		}
+		items := []any{}
+		for _, item := range v.MutationItems {
+			var problem any
+			if item.Failure != nil {
+				problem = publicProblem(item.Failure, requestID)
+			}
+			items = append(items, map[string]any{"input": item.Input, "state": item.State, "path": nullable(item.Path), "fs_id": nullable(item.ResultID), "offline_task_id": nullable(item.OfflineID), "problem": problem, "remote_effect": item.RemoteEffect})
+		}
+		return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": publicCounts(v.Counts), "items": items, "complete": r.Terminal() && v.Counts.Total > 0 && v.Counts.Processed == v.Counts.Total, "affected_count": uintString(v.Affected)}}
+	}
+
 	if r.Request.Kind == "file_scan" {
 		v := r.ScanResult
 		if v == nil {

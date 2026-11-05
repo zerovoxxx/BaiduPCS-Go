@@ -1,6 +1,6 @@
 # HTTP API 服务启动与 P3 范围
 
-当前版本：契约 `0.3.0-p3`。40 个 implemented、3 个 partial、62 个 planned。P3 完整账号、文件读取/扫描、任务/事件及结果文件已接入，使用见[P3指南](http-api-p3-guide.md)，逐项证据见[P3验收](http-api-p3-verification.md)。UPL01、DWN01、JOB08保留[P2受限传输](http-api-p2-guide.md)，继续开发从[工程交接](http-api-handoff.md)进入P4。
+当前版本：契约 `0.5.0-p5`，SQLite v6。74 implemented、0 partial、31 planned。P4完整传输及P5文件写入/分享/转存/离线/回收站/核验均已接入，见[P4指南](http-api-p4-guide.md)、[P5指南](http-api-p5-guide.md)及[P5逐项验收](http-api-p5-verification.md)。后续P6/P7范围见[工程交接](http-api-handoff.md)。
 
 ## 启动
 
@@ -96,8 +96,8 @@ TLS 使用启动字段 `tls_certificate`、`tls_key`，两者须同时给出，�
 
 ## 生命周期与后续接入
 
-进程入口处理 SIGINT/SIGTERM。关闭时先使 readiness 不就绪、停止接收新请求，HTTP 最多等待 10 秒排空，再取消任务并等待检查点/终态，随后关闭客户端、数据库和目录锁。任务关闭最多等待 15 秒，必要时取消网络后再有界等待 5 秒；未结束的执行器仍保留存储，错误会返回，不抢先关闭 DB。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；P3 SSE/结果文件使用独立30秒写入空闲期限；SSE观察draining后退出，内容代理在P4继续扩展。
+进程入口处理 SIGINT/SIGTERM。关闭时先使 readiness 不就绪、停止接收新请求，HTTP 最多等待 10 秒排空，再取消任务并等待检查点/终态，随后关闭客户端、数据库和目录锁。任务关闭最多等待 15 秒，必要时取消网络后再有界等待 5 秒；未结束的执行器仍保留存储，错误会返回，不抢先关闭 DB。同步HTTP操作使用30秒context/读取/写入期限，服务没有统一的整体 WriteTimeout；P3 SSE/结果文件使用独立30秒写入空闲期限；SSE观察draining后退出，P4内容代理同样使用独立流式期限。
 
 ClientFactory 是基础设施内部协作者，由 bootstrap 持有，供 P2 的百度适配器和 P4 的传输适配器使用。每次 New 明确给出 account_id、凭据 revision、配置 Snapshot 和 context，并在结束时 Close；返回全新 PCS、Cookie Jar、Transport、Resolver 和签名/缓存状态。更新配置或修改调用方原切片/凭据 map 不会改掉已绑定实例。新路径使用证书校验、精确代理主机规则和实例网卡配置，不回退到进程代理环境或 requester 全局设置。
 
-同步请求保留30秒期限；P2传输绑定独立任务context，不使用整体30秒客户端超时。连接/响应头有界，流式body每次读取空闲超过30秒会取消；按任务取消和服务关闭到达实际连接。账号及传输已装配到server，queued记录持久扫描派发，未知提交结果核验后恢复。P3账号/读取/扫描、事件/列表/逐项结果与artifact已经完成；完整传输在P4、CLI默认值管理在P6。schema v4增量迁移及回滚边界见P3验收。
+同步请求保留30秒期限；P2传输绑定独立任务context，不使用整体30秒客户端超时。连接/响应头有界，流式body每次读取空闲超过30秒会取消；按任务取消和服务关闭到达实际连接。账号及传输已装配到server，queued记录持久扫描派发，未知提交结果核验后恢复。P3读取/事件/artifact、P4完整传输和P5写业务已经完成；CLI默认值管理仍在P6。schema v6增量迁移及一致备份回滚见P5指南。

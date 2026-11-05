@@ -2,7 +2,7 @@
 
 日期：2026 年 11 月 5 日。基线：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。工作分支：`codex/http-api-design`。
 
-本计划以[设计](http-api-design.md)和[覆盖矩阵](http-api-coverage.md)为依据。接手开发先读[工程交接清单](http-api-handoff.md)：P2-01至P2-12已核销，P3接入点和后续边界已经更新，P3至P7列出全部操作归属及不可遗漏项。P0、P1、受限 P2、P3 和 P4 已交付；保留 P1 的配置快照、隔离客户端、Bearer、SQLite 和 12 个系统/配置操作。此次调整保持五层边界，将账号、实际传输、取消和重启恢复的验证提前，避免先建设完整任务平台再发现传输器不适配。
+本计划以[设计](http-api-design.md)和[覆盖矩阵](http-api-coverage.md)为依据。接手开发先读[工程交接清单](http-api-handoff.md)：P2-01至P2-12已核销，P3接入点和后续边界已经更新，P3至P7列出全部操作归属及不可遗漏项。P0、P1、受限 P2、P3、P4 和 P5 已交付；保留 P1 的配置快照、隔离客户端、Bearer、SQLite 和 12 个系统/配置操作。此次调整保持五层边界，将账号、实际传输、取消和重启恢复的验证提前，避免先建设完整任务平台再发现传输器不适配。
 
 ## 1 交付顺序与范围
 
@@ -128,6 +128,8 @@ P2交付、入库/派发故障窗口、HTTP映射、Cookie/HTTPS约束及生命�
 验收覆盖取消/暂停 A 不影响 B/C、两种上传握手的重启恢复、源文件变化拒绝恢复、/a/x 与 /b/x 的目录保留、并发 multipart 不覆盖、206/416/慢流，以及相应 CLI 回归。NoSplitFile/Rname 未实现前明确拒绝，不能假报成功。
 
 ## 7 P5 网盘写业务
+
+已交付：23项均implemented，受控及获准真实范围逐项见[P5验收](http-api-p5-verification.md)，使用、schema v6迁移和未知结果边界见[P5指南](http-api-p5-guide.md)。当前74 implemented、0 partial、31 planned。下列工作条目保留作验收基线。
 
 实现 FIL07—FIL11、SHR01—SHR04、TRF01—TRF02、OFF01—OFF07、REC01—REC04 和 JOB10。复用既有任务与读取能力，覆盖部分成功、冲突、分享文本/提取码/fs_id、转存后下载、缓存失效和远端结果核对。
 

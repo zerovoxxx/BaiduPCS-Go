@@ -27,7 +27,7 @@ func TestP4MigrationFromV4PreservesCheckpointAndControlReceipt(t *testing.T) {
 	if _, err := s.ControlTransfer(ctx, r.ID, []string{"running"}, "interrupted", m); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.db.Exec(`DROP TABLE staging_references;DROP TABLE staging_files;PRAGMA user_version=4;`); err != nil {
+	if _, err := s.db.Exec(`DROP TABLE business_mutations;DROP TABLE share_inspections;DROP TABLE staging_references;DROP TABLE staging_files;PRAGMA user_version=4;`); err != nil {
 		t.Fatal(err)
 	}
 	s.Close()

@@ -7,19 +7,24 @@ type Worker struct {
 	Offset, Transferred int64
 }
 type Item struct {
-	Workers                           []Worker
-	ID                                string
-	Index                             uint64
-	Path, RootID, RelativePath, State string
-	Attempts                          int
-	Size                              *int64
-	Transferred, Written              int64
-	Failure                           *fault.Error
-	CheckpointAvailable               bool
-	Offset                            *int64
+	Input, RemoteEffect, ResultID, OfflineID string
+	Affected                                 uint64
+	Workers                                  []Worker
+	ID                                       string
+	Index                                    uint64
+	Path, RootID, RelativePath, State        string
+	Attempts                                 int
+	Size                                     *int64
+	Transferred, Written                     int64
+	Failure                                  *fault.Error
+	CheckpointAvailable                      bool
+	Offset                                   *int64
 }
 type Counts struct{ Total, Processed, Succeeded, Failed, Skipped, Cancelled uint64 }
 type ScanResult struct {
+	MutationItems             []Item
+	ChildJobIDs               []string
+	Affected                  uint64
 	Transferred, Written      int64
 	Counts                    Counts
 	Complete                  bool

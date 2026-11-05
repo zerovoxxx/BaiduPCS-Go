@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu"
 	"strings"
 )
@@ -15,9 +17,13 @@ import (
 type p3Engine struct {
 	transfer *baidu.SingleFileEngine
 	scanner  *files.Scanner
+	writes   *writes.Engine
 }
 
 func (e p3Engine) Prepare(ctx context.Context, r transfer.Record, c account.Credentials) (string, error) {
+	if write.Operation(r.Request.Kind) != "" {
+		return e.writes.Prepare(ctx, r, c)
+	}
 	if r.Request.Kind == "file_scan" {
 		if c.Cookies["BDUSS"] == "" {
 			return "", fault.New(fault.Unsupported, "BAIDU_COOKIE_REQUIRED", "文件扫描需要BDUSS")
@@ -27,13 +33,16 @@ func (e p3Engine) Prepare(ctx context.Context, r transfer.Record, c account.Cred
 	return e.transfer.Prepare(ctx, r, c)
 }
 func (e p3Engine) Execute(ctx context.Context, r transfer.Record, c account.Credentials, save func(json.RawMessage) error) error {
+	if write.Operation(r.Request.Kind) != "" {
+		return e.writes.Execute(ctx, r, c, save)
+	}
 	if r.Request.Kind == "file_scan" {
 		return e.scanner.Execute(ctx, r, c, save)
 	}
 	return e.transfer.Execute(ctx, r, c, save)
 }
 func (e p3Engine) CleanupTransfer(ctx context.Context, r transfer.Record) error {
-	if r.Request.Kind == "file_scan" {
+	if r.Request.Kind == "file_scan" || write.Operation(r.Request.Kind) != "" {
 		return nil
 	}
 	return e.transfer.CleanupTransfer(ctx, r)
@@ -84,5 +93,15 @@ func configureP3Capabilities(operations []system.Operation) {
 }
 
 func (e p3Engine) Plan(ctx context.Context, r transfer.Record, c account.Credentials) (json.RawMessage, error) {
+	if write.Operation(r.Request.Kind) != "" {
+		return e.writes.Plan(ctx, r, c)
+	}
 	return e.transfer.Plan(ctx, r, c)
+}
+
+func (e p3Engine) Audit(ctx context.Context, r transfer.Record, c account.Credentials) error {
+	if write.Operation(r.Request.Kind) != "" {
+		return e.writes.Audit(ctx, r, c)
+	}
+	return e.transfer.Audit(ctx, r, c)
 }

@@ -97,11 +97,18 @@ func (s *Store) migrate(ctx context.Context) error {
 	if err := s.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > 5 {
+	if version > 6 {
 		return errors.New("database schema is newer than this server")
 	}
-	if version == 5 {
+	if version == 6 {
 		return nil
+	}
+	if version == 5 {
+		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
+ CREATE TABLE share_inspections(inspection_id TEXT PRIMARY KEY,payload BLOB NOT NULL,expires_at INTEGER NOT NULL);
+ CREATE TABLE business_mutations(principal TEXT NOT NULL,operation TEXT NOT NULL,key_hash BLOB NOT NULL,request_hash BLOB NOT NULL,payload BLOB,expires_at INTEGER NOT NULL,PRIMARY KEY(principal,operation,key_hash));
+ PRAGMA user_version=6;COMMIT;`)
+		return err
 	}
 	if version == 4 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
@@ -111,7 +118,7 @@ func (s *Store) migrate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		return nil
+		return s.migrate(ctx)
 	}
 	if version == 3 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;

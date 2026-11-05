@@ -12,13 +12,13 @@
 | 命令及子命令节点 | 52（P0为51） | 包含 5 个命令组和 47 个叶子命令；别名不重复计数 |
 | 命令参数 | 90（P0为86） | 每个命令的 Flags 字段，逐项映射 |
 | 全局参数 | 1 | verbose，另有框架自动提供的 help/version |
-| baidupcs 顶层包导出函数和方法 | 133（P2为132） | Go AST FuncDecl；排除测试和块注释，包含底层 Prepare 与格式辅助 |
+| baidupcs 顶层包导出函数和方法 | 135（P2为132） | Go AST FuncDecl；排除测试和块注释，包含底层 Prepare 与格式辅助 |
 | PCSConfig 导出字段 | 24 | 2 个账号相关字段分域，其余 22 个类型化配置 |
-| pcscommand 导出函数 | 34 | 包括没有注册成命令的 RunFixMD5 |
+| pcscommand 导出函数 | 35 | 包括没有注册成命令的 RunFixMD5 |
 | pcsconfig 导出函数和方法 | 44 | 配置生命周期、账号和网络客户端适配 |
 | 12 个业务选项结构导出字段 | 45 | 包含 P0 补齐的 OrderOptions 两个字段；逐字段映射 |
-| 传输/任务相关导出函数和方法 | 193 | pcsupload 23、pcsdownload 14、taskframework 16、uploader 40、downloader 100 |
-| 机器清单合计 | 616（P0为609、P1为614、P2为615） | 404 个导出函数/方法、52 个命令节点、90 个参数、1 个全局参数、24 个配置字段、45 个选项字段 |
+| 传输/任务相关导出函数和方法 | 196 | pcsupload 26、pcsdownload 14、taskframework 16、uploader 40、downloader 100 |
+| 机器清单合计 | 622（P0为609、P1为614、P3为616、P4为620） | 410 个导出函数/方法、52 个命令节点、90 个参数、1 个全局参数、24 个配置字段、45 个选项字段 |
 | 其他相关实现 | 分组核对 | 传输、调度、校验、错误、签名和本地工具；不把每个工具方法公开为路由 |
 
 清单反映当前代码实际定义，不从 README 的旧命令说明反推可用能力。`fixmd5`、`rapidupload` 没有注册为当前 CLI 命令；`upload2.go` 中的块注释不计入函数数。子包的缓存、签名、JSON、错误处理和平台工具按基础设施归属，不按函数数量制造 HTTP 端点。
@@ -566,6 +566,10 @@
 | DecryptMD5 | FIL02、DWN02、UPL01、CFG02 | 内部适配 | 协议、摘要和节点辅助函数，无独立业务路由 | [baidupcs/util.go:142](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/util.go#L142) |
 | RandomElement | FIL02、DWN02、UPL01、CFG02 | 内部适配 | 协议、摘要和节点辅助函数，无独立业务路由 | [baidupcs/util.go:168](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/util.go#L168) |
 
+| *BaiduPCS.CopyMovePolicy | FIL09、FIL10、FIL11 | 内部复用PCS解析和缓存失效，显式冲突策略 | [baidupcs/cp_mv_rename.go:58](../baidupcs/cp_mv_rename.go:58) |
+
+| ParseShareInput | TRF01、TRF02 | CLI/HTTP 共用整段分享文本和提取码解析 | [baidupcs/share_input.go:18](../baidupcs/share_input.go:18) |
+
 ## 7 pcscommand 全部导出函数
 
 | 函数 | 对应能力 | 重构要求 | 源码 |
@@ -948,7 +952,7 @@
 | TaskUnitRunResult、DownloadStatus、上传状态与控制句柄 | Job/Progress/JobItem/CheckpointSummary/WorkerStatus；累计数量为字符串、未知总量 null、跳过与失败分开；空 Pause/Resume 不算成功实现 |
 | 配置/凭据 revision 与任务有效选项 | 任务提交时固定；普通配置更新不改变已有 job；凭据吊销使旧引用停止执行 |
 
-P0对609条记录完成初始映射；P1增加server及4个启动参数至614条；P2增加ExecuteContext内部原语，当前616条均已映射。105个目标操作中40个implemented、3个partial、62个planned；P3的JSON/SSE/文件/HEAD/204实际响应和逐项验收见[P3记录](http-api-p3-verification.md)，67个原schema边界例及25组完整行为规格继续保留。P2的真实百度结果仅限用户授权账号和专用目录，见独立脱敏报告。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
+历史P3统计：P0对609条记录完成初始映射，P1增至614条；至P3为616条均已映射，105个目标操作中40个implemented、3个partial、62个planned；P3的JSON/SSE/文件/HEAD/204实际响应和逐项验收见[P3记录](http-api-p3-verification.md)，67个原schema边界例及25组完整行为规格继续保留。P2的真实百度结果仅限用户授权账号和专用目录，见独立脱敏报告。Go 1.23.12/1.26.2 下各 14 个既有离线测试包通过，另有 3 项原有失败，详见核对报告。这里不把函数映射率、路由实现率和实际可用性混为一个百分比。
 
 
 ## 14 P1 新分层代码归属
@@ -1009,3 +1013,9 @@ P3只将有完整实现与离线证据的28个操作核销，包含此前4个P2�
 application/transfers沿用P2派发和P3事务能力；baidu/transfer_plan冻结选择、按实例执行与收集逐项结果；localfs/staging和persistence/staging管理暂存及事务引用；application/content与baidu/content提供直链及代理。票据为独立扩展，persistence/tickets加密签发，兑换复核原身份和账号版本。CLI TaskUnit显式注入客户端/限速/控制，旧下载cache按实例持有。内部新协作者不产生额外路由。P4逐项证据见[P4验收](http-api-p4-verification.md)。
 
 P4当前清单620条；51 implemented、0 partial、54 planned。计数含DWN05独立扩展；十个P4核心与该扩展分别验收。
+
+## 18 P5 写业务实现归属
+
+application/writes与domain/write提供写计划、执行、逐项结果及只读核验；ports/writes按实际领域划分File/Share/Offline/Recycle，baidu适配器只持有绑定账号和配置的独立Session。HTTP P5路由沿用严格输入、权限、幂等和公共DTO，原transfers负责有界持久派发和控制。persistence/business只存加密inspection与同步分享提交意图，write_cancel将排队取消的逐项无副作用结果与终态/事件同事务提交。新业务不借用CLI全局当前账号，不重建通用任务平台。
+
+核心CopyMovePolicy复用PCS解析及缓存失效；ParseShareInput为CLI/HTTP共用整段文本解析；ExtractShareInfo修复CLI首批截断；CloudDlQueryTask超过100明确错误。新协作者按业务分组映射，不增加HTTP端点计数。当前622条AST映射、74 implemented、0 partial、31 planned，P4十个核心与DWN05扩展、P5全部23项的离线/真实上游范围分别见[P4验收](http-api-p4-verification.md)、[P5验收](http-api-p5-verification.md)。

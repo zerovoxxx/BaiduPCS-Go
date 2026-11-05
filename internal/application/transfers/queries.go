@@ -8,6 +8,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 )
 
 func (s *Service) SubmitScan(ctx context.Context, p auth.Principal, id string, plan file.ScanPlan, key string) (transfer.Record, error) {
@@ -56,7 +57,7 @@ func (s *Service) Items(ctx context.Context, p auth.Principal, id string) ([]tra
 	if err != nil {
 		return nil, err
 	}
-	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
+	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
 		return s.repo.TransferItems(ctx, id, 10001)
 	}
 	// Transfers currently execute one unit. Its public summary is projected from
@@ -68,7 +69,7 @@ func (s *Service) ItemPage(ctx context.Context, p auth.Principal, id, cursor str
 	if err != nil {
 		return query.Page{}, err
 	}
-	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
+	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
 		return s.repo.TransferItemPage(ctx, id, p.ID, cursor, size)
 	}
 	return q.Page(ctx, []any{"items", p.ID, id, size}, cursor, size, func() ([]json.RawMessage, error) {
@@ -90,6 +91,39 @@ func (s *Service) Retry(ctx context.Context, p auth.Principal, id, scope, key st
 	req := r.Request
 	req.RetryOf = id
 	req.RetryScope = scope
+	if write.Operation(r.Request.Kind) != "" {
+		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
+		if err != nil {
+			return r, err
+		}
+		selected := map[uint64]bool{}
+		for _, item := range items {
+			selected[item.Index] = true
+		}
+		var plan write.Plan
+		if err = json.Unmarshal(r.Plan, &plan); err != nil {
+			return r, err
+		}
+		units := []write.Unit{}
+		for i, u := range plan.Units {
+			if selected[uint64(i)] {
+				u.Before = nil
+				u.TargetBefore = nil
+				u.PreparationError = nil
+				u.PriorIDs = nil
+				units = append(units, u)
+			}
+		}
+		if len(units) == 0 {
+			return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有符合范围的重试项")
+		}
+		plan.Units = units
+		raw, _ := json.Marshal(plan)
+		req.WritePlan = string(raw)
+		req.Reconcile = false
+		req.ReconcileDry = false
+		return s.Submit(ctx, p, req, key)
+	}
 	if len(r.Plan) > 0 {
 		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
 		if err != nil {

@@ -39,6 +39,7 @@ type TransferRepository interface {
 	QueuedTransfers(context.Context, int) ([]transfer.Record, error)
 	ControlTransfer(context.Context, string, []string, string, operation.Mutation) (transfer.Record, error)
 	ReplayControl(context.Context, operation.Mutation) (*transfer.Record, error)
+	ReconcileTransfer(context.Context, string, bool, operation.Mutation) (transfer.Record, error)
 	ActiveTransferCount(context.Context) (int, error)
 	ListTransfers(context.Context, transfer.Filter, int, func(transfer.Record) bool) ([]transfer.Record, error)
 	TransferItems(context.Context, string, int) ([]transfer.Item, error)
@@ -65,4 +66,8 @@ type TransferCleaner interface {
 // TransferPlanner freezes directory selections before durable admission.
 type TransferPlanner interface {
 	Plan(context.Context, transfer.Record, account.Credentials) (json.RawMessage, error)
+}
+
+type TransferAuditor interface {
+	Audit(context.Context, transfer.Record, account.Credentials) error
 }

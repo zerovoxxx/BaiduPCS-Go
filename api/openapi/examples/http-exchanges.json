@@ -3408,6 +3408,11 @@
             "has_more": false,
             "consistency": "snapshot",
             "expires_at": null
+          },
+          "upstream_window": {
+            "start": 0,
+            "limit": 1000,
+            "complete_history": false
           }
         }
       }

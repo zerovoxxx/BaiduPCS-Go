@@ -54,7 +54,7 @@ func TestP2MigrationFromV1AndV2PreservesEncryptedState(t *testing.T) {
 				}
 			}
 			// Remove only the additive P2 columns to reproduce the historic schema.
-			sql := `DROP TABLE staging_references;DROP TABLE staging_files;DELETE FROM job_events;DROP TABLE account_credentials; DROP TABLE query_snapshots; DROP TABLE job_items; DROP TABLE artifacts; DROP INDEX jobs_query; ALTER TABLE jobs DROP COLUMN event_sequence; DROP TABLE request_replays;DROP INDEX jobs_dispatch;ALTER TABLE jobs DROP COLUMN version;ALTER TABLE jobs DROP COLUMN started_at;ALTER TABLE jobs DROP COLUMN finished_at;`
+			sql := `DROP TABLE business_mutations;DROP TABLE share_inspections;DROP TABLE staging_references;DROP TABLE staging_files;DELETE FROM job_events;DROP TABLE account_credentials; DROP TABLE query_snapshots; DROP TABLE job_items; DROP TABLE artifacts; DROP INDEX jobs_query; ALTER TABLE jobs DROP COLUMN event_sequence; DROP TABLE request_replays;DROP INDEX jobs_dispatch;ALTER TABLE jobs DROP COLUMN version;ALTER TABLE jobs DROP COLUMN started_at;ALTER TABLE jobs DROP COLUMN finished_at;`
 			if version == 1 {
 				sql += `DROP TABLE accounts;PRAGMA user_version=1;`
 			} else {
@@ -86,7 +86,7 @@ func TestP2MigrationFromV1AndV2PreservesEncryptedState(t *testing.T) {
 				}
 			}
 			var current int
-			if err = upgraded.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&current); err != nil || current != 5 {
+			if err = upgraded.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&current); err != nil || current != 6 {
 				t.Fatal("wrong schema version", current, err)
 			}
 		})

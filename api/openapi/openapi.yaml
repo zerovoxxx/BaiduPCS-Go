@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
 info:
   title: BaiduPCS-Go HTTP API
-  version: 0.4.0-p4
+  version: 0.5.0-p5
   description: P3账号、文件读取、扫描、任务、事件和结果文件契约，2026-11-05。40个操作implemented、3个partial，其余62个planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
 servers:
 - url: http://127.0.0.1:5299
@@ -2563,8 +2563,7 @@ paths:
       tags:
       - files
       summary: path、排序、页码、page_size、fields；目录列表
-      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
-        同时出现400；相对路径且两者皆无400；context账号不匹配409。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 同时出现400；相对路径且两者皆无400；context账号不匹配409。
       x-phase: P3
       x-authorization:
         scopes:
@@ -2928,8 +2927,7 @@ paths:
       tags:
       - files
       summary: path、keyword、recursive、fields；快照分页或有界结果
-      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
-        410。结果容量超限返回 413 QUERY_SNAPSHOT_LIMIT，改用 FIL05 扫描。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 410。结果容量超限返回 413 QUERY_SNAPSHOT_LIMIT，改用 FIL05 扫描。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
       x-phase: P3
       x-authorization:
         scopes:
@@ -3303,7 +3301,7 @@ paths:
       tags:
       - files
       summary: paths；创建目录 job，逐项返回实际结果
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -3313,8 +3311,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL07
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3439,7 +3439,7 @@ paths:
       tags:
       - files
       summary: selector、ignore_missing；删除至网盘回收站 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -3449,8 +3449,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL08
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3578,7 +3580,7 @@ paths:
       tags:
       - files
       summary: items[{from,to}]、目标冲突策略；复制 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -3588,8 +3590,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL09
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3715,7 +3719,7 @@ paths:
       tags:
       - files
       summary: items[{from,to}]、目标冲突策略；移动 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -3725,8 +3729,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL10
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3852,7 +3858,7 @@ paths:
       tags:
       - files
       summary: path、target_path；重命名 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -3862,8 +3868,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL11
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4076,7 +4084,7 @@ paths:
       tags:
       - uploads
       summary: 本地根目录内路径或 staged_file_id、target_dir、上传选项；返回上传 job
-      description: "P4完整上传：local/staged、文件/目录/空文件、策略、重试、秒传及目录计划；NoSplitFile非默认值明确422。源固定指纹，最多10000个计划条目；128GiB上传文件上限，最多16文件/32线程，总线程256。"
+      description: P4完整上传：local/staged、文件/目录/空文件、策略、重试、秒传及目录计划；NoSplitFile非默认值明确422。源固定指纹，最多10000个计划条目；128GiB上传文件上限，最多16文件/32线程，总线程256。
       x-phase: P4
       x-authorization:
         scopes:
@@ -4258,7 +4266,7 @@ paths:
       tags:
       - uploads
       summary: multipart 文件接收，返回 staged_file_id、大小和文件名
-      description: "P4已实现；输入限制与权限在调用上游前校验。 只接收单个 file part；filename 可覆盖展示名，不作为磁盘路径。生成 staged_file_id 后独立于到百度的上传。"
+      description: P4已实现；输入限制与权限在调用上游前校验。 只接收单个 file part；filename 可覆盖展示名，不作为磁盘路径。生成 staged_file_id 后独立于到百度的上传。
       x-phase: P4
       x-authorization:
         scopes:
@@ -4377,7 +4385,7 @@ paths:
       tags:
       - uploads
       summary: 调用方自己的暂存文件状态和过期时间
-      description: "P4已实现；输入限制与权限在调用上游前校验。 已过期返回410，不把state=expired当成可用暂存资源。"
+      description: P4已实现；输入限制与权限在调用上游前校验。 已过期返回410，不把state=expired当成可用暂存资源。
       x-phase: P4
       x-authorization:
         scopes:
@@ -4461,7 +4469,7 @@ paths:
       tags:
       - uploads
       summary: 删除未被任务占用的暂存文件；占用返回 409
-      description: "P4已实现；输入限制与权限在调用上游前校验。"
+      description: P4已实现；输入限制与权限在调用上游前校验。
       x-phase: P4
       x-authorization:
         scopes:
@@ -4786,8 +4794,7 @@ paths:
       tags:
       - uploads
       summary: 二进制数据和 Upload-Offset；原子前移 offset
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先 GET
-        核对。
+      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先 GET 核对。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4886,8 +4893,7 @@ paths:
       tags:
       - uploads
       summary: 校验接收长度和摘要，原子生成 staged_file_id
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复 complete 返回相同 staged_file_id，Location
-        指向UPL03。
+      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复 complete 返回相同 staged_file_id，Location 指向UPL03。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4973,7 +4979,7 @@ paths:
       tags:
       - downloads
       summary: selector、本地 root_id、目标目录和下载选项；返回下载 job
-      description: "P4完整下载：paths/fs_ids/patterns，三种模式、目录层级、并发、限速及显式false/0；最多10000个计划条目，单文件128GiB，16文件/32线程，总线程256。"
+      description: P4完整下载：paths/fs_ids/patterns，三种模式、目录层级、并发、限速及显式false/0；最多10000个计划条目，单文件128GiB，16文件/32线程，总线程256。
       x-phase: P4
       x-authorization:
         scopes:
@@ -5170,7 +5176,7 @@ paths:
       tags:
       - downloads
       summary: paths 或 fs_ids、source=pcs|pan|direct、https、link_index；逐项返回链接、link_ref 及所需 UA 信息
-      description: "P4已实现；输入限制与权限在调用上游前校验。"
+      description: P4已实现；输入限制与权限在调用上游前校验。
       x-phase: P4
       x-authorization:
         scopes:
@@ -5283,7 +5289,7 @@ paths:
       tags:
       - downloads
       summary: path、Range、If-Range；经授权的文件代理内容
-      description: "P4已实现；输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。"
+      description: P4已实现；输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
       x-phase: P4
       x-authorization:
         scopes:
@@ -5403,7 +5409,7 @@ paths:
       tags:
       - downloads
       summary: 与 GET 一致的元信息和授权，无响应体
-      description: "P4已实现；输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code 头表达。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。"
+      description: P4已实现；输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code 头表达。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
       x-phase: P4
       x-authorization:
         scopes:
@@ -6177,8 +6183,7 @@ paths:
       tags:
       - jobs
       summary: SSE 和 Last-Event-ID，有限事件回放
-      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。
-        heartbeat，无 ID。回放过期410；流开始后的错误终止流，不追加 Problem JSON。'
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 heartbeat，无 ID。回放过期410；流开始后的错误终止流，不追加 Problem JSON。'
       x-phase: P3
       x-authorization:
         scopes: []
@@ -6422,7 +6427,7 @@ paths:
       tags:
       - jobs
       summary: 按 kind 和阶段开放；上传在分片边界停止并保存断点
-      description: "P4已实现；输入限制与权限在调用上游前校验。 仅 available_actions 支持时接受，未支持的 kind/阶段422；重复pausing/paused返回当前job。"
+      description: P4已实现；输入限制与权限在调用上游前校验。 仅 available_actions 支持时接受，未支持的 kind/阶段422；重复pausing/paused返回当前job。
       x-phase: P4
       x-authorization:
         scopes: []
@@ -6562,7 +6567,7 @@ paths:
       tags:
       - jobs
       summary: 从已确认检查点恢复；重验源文件和凭据版本
-      description: "延续paused/interrupted传输任务，重新核验账号、凭据版本、目标及源指纹；提交未知先核验，不能自动重放。"
+      description: 延续paused/interrupted传输任务，重新核验账号、凭据版本、目标及源指纹；提交未知先核验，不能自动重放。
       x-phase: P4
       x-authorization:
         scopes: []
@@ -6848,7 +6853,7 @@ paths:
       tags:
       - jobs
       summary: 对中断且结果不明的远端操作做核对；支持能力按 kind 声明
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 仅核对结果未知的中断操作，按 kind 支持；本轮复核通过 job.phase 和状态暴露。已核对请求返回当前 job。
+      description: P5已实现；输入限制与权限在调用上游前校验。 仅核对结果未知的中断操作，按 kind 支持；本轮复核通过 job.phase 和状态暴露。已核对请求返回当前 job。
       x-phase: P5
       x-authorization:
         scopes: []
@@ -6858,8 +6863,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB10
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7064,7 +7071,7 @@ paths:
       tags:
       - shares
       summary: paths、password、period_days、combined_link；返回分享及原始和带码链接
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 显式 password 必须4位字母数字；省略才生成。period_days=0永久；上游不支持的有效天数返回422。
+      description: P5已实现；输入限制与权限在调用上游前校验。 显式 password 必须4位字母数字；省略才生成。period_days=0永久；上游不支持的有效天数返回422。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7074,8 +7081,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SHR01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7163,7 +7172,7 @@ paths:
       tags:
       - shares
       summary: page；分享列表，可选补充提取码
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 保留上游page语义；page_size由上游决定，不接受调用方指定，无法确认时返回null；不为total额外拉全列表。
+      description: P5已实现；输入限制与权限在调用上游前校验。 保留上游page语义；page_size由上游决定，不接受调用方指定，无法确认时返回null；不为total额外拉全列表。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7173,8 +7182,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SHR02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7253,7 +7264,7 @@ paths:
       tags:
       - shares
       summary: ShareSURLInfo 可提供的详情、短链接和提取码
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 上游 ShareSURLInfo 只返回提取码和短链接；没有列表信息时不伪造 fs_ids、访问量或状态。
+      description: P5已实现；输入限制与权限在调用上游前校验。 上游 ShareSURLInfo 只返回提取码和短链接；没有列表信息时不伪造 fs_ids、访问量或状态。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7263,8 +7274,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SHR03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7333,7 +7346,7 @@ paths:
       tags:
       - shares
       summary: share_ids；取消分享 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7343,8 +7356,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SHR04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7468,8 +7483,7 @@ paths:
       tags:
       - share-transfers
       summary: 分享 URL 或整段分享文本、提取码；返回可选择项和短期 inspection_id
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 inspection 绑定账号、owner 和凭据版本，默认600秒，过期410。目录展开与 cursor 分页均复用已验证会话；selection_complete=false
-        时不能将当前页视为全部分享。
+      description: P5已实现；输入限制与权限在调用上游前校验。 inspection 绑定账号、owner 和凭据版本，默认600秒，过期410。目录展开与 cursor 分页均复用已验证会话；selection_complete=false 时不能将当前页视为全部分享。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7480,8 +7494,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: TRF01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7586,8 +7602,7 @@ paths:
       tags:
       - share-transfers
       summary: 分享输入或 inspection_id、target_dir、fs_ids、collect、download_after；返回转存 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 省略 fs_ids 表示全部共享根项，由服务分页解析后固定。显式 fs_ids 必须属于 inspection；download_after 在
-        options 中，子任务关系持久化。
+      description: P5已实现；输入限制与权限在调用上游前校验。 省略 fs_ids 表示全部共享根项，由服务分页解析后固定。显式 fs_ids 必须属于 inspection；download_after 在 options 中，子任务关系持久化。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7599,8 +7614,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: TRF02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7730,7 +7747,7 @@ paths:
       tags:
       - offline-tasks
       summary: source_urls、save_path；逐项返回百度 offline_task_id
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 统一返回 202 offline_add job；百度 offline_task_id 位于 JOB04 result.items。单项失败不丢失其他项。
+      description: P5已实现；输入限制与权限在调用上游前校验。 统一返回 202 offline_add job；百度 offline_task_id 位于 JOB04 result.items。单项失败不丢失其他项。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7740,8 +7757,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7865,7 +7884,7 @@ paths:
       tags:
       - offline-tasks
       summary: 百度离线任务列表和结构化进度
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 上游列表不保证全量；仅对实际返回结果建立受限快照，不声称覆盖百度未返回的历史任务。
+      description: P5已实现；输入限制与权限在调用上游前校验。 上游列表不保证全量；仅对实际返回结果建立受限快照，不声称覆盖百度未返回的历史任务。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7875,8 +7894,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7897,6 +7918,10 @@ paths:
                     data: []
                     meta:
                       request_id: req_example
+                      upstream_window:
+                        start: 0
+                        limit: 1000
+                        complete_history: false
                       pagination:
                         next_cursor: null
                         has_more: false
@@ -7949,7 +7974,7 @@ paths:
       tags:
       - offline-tasks
       summary: offline_task_ids；精确批量查询
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 最多100个唯一 ID；101项直接413，不得调用会静默截断的底层方法后返回完整成功；每个输入 ID 必须有成功或失败项。
+      description: P5已实现；输入限制与权限在调用上游前校验。 最多100个唯一 ID；101项直接413，不得调用会静默截断的底层方法后返回完整成功；每个输入 ID 必须有成功或失败项。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7959,8 +7984,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8049,7 +8076,7 @@ paths:
       tags:
       - offline-tasks
       summary: offline_task_ids；取消操作 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8059,8 +8086,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8184,7 +8213,7 @@ paths:
       tags:
       - offline-tasks
       summary: offline_task_ids；删除操作 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8194,8 +8223,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8319,7 +8350,7 @@ paths:
       tags:
       - offline-tasks
       summary: 清空百度离线任务，返回处理总数或 operation job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 显式清空全部项，不接受 ID 列表或空列表表达清空；返回 job。
+      description: P5已实现；输入限制与权限在调用上游前校验。 显式清空全部项，不接受 ID 列表或空列表表达清空；返回 job。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8329,8 +8360,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8438,7 +8471,7 @@ paths:
       tags:
       - offline-tasks
       summary: 单项查询，复用 QueryTask
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8448,8 +8481,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: OFF07
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8527,7 +8562,7 @@ paths:
       tags:
       - recycle
       summary: page；回收站列表
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 上游每页100项，PageMeta.page_size固定100；剩余时间保留upstream_left_time原值，不猜测单位。
+      description: P5已实现；输入限制与权限在调用上游前校验。 上游每页100项，PageMeta.page_size固定100；剩余时间保留upstream_left_time原值，不猜测单位。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8537,8 +8572,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: REC01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8609,7 +8646,7 @@ paths:
       tags:
       - recycle
       summary: fs_ids；恢复 job，保存实际成功 ID 列表
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8619,8 +8656,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: REC02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8744,7 +8783,7 @@ paths:
       tags:
       - recycle
       summary: fs_ids；永久删除 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P5已实现；输入限制与权限在调用上游前校验。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8754,8 +8793,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: REC03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8879,7 +8920,7 @@ paths:
       tags:
       - recycle
       summary: 清空回收站 job，返回成功数量
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 显式清空全部项，不接受 ID 列表或空列表表达清空；返回 job。
+      description: P5已实现；输入限制与权限在调用上游前校验。 显式清空全部项，不接受 ID 列表或空列表表达清空；返回 job。
       x-phase: P5
       x-authorization:
         scopes:
@@ -8889,8 +8930,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: REC04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -9893,8 +9936,7 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                          Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -9997,8 +10039,7 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                            Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10211,8 +10252,7 @@ paths:
                       - name: user_agent
                         type: string
                         unit: null
-                        default_value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                          Chrome/63.0.3239.132 Safari/537.36
+                        default_value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         minimum: null
                         maximum: null
                         enum_values: []
@@ -10451,8 +10491,7 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                          Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10573,8 +10612,7 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                            Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10662,8 +10700,7 @@ paths:
       tags:
       - configuration
       summary: 从固定服务配置或旧 CLI 配置重新加载；支持 dry_run 和版本比较
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由 configuration.client
-        表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
+      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由 configuration.client 表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
       x-phase: P6
       x-authorization:
         scopes:
@@ -10705,8 +10742,7 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                            Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10829,8 +10865,7 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
-                          Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -11947,8 +11982,7 @@ components:
       name: Idempotency-Key
       in: header
       required: false
-      description: 可选但建议所有资源创建和写操作使用。按 principal、account、方法和路由模板隔离；摘要包含路径参数、语义查询和规范化 body。multipart 包含文件内容摘要。至少保留 24h；同 key
-        不同输入 409；活动 job 绑定保留到终态。 重放保持首次逻辑结果、HTTP状态和资源版本；request_id及X-Request-ID为本次HTTP请求生成，不复用旧跟踪ID。
+      description: 可选但建议所有资源创建和写操作使用。按 principal、account、方法和路由模板隔离；摘要包含路径参数、语义查询和规范化 body。multipart 包含文件内容摘要。至少保留 24h；同 key 不同输入 409；活动 job 绑定保留到终态。 重放保持首次逻辑结果、HTTP状态和资源版本；request_id及X-Request-ID为本次HTTP请求生成，不复用旧跟踪ID。
       schema:
         type: string
         minLength: 1
@@ -13321,7 +13355,14 @@ components:
             uniqueItems: true
             items:
               type: string
-              enum: [bduss, ptoken, stoken, sboxtkn, baiduid, cookies, access_token]
+              enum:
+              - bduss
+              - ptoken
+              - stoken
+              - sboxtkn
+              - baiduid
+              - cookies
+              - access_token
       required:
       - id
       - implementation
@@ -14545,6 +14586,23 @@ components:
             $ref: '#/components/schemas/WorkerStatus'
           minItems: 0
           maxItems: 256
+        input:
+          type: string
+          maxLength: 4096
+        fs_id:
+          anyOf:
+          - $ref: '#/components/schemas/BaiduID'
+          - type: 'null'
+        offline_task_id:
+          anyOf:
+          - $ref: '#/components/schemas/BaiduID'
+          - type: 'null'
+        remote_effect:
+          type: string
+          enum:
+          - confirmed
+          - none
+          - unknown
       required:
       - item_id
       - index
@@ -14559,6 +14617,7 @@ components:
       - checkpoint
       - workers
       additionalProperties: false
+      description: 写业务项目额外返回input、fs_id、offline_task_id、remote_effect；JOB03和item.completed提供完整逐项结果，其他任务保持原字段。
     MutationOptions:
       type: object
       properties:
@@ -15844,7 +15903,7 @@ components:
           - type: 'null'
         expire_type:
           type: integer
-          minimum: 0
+          minimum: -2147483648
           maximum: 2147483647
         expires_at:
           anyOf:
@@ -16436,8 +16495,7 @@ components:
           default: '0'
         user_agent:
           $ref: '#/components/schemas/HeaderText'
-          default: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132
-            Safari/537.36
+          default: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
         pcs_ua:
           $ref: '#/components/schemas/HeaderText'
           default: ''
@@ -17556,6 +17614,33 @@ components:
       - data
       - meta
       additionalProperties: false
+    OfflineCursorMeta:
+      type: object
+      properties:
+        request_id:
+          $ref: '#/components/schemas/OpaqueID'
+        pagination:
+          $ref: '#/components/schemas/CursorInfo'
+        upstream_window:
+          type: object
+          properties:
+            start:
+              const: 0
+            limit:
+              const: 1000
+            complete_history:
+              const: false
+          required:
+          - start
+          - limit
+          - complete_history
+          additionalProperties: false
+      required:
+      - request_id
+      - pagination
+      - upstream_window
+      additionalProperties: false
+      description: 本服务分页覆盖主项目start=0/limit=1000实际收到的快照；不能解释为全部历史离线任务。
     OfflineTasksResponse:
       type: object
       properties:
@@ -17566,7 +17651,7 @@ components:
           minItems: 0
           maxItems: 1000
         meta:
-          $ref: '#/components/schemas/CursorMeta'
+          $ref: '#/components/schemas/OfflineCursorMeta'
       required:
       - data
       - meta

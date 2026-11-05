@@ -2,16 +2,20 @@
 
 本记录在阶段收尾写入实际执行结果，开发过程中不将测试定义等同于通过。
 
-| 操作 | 实现与验收入口 |
-| --- | --- |
-| UPL01 | 文件/目录/空文件、三策略、握手/校验/重试：TestP4DirectoryHierarchyEmptyFilesAndOptions、TestP4HandshakesResumeExpiryAndChecksums |
-| UPL02 | 并发multipart、独立分配、磁盘失败：TestP4MultipartReferencesAndContentHTTP、TestP4StagingDiskFullNeverPublishesReadyFile |
-| UPL03、UPL04 | 元数据、引用保护、删除：TestP4MultipartReferencesAndContentHTTP |
-| DWN01 | 层级、并行Range、空目录、mtime/权限、test：TestP4DirectoryHierarchyEmptyFilesAndOptions |
-| DWN02 | 按输入直链及错误：TestP4MultipartReferencesAndContentHTTP |
-| DWN03、DWN04 | 206/416、多Range、HEAD：TestP4MultipartReferencesAndContentHTTP；慢流/断连/重定向沿用P2受控连接测试 |
-| DWN05（独立扩展） | 账号/路径/操作绑定及原权限复核：TestP4MultipartReferencesAndContentHTTP |
-| JOB07、JOB08 | 真实排空暂停、恢复、B/C隔离、源变化拒绝：TestP4PauseResumeIsolationAndChangedSource |
+| 操作 | 实现状态 / 受控验收 | 本轮真实百度状态 |
+| --- | --- | --- |
+| UPL01 | implemented；TestP4DirectoryHierarchyEmptyFilesAndOptions、TestP4HandshakesResumeExpiryAndChecksums，目录/空文件/策略/握手/恢复 | 通过；目录/空文件、skip/overwrite/rsync、真实快速检查后上传；未声称秒传命中 |
+| UPL02 | implemented；TestP4MultipartReferencesAndContentHTTP、TestP4StagingDiskFullNeverPublishesReadyFile | 接收后真实上传通过；并发/磁盘注入为受控证据 |
+| UPL03 | implemented；TestP4MultipartReferencesAndContentHTTP，元数据/引用保护 | 通过 |
+| UPL04 | implemented；同上，删除/引用409/清理 | 通过 |
+| DWN01 | implemented；TestP4DirectoryHierarchyEmptyFilesAndOptions，层级/并行/mtime/权限/test | pcs/locate/stream、目录和SHA核验通过 |
+| DWN02 | implemented；TestP4MultipartReferencesAndContentHTTP，逐项直链与错误 | direct通过；其他链接类型为受控证据 |
+| DWN03 | implemented；TestP4MultipartReferencesAndContentHTTP、TestP4ContentSlowStreamDisconnectReleasesUpstream | GET/206/416通过；慢流/断连/逐跳重定向为受控证据 |
+| DWN04 | implemented；同上，HEAD任何状态无body | HEAD通过 |
+| DWN05（独立扩展） | implemented；TestP4MultipartReferencesAndContentHTTP，账号/路径/操作/原权限复核 | 票据创建和兑换通过 |
+| JOB07 | implemented；TestP4PauseResumeIsolationAndChangedSource，真实排空后paused、B/C隔离 | 受控上游通过；本轮未向真实百度注入暂停 |
+| JOB08 | implemented；上述暂停测试及TestP4HandshakesResumeExpiryAndChecksums，两种握手重启、源变化拒绝 | 本轮为受控证据；P2真实恢复报告保留原范围 |
+
 
 P2四个HTTP SIGKILL窗口、取消隔离与P3账号/事件/结果语义继续回归。离线证据、真实百度证据、构建和目标机运行分别记录。
 

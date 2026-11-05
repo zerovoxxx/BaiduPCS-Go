@@ -16,6 +16,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/operation"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/ports"
 )
 
@@ -60,6 +61,22 @@ func New(ctx context.Context, repo ports.TransferRepository, accounts ports.Acco
 	return s, nil
 }
 func permission(p auth.Principal, r transfer.Record) error {
+	if write.Operation(r.Request.Kind) != "" {
+		if !p.Has("write") || !p.AllowsAccount(r.Request.AccountID) || (r.Owner != p.ID && !p.Has("admin")) {
+			return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问写任务")
+		}
+		if r.Request.Kind == "share_transfer" {
+			var plan write.Plan
+			_ = json.Unmarshal([]byte(r.Request.WritePlan), &plan)
+			if !p.Has("transfer") {
+				return fault.New(fault.Forbidden, "FORBIDDEN", "缺少转存权限")
+			}
+			if plan.Options.Download && (plan.Options.Destination == nil || !p.Has("local.write") || !p.AllowsRoot(plan.Options.Destination.RootID)) {
+				return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问下载子任务目标")
+			}
+		}
+		return nil
+	}
 	if r.Request.Kind == "file_scan" {
 		if !p.Has("read") || !p.AllowsAccount(r.Request.AccountID) || (r.Owner != p.ID && !p.Has("admin")) {
 			return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问扫描任务")
@@ -118,7 +135,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if err := permission(p, r); err != nil {
 		return r, err
 	}
-	if req.Kind != "file_scan" && req.Batch == "" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
+	if write.Operation(req.Kind) == "" && req.Kind != "file_scan" && req.Batch == "" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
 		return r, fault.New(fault.Invalid, "INVALID_REQUEST", "单文件传输输入无效")
 	}
 	if key != "" {
@@ -143,10 +160,13 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if req.Kind == "file_scan" {
 		op = "FIL05/" + req.AccountID
 	}
+	if write.Operation(req.Kind) != "" {
+		op = write.Operation(req.Kind) + "/" + req.AccountID
+	}
 	if req.RetryOf != "" {
 		op = "JOB09/" + req.RetryOf
 	}
-	r.Admission = operation.New(p.ID, op, key, req)
+	r.Admission = operation.New(p.ID, op, key, submissionInput(req))
 	if replay, err := s.repo.ReplayControl(ctx, r.Admission); err != nil {
 		return r, err
 	} else if replay != nil {
@@ -155,7 +175,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	// Replay before resolving defaults: later configuration changes must not alter
 	// an accepted task's snapshot or turn its replay into an unsupported request.
 	if old, err := s.repo.Transfer(ctx, r.ID); err == nil {
-		if old.Request != req || old.Owner != p.ID {
+		if !sameSubmission(old.Request, req) || old.Owner != p.ID {
 			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
 		}
 		return initialReceipt(old), nil
@@ -180,7 +200,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	} else if err = resolveOptions(&r); err != nil {
 		return r, err
 	}
-	if planner, ok := s.engine.(ports.TransferPlanner); ok && (req.Kind == "upload" || req.Kind == "download") {
+	if planner, ok := s.engine.(ports.TransferPlanner); ok && (req.Kind == "upload" || req.Kind == "download" || write.Operation(req.Kind) != "") {
 		r.Plan, err = planner.Plan(ctx, r, a.Credentials)
 		if err != nil {
 			return r, err
@@ -201,7 +221,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	}
 	// Submissions and controls serialize admission, not network execution.
 	if old, err := s.repo.Transfer(ctx, r.ID); err == nil {
-		if old.Request != req || old.Owner != p.ID {
+		if !sameSubmission(old.Request, req) || old.Owner != p.ID {
 			return r, fault.New(fault.Conflict, "IDEMPOTENCY_KEY_REUSED", "幂等Key已用于不同请求")
 		}
 		return initialReceipt(old), nil
@@ -350,12 +370,17 @@ func (s *Service) schedule(r transfer.Record) {
 		var aErr error
 		if err == nil {
 			c, credentialErr := s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision)
+			if r.Request.Reconcile {
+				a, err := s.accounts.Account(ctx, r.Request.AccountID)
+				credentialErr = err
+				c = a.Credentials
+			}
 			aErr = credentialErr
 			if aErr == nil {
 				aErr = s.engine.Execute(ctx, r, c, func(cp json.RawMessage) error {
 					flush, done := context.WithTimeout(context.Background(), 5*time.Second)
 					defer done()
-					if _, err := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); err != nil {
+					if _, err := s.accounts.CredentialVersion(flush, r.Request.AccountID, c.Revision); err != nil {
 						return err
 					}
 					return s.repo.SaveTransferCheckpoint(flush, r.ID, cp)
@@ -368,7 +393,7 @@ func (s *Service) schedule(r transfer.Record) {
 		state, code := "succeeded", ""
 		if err != nil {
 			code = fault.As(err).Code
-			if _, credentialErr := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); credentialErr != nil && fault.As(credentialErr).Code == "CREDENTIAL_REVOKED" {
+			if _, credentialErr := s.accounts.CredentialVersion(flush, r.Request.AccountID, r.CredentialRevision); credentialErr != nil && fault.As(credentialErr).Code == "CREDENTIAL_REVOKED" && !r.Request.Reconcile {
 				code = "CREDENTIAL_REVOKED"
 			}
 			current, readErr := s.repo.Transfer(flush, r.ID)
@@ -461,7 +486,7 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 	}
 	state := ""
 	if resume {
-		if r.Request.Kind == "file_scan" {
+		if r.Request.Kind == "file_scan" || write.Operation(r.Request.Kind) != "" {
 			return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "扫描中断后可取消，再重试创建新任务")
 		}
 		if _, active := s.running[id]; active {
@@ -613,4 +638,84 @@ func (s *Service) Pause(ctx context.Context, p auth.Principal, id string, input 
 	}
 	s.notify()
 	return result, nil
+}
+
+func (s *Service) Reconcile(ctx context.Context, p auth.Principal, id string, dry bool, input Control) (transfer.Record, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	r, err := s.Get(ctx, p, id)
+	if err != nil {
+		return r, err
+	}
+	m := operation.New(p.ID, "JOB10/"+id, input.Key, dry)
+	if old, err := s.repo.ReplayControl(ctx, m); err != nil {
+		return r, err
+	} else if old != nil {
+		return *old, nil
+	}
+	if r.State != "interrupted" {
+		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "只核验中断任务")
+	}
+	if _, active := s.running[id]; active {
+		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "原执行器仍在排空")
+	}
+	if s.closing {
+		return r, fault.New(fault.Unavailable, "SERVICE_DRAINING", "服务正在关闭")
+	}
+	a, err := s.accounts.Account(ctx, r.Request.AccountID)
+	if err != nil {
+		return r, err
+	}
+	if dry {
+		auditor, ok := s.engine.(ports.TransferAuditor)
+		if !ok {
+			return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "此任务没有只读核验器")
+		}
+		if err = auditor.Audit(ctx, r, a.Credentials); err != nil {
+			return r, err
+		}
+		return s.repo.ControlTransfer(ctx, id, []string{r.State}, "", m)
+	}
+	n, err := s.repo.ActiveTransferCount(ctx)
+	if err != nil {
+		return r, err
+	}
+	if n >= 18 {
+		return r, queueFull()
+	}
+	result, err := s.repo.ReconcileTransfer(ctx, id, write.Operation(r.Request.Kind) != "", m)
+	if err == nil {
+		s.notify()
+	}
+	return result, err
+}
+
+func submissionInput(r transfer.Request) any {
+	if r.SemanticInput != "" {
+		return struct{ Kind, AccountID, Input, RetryOf, RetryScope string }{r.Kind, r.AccountID, r.SemanticInput, r.RetryOf, r.RetryScope}
+	}
+	return r
+}
+func sameSubmission(a, b transfer.Request) bool {
+	if a.SemanticInput != "" || b.SemanticInput != "" {
+		return a.SemanticInput == b.SemanticInput && a.Kind == b.Kind && a.AccountID == b.AccountID && a.RetryOf == b.RetryOf && a.RetryScope == b.RetryScope
+	}
+	return a == b
+}
+
+// Replay a validated write request before refreshing an expiring share inspection.
+func (s *Service) ReplaySubmission(ctx context.Context, p auth.Principal, kind, id, key, canonical string) (*transfer.Record, error) {
+	if key == "" {
+		return nil, nil
+	}
+	req := transfer.Request{Kind: kind, AccountID: id, Public: true, SemanticInput: canonical}
+	op := write.Operation(kind) + "/" + id
+	r, err := s.repo.ReplayControl(ctx, operation.New(p.ID, op, key, submissionInput(req)))
+	if err != nil || r == nil {
+		return r, err
+	}
+	if err = permission(p, *r); err != nil {
+		return nil, err
+	}
+	return r, nil
 }

@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-05T09:48:13.148202+00:00",
+  "contract_version": "0.5.0-p5",
+  "sqlite_schema": 6,
+  "implementation": {
+    "implemented": 74,
+    "partial": 0,
+    "planned": 31
+  },
+  "p5_operations": {
+    "FIL07": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "FIL08": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "FIL09": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "FIL10": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "FIL11": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "JOB10": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF05": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "OFF07": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "REC01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "REC02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "REC03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "REC04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "SHR01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "SHR02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "SHR03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "SHR04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "TRF01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded"
+    },
+    "TRF02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "upstream_rejected_own_account_sample"
+    }
+  },
+  "contract": {
+    "status": "passed",
+    "actual_http_responses": 151,
+    "covered_implemented_operations": 74,
+    "operations": 105,
+    "paths": 89,
+    "schemas": 191,
+    "source_inventory_entries": 622,
+    "schema_boundary_cases": 67,
+    "behavior_specifications": 25,
+    "specifications_with_executed_test_links": 10
+  },
+  "race": {
+    "status": "passed",
+    "full_scope": "./internal/domain/... ./internal/application/... ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap . ./baidupcs",
+    "successful_packages": [
+      "github.com/qjfoidnh/BaiduPCS-Go",
+      "github.com/qjfoidnh/BaiduPCS-Go/baidupcs",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/bootstrap",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/httpapi",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/legacyconfig",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/localfs",
+      "github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/persistence"
+    ],
+    "initial_failure": "one historic capability-count expectation (51/54) required update to 74/31; full bootstrap race then passed",
+    "final_affected_p5_scope": "all TestP5 in bootstrap and baidu passed with race after UK>0 identity guard and reconciled download-child selection; other production packages unchanged"
+  },
+  "cli_offline": {
+    "status": "passed",
+    "packages": 14
+  },
+  "build": {
+    "status": "passed",
+    "cgo_enabled": false,
+    "targets": 13,
+    "evidence": "http-api-p5-build-verification.json",
+    "runtime_scope": "linux/amd64 only"
+  },
+  "p4_evidence": "http-api-p4-verification.md",
+  "upstream_evidence": "http-api-p5-upstream-verification.json",
+  "unchanged_baseline_exclusions": "P0 legacy downloader compile failure, fixed developer paths and external-network examples; no unfiltered go test ./... claim",
+  "credential_handling": "ignored 0600 .env retained; no credentials in artifacts or commits"
+}

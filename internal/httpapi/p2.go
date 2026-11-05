@@ -180,7 +180,7 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 			if !job.Terminal() {
 				return fault.New(fault.Conflict, "JOB_NOT_FINISHED", "任务尚未完成")
 			}
-			a.success(w, r, publicResult(job))
+			a.success(w, r, publicResult(job, RequestID(ctx)))
 			return nil
 		}
 		a.success(w, r, publicJob(job, RequestID(ctx)))

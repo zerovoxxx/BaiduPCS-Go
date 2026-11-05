@@ -26,6 +26,7 @@ import (
 	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
+	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
@@ -44,6 +45,7 @@ type Dependencies struct {
 	Artifacts     *appartifacts.Service
 	Staging       *appstaging.Service
 	Content       *appcontent.Service
+	Writes        *appwrites.Service
 	Local         *applocal.Service
 	Operations    []system.Operation
 	Contract      []byte
@@ -71,6 +73,9 @@ func principal(ctx context.Context) auth.Principal {
 }
 
 func Implemented(id string) bool {
+	if p5Operation(id) {
+		return true
+	}
 	switch id {
 	case "UPL01", "UPL02", "UPL03", "UPL04", "DWN01", "DWN02", "DWN03", "DWN04", "DWN05", "JOB07", "JOB08", "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
 		return true
@@ -404,6 +409,9 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 			Configured bool      `json:"effective_root_configured"`
 		}{publicClient(defaults), runtime.GOOS + "/" + runtime.GOARCH, origin, template, defaults.SaveDir != nil})
 		return nil
+	}
+	if p5Operation(id) {
+		return a.serveP5(id, w, r)
 	}
 	if id == "DWN02" || id == "DWN03" || id == "DWN04" || id == "DWN05" {
 		return a.serveContent(id, w, r)

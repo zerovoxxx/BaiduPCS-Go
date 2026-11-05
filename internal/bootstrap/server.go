@@ -16,6 +16,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -35,9 +36,12 @@ import (
 	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
+	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/httpapi"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/identity"
@@ -269,10 +273,21 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	transferEngine := baidu.NewSingleFileEngine(runtime.Clients, roots)
 	transferEngine.SetRepository(runtime.store)
 	transferEngine.SetStaging(stageFiles)
-	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
+	writeEngine := appwrites.NewEngine(runtime.Clients, runtime.Clients, runtime.Clients, runtime.Clients, runtime.Clients, runtime.store)
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{writes: writeEngine, transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
 	if err != nil {
 		return nil, err
 	}
+	writeEngine.OnDownload(func(ctx context.Context, parent transfer.Record, paths []string) (string, error) {
+		var plan write.Plan
+		_ = json.Unmarshal(parent.Plan, &plan)
+		var options write.Options
+		_ = json.Unmarshal(parent.EffectiveOptions, &options)
+		batch, _ := json.Marshal(transfer.Batch{Paths: paths, Directory: options.Destination.Directory})
+		principal := auth.Principal{ID: parent.Owner, Scopes: []string{"transfer", "local.write"}, Accounts: []string{parent.Request.AccountID}, Roots: []string{options.Destination.RootID}}
+		child, err := runtime.Transfers.Submit(ctx, principal, transfer.Request{Kind: "download", AccountID: parent.Request.AccountID, RootID: options.Destination.RootID, RelativePath: path.Join(options.Destination.Directory, path.Base(paths[0])), RemotePath: paths[0], Batch: string(batch), Options: string(options.DownloadOptions), Public: true, ParentJobID: parent.ID}, "parent-"+parent.ID)
+		return child.ID, err
+	})
 	accountService.OnRevoke(func(ctx context.Context, id string) error {
 		before := ^uint64(0)
 		a, err := runtime.store.Account(ctx, id)
@@ -291,7 +306,12 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	configureP2Capabilities(operations)
 	configureP3Capabilities(operations)
 	configureP4Capabilities(operations)
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: appfiles.New(runtime.store, runtime.store, runtime.Clients, queries), Queries: queries, Local: applocal.New(roots), Content: appcontent.New(runtime.store, runtime.store, runtime.Clients, runtime.store), Staging: appstaging.New(stageFiles), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	configureP5Capabilities(operations)
+	fileService := appfiles.New(runtime.store, runtime.store, runtime.Clients, queries)
+	contentService := appcontent.New(runtime.store, runtime.store, runtime.Clients, runtime.store)
+	writeService := appwrites.New(runtime.store, runtime.store, runtime.store, runtime.Clients, runtime.Clients, runtime.Clients, queries)
+	writeService.Selectors(fileService)
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: fileService, Queries: queries, Local: applocal.New(roots), Writes: writeService, Content: contentService, Staging: appstaging.New(stageFiles), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
 		if err := runtime.Transfers.Ready(ctx); err != nil {
 			return err
 		}
@@ -322,7 +342,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 				return
 			case <-ticker.C:
 				clean, done := context.WithTimeout(lifetime, 10*time.Second)
-				err := errors.Join(artifactFiles.Cleanup(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean))
+				err := errors.Join(artifactFiles.Cleanup(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean), runtime.store.CleanupBusiness(clean))
 				done()
 				if err != nil && lifetime.Err() == nil && options.Logger != nil {
 					options.Logger.Error("service retention cleanup failed")

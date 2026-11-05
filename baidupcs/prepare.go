@@ -281,6 +281,9 @@ func (pcs *BaiduPCS) PrepareMkdir(pcspath string) (dataReadCloser io.ReadCloser,
 }
 
 func (pcs *BaiduPCS) prepareCpMvOp(op string, cpmvJSON ...*CpMvJSON) (dataReadCloser io.ReadCloser, pcsError pcserror.Error) {
+	return pcs.prepareCpMvPolicy(op, "fail", cpmvJSON...)
+}
+func (pcs *BaiduPCS) prepareCpMvPolicy(op, policy string, cpmvJSON ...*CpMvJSON) (dataReadCloser io.ReadCloser, pcsError pcserror.Error) {
 	pcs.lazyInit()
 	var method string
 	switch op {
@@ -300,7 +303,11 @@ func (pcs *BaiduPCS) prepareCpMvOp(op string, cpmvJSON ...*CpMvJSON) (dataReadCl
 		panic(err)
 	}
 
-	pcsURL := pcs.generatePCSURL("file", method)
+	params := map[string]string{}
+	if policy == "overwrite" {
+		params["ondup"] = "overwrite"
+	}
+	pcsURL := pcs.generatePCSURL("file", method, params)
 	baiduPCSVerbose.Infof("%s URL: %s\n", op, pcsURL)
 
 	// 表单上传

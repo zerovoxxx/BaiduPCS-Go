@@ -232,7 +232,7 @@ func (s *Store) SaveTransferCheckpoint(ctx context.Context, id string, checkpoin
 }
 
 func (s *Store) InterruptTransfers(ctx context.Context) error {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='cancelling'")
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state='cancelling'")
 	if err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 			return err
 		}
 	}
-	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state IN ('running','pausing')")
+	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state IN ('running','pausing')")
 	if err != nil {
 		return err
 	}
@@ -318,9 +318,9 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
 	}
 	r.FailureCode = code
-	if r.ScanResult != nil && state == "succeeded" && r.ScanResult.Counts.Failed > 0 {
+	if r.ScanResult != nil && state == "succeeded" && (r.ScanResult.Counts.Failed > 0 || r.ScanResult.Counts.Cancelled > 0) {
 		state = "failed"
-		if r.ScanResult.Counts.Succeeded > 0 {
+		if r.ScanResult.Counts.Succeeded > 0 || r.ScanResult.Counts.Skipped > 0 {
 			state = "partially_succeeded"
 		}
 	}
@@ -347,7 +347,7 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 		if err = s.releaseStaging(ctx, tx, id); err != nil {
 			return err
 		}
-		if r.Request.Kind != "file_scan" && len(r.Plan) == 0 {
+		if r.Request.Kind != "file_scan" && len(r.Plan) == 0 && r.Request.WritePlan == "" {
 			if err = s.appendEvent(ctx, tx, id, "item.completed", nil); err != nil {
 				return err
 			}
@@ -360,7 +360,7 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 }
 
 func (s *Store) QueuedTransfers(ctx context.Context, limit int) ([]transfer.Record, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func (s *Store) ReplayControl(ctx context.Context, m operation.Mutation) (*trans
 
 func (s *Store) ActiveTransferCount(ctx context.Context) (int, error) {
 	var n int
-	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download','file_scan') AND state IN ('queued','running','cancelling')").Scan(&n)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state IN ('queued','running','cancelling')").Scan(&n)
 	return n, err
 }
 
@@ -427,6 +427,18 @@ func (s *Store) ControlTransfer(ctx context.Context, id string, from []string, t
 		}
 		if !allowed {
 			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务状态已改变")
+		}
+		if to == "cancelled" && r.Request.WritePlan != "" {
+			if err = s.cancelWriteItems(ctx, tx, &r); err != nil {
+				return r, err
+			}
+			data, err := s.sealValue("job/"+id, r)
+			if err != nil {
+				return r, err
+			}
+			if _, err = tx.ExecContext(ctx, "UPDATE jobs SET record=? WHERE job_id=?", data, id); err != nil {
+				return r, err
+			}
 		}
 		now := time.Now().UTC().Format(time.RFC3339Nano)
 		var finished any
@@ -455,6 +467,43 @@ func (s *Store) ControlTransfer(ctx context.Context, id string, from []string, t
 		if err != nil {
 			return r, err
 		}
+	}
+	if err = s.saveReplay(ctx, tx, m, id, r); err != nil {
+		return r, err
+	}
+	return r, tx.Commit()
+}
+
+func (s *Store) ReconcileTransfer(ctx context.Context, id string, writeJob bool, m operation.Mutation) (transfer.Record, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return transfer.Record{}, err
+	}
+	defer tx.Rollback()
+	var replay transfer.Record
+	if found, e := s.replayRequest(ctx, tx, m, &replay); found || e != nil {
+		return replay, e
+	}
+	r, err := s.transfer(ctx, tx, id)
+	if err != nil {
+		return r, err
+	}
+	if r.State != "interrupted" {
+		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务状态已变化")
+	}
+	r.Request.Reconcile = writeJob
+	if err = s.saveRecord(ctx, tx, r); err != nil {
+		return r, err
+	}
+	if _, err = tx.ExecContext(ctx, "UPDATE jobs SET state='queued',finished_at=NULL WHERE job_id=?", id); err != nil {
+		return r, err
+	}
+	if err = s.appendEvent(ctx, tx, id, "job.state_changed", nil); err != nil {
+		return r, err
+	}
+	r, err = s.transfer(ctx, tx, id)
+	if err != nil {
+		return r, err
 	}
 	if err = s.saveReplay(ctx, tx, m, id, r); err != nil {
 		return r, err

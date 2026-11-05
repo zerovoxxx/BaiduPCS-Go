@@ -6,6 +6,7 @@ import (
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 )
 
 type UploadOptions struct {
@@ -44,6 +45,50 @@ func optionError() error {
 	return fault.New(fault.Unsupported, "UNSUPPORTED_OPTION", "所选历史选项尚无有效实现；请查询capabilities")
 }
 func resolveOptions(r *transfer.Record) error {
+	if write.Operation(r.Request.Kind) != "" {
+		var p write.Plan
+		if json.Unmarshal([]byte(r.Request.WritePlan), &p) != nil {
+			return fault.New(fault.Invalid, "INVALID_REQUEST", "写计划无效")
+		}
+		o := p.Options
+		effective := map[string]any{}
+		switch r.Request.Kind {
+		case "file_copy", "file_move", "file_rename":
+			if o.Policy == "" {
+				o.Policy = "fail"
+			}
+			if o.Policy != "fail" && o.Policy != "skip" && o.Policy != "overwrite" {
+				return fault.New(fault.Invalid, "INVALID_REQUEST", "冲突策略无效")
+			}
+			effective["conflict_policy"] = o.Policy
+		case "file_delete":
+			effective["ignore_missing"] = o.IgnoreMissing
+		case "share_transfer":
+			if o.Randomize {
+				return optionError()
+			}
+			effective = map[string]any{"collect": o.Collect, "randomize_name": false, "download_after": o.Download}
+			if o.Download {
+				if o.Destination == nil {
+					return fault.New(fault.Invalid, "INVALID_REQUEST", "下载子任务缺少目标")
+				}
+				child := *r
+				child.Request.Kind = "download"
+				child.Request.Options = string(o.DownloadOptions)
+				child.Request.Public = true
+				if err := resolveOptions(&child); err != nil {
+					return err
+				}
+				effective["download_destination"] = o.Destination
+				effective["download_options"] = child.EffectiveOptions
+			} else if o.Destination != nil || len(o.DownloadOptions) > 0 {
+				return fault.New(fault.Invalid, "INVALID_REQUEST", "未请求下载，不能提供下载选项")
+			}
+		}
+		r.EffectiveOptions, _ = json.Marshal(effective)
+		return nil
+	}
+
 	if !r.Request.Public {
 		if r.Request.Kind == "upload" {
 			r.EffectiveOptions = json.RawMessage(`{"file_concurrency":1,"parallel_per_file":1,"max_retries":0,"policy":"skip","skip_rapid_check":true,"check_filename":false,"no_split_file":false,"max_rate_bytes_per_second":"0"}`)
