@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/tools"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/baidu"
@@ -15,12 +17,17 @@ import (
 )
 
 type p3Engine struct {
+	tools    *tools.Service
 	transfer *baidu.SingleFileEngine
 	scanner  *files.Scanner
 	writes   *writes.Engine
 }
 
 func (e p3Engine) Prepare(ctx context.Context, r transfer.Record, c account.Credentials) (string, error) {
+	if tool.Operation(r.Request.Kind) != "" {
+		return e.tools.Prepare(ctx, r, c)
+	}
+
 	if write.Operation(r.Request.Kind) != "" {
 		return e.writes.Prepare(ctx, r, c)
 	}
@@ -33,6 +40,10 @@ func (e p3Engine) Prepare(ctx context.Context, r transfer.Record, c account.Cred
 	return e.transfer.Prepare(ctx, r, c)
 }
 func (e p3Engine) Execute(ctx context.Context, r transfer.Record, c account.Credentials, save func(json.RawMessage) error) error {
+	if tool.Operation(r.Request.Kind) != "" {
+		return e.tools.Execute(ctx, r, c, save)
+	}
+
 	if write.Operation(r.Request.Kind) != "" {
 		return e.writes.Execute(ctx, r, c, save)
 	}
@@ -42,6 +53,10 @@ func (e p3Engine) Execute(ctx context.Context, r transfer.Record, c account.Cred
 	return e.transfer.Execute(ctx, r, c, save)
 }
 func (e p3Engine) CleanupTransfer(ctx context.Context, r transfer.Record) error {
+	if tool.Operation(r.Request.Kind) != "" {
+		return e.tools.CleanupTransfer(ctx, r)
+	}
+
 	if r.Request.Kind == "file_scan" || write.Operation(r.Request.Kind) != "" {
 		return nil
 	}
@@ -93,6 +108,10 @@ func configureP3Capabilities(operations []system.Operation) {
 }
 
 func (e p3Engine) Plan(ctx context.Context, r transfer.Record, c account.Credentials) (json.RawMessage, error) {
+	if tool.Operation(r.Request.Kind) != "" {
+		return nil, nil
+	}
+
 	if write.Operation(r.Request.Kind) != "" {
 		return e.writes.Plan(ctx, r, c)
 	}
@@ -100,6 +119,10 @@ func (e p3Engine) Plan(ctx context.Context, r transfer.Record, c account.Credent
 }
 
 func (e p3Engine) Audit(ctx context.Context, r transfer.Record, c account.Credentials) error {
+	if tool.Operation(r.Request.Kind) != "" {
+		return fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "此工具任务需重新提交")
+	}
+
 	if write.Operation(r.Request.Kind) != "" {
 		return e.writes.Audit(ctx, r, c)
 	}

@@ -3,6 +3,7 @@ package localfs
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +17,10 @@ type Root struct {
 	Read  bool   `json:"read"`
 	Write bool   `json:"write"`
 }
-type Registry struct{ roots map[string]Root }
+type Registry struct {
+	roots    map[string]Root
+	toolCopy func(io.Writer, io.Reader) (int64, error)
+}
 
 func New(roots []Root, protectedPaths ...string) (*Registry, error) {
 	registry := &Registry{roots: map[string]Root{}}

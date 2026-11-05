@@ -1,6 +1,7 @@
 package transfer
 
 import "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+import "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 
 type Worker struct {
 	ID, State           string
@@ -22,6 +23,8 @@ type Item struct {
 }
 type Counts struct{ Total, Processed, Succeeded, Failed, Skipped, Cancelled uint64 }
 type ScanResult struct {
+	IntegrityItems            []tool.ResultItem `json:",omitempty"`
+	MissingFields             []string          `json:",omitempty"`
 	MutationItems             []Item
 	ChildJobIDs               []string
 	Affected                  uint64

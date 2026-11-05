@@ -7,18 +7,21 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/ports"
 	"io"
+	"sync"
 	"time"
 )
 
 type Service struct {
-	accounts ports.AccountRepository
-	cfg      ports.ConfigurationRepository
-	gateway  ports.ContentGateway
-	tickets  ports.DownloadTickets
+	accounts   ports.AccountRepository
+	cfg        ports.ConfigurationRepository
+	gateway    ports.ContentGateway
+	tickets    ports.DownloadTickets
+	mu         sync.Mutex
+	references map[string]linkClaim
 }
 
 func New(a ports.AccountRepository, c ports.ConfigurationRepository, g ports.ContentGateway, tickets ...ports.DownloadTickets) *Service {
-	s := &Service{accounts: a, cfg: c, gateway: g}
+	s := &Service{accounts: a, cfg: c, gateway: g, references: map[string]linkClaim{}}
 	if len(tickets) > 0 {
 		s.tickets = tickets[0]
 	}
@@ -52,7 +55,28 @@ func (s *Service) Links(ctx context.Context, p auth.Principal, id, remote, sourc
 		return nil, err
 	}
 	defer g.Close()
-	return g.Links(remote, source, index)
+	links, err := g.Links(remote, source, index)
+	if err != nil {
+		return nil, err
+	}
+	a, err := s.accounts.Account(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for k, v := range s.references {
+		if time.Now().After(v.expires) {
+			delete(s.references, k)
+		}
+	}
+	if len(s.references)+len(links) > 256 {
+		return nil, fault.New(fault.RateLimited, "LINK_REFERENCE_LIMIT", "摘要链接引用过多")
+	}
+	for _, v := range links {
+		s.references[v.Reference] = linkClaim{owner: p.ID, account: id, address: v.URL, agent: v.UserAgent, revision: a.Credentials.Revision, expires: time.Now().Add(10 * time.Minute)}
+	}
+	return links, nil
 }
 
 type lease struct {
@@ -124,4 +148,33 @@ func (s *Service) Redeem(ctx context.Context, value, id, remote string) (string,
 		return "", fault.New(fault.Gone, "DOWNLOAD_TICKET_REVOKED", "票据账号版本已变化")
 	}
 	return c.Owner, nil
+}
+
+type linkClaim struct {
+	owner, account, address, agent string
+	revision                       uint64
+	expires                        time.Time
+}
+
+func (s *Service) Reference(ctx context.Context, p auth.Principal, id, ref string) (content.Link, error) {
+	s.mu.Lock()
+	c, ok := s.references[ref]
+	s.mu.Unlock()
+	if !ok {
+		return content.Link{}, fault.New(fault.NotFound, "RESOURCE_NOT_FOUND", "链接引用不存在")
+	}
+	if c.owner != p.ID || c.account != id || !p.Has("read") || !p.AllowsAccount(id) {
+		return content.Link{}, fault.New(fault.Forbidden, "FORBIDDEN", "链接引用不属于调用方和账号")
+	}
+	if time.Now().After(c.expires) {
+		return content.Link{}, fault.New(fault.Gone, "RESOURCE_EXPIRED", "链接引用已过期")
+	}
+	a, e := s.accounts.Account(ctx, id)
+	if e != nil {
+		return content.Link{}, e
+	}
+	if a.Credentials.Revision != c.revision {
+		return content.Link{}, fault.New(fault.Gone, "RESOURCE_EXPIRED", "链接凭据版本已变化")
+	}
+	return content.Link{URL: c.address, UserAgent: c.agent}, nil
 }

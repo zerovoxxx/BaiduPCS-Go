@@ -6,7 +6,6 @@ import (
 	"path"
 	"strconv"
 
-	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
@@ -14,7 +13,7 @@ import (
 )
 
 func (a *API) submitTransfer(id string, w http.ResponseWriter, r *http.Request) error {
-	req := transfer.Request{AccountID: r.PathValue("account_id"), Public: true}
+	req := transfer.Request{AccountID: r.PathValue("account_id"), Public: true, SemanticInput: contextSemantic(r)}
 	b := transfer.Batch{}
 	if id == "UPL01" {
 		var in uploadInput
@@ -24,7 +23,7 @@ func (a *API) submitTransfer(id string, w http.ResponseWriter, r *http.Request) 
 		if len(in.Sources) == 0 || len(in.Sources) > 100 || in.Target == nil {
 			return invalid("缺少上传源或target_dir")
 		}
-		remote, err := appfiles.Resolve(*in.Target, file.Scope{BasePath: deref(in.BasePath, ""), ContextID: deref(in.ContextID, "")})
+		remote, err := a.resolve(r, *in.Target, file.Scope{BasePath: deref(in.BasePath, ""), ContextID: deref(in.ContextID, "")})
 		if err != nil {
 			return err
 		}
@@ -77,7 +76,7 @@ func (a *API) submitTransfer(id string, w http.ResponseWriter, r *http.Request) 
 				b.Paths = append(b.Paths, paths...)
 				continue
 			}
-			remote, err := appfiles.Resolve(v, file.Scope{BasePath: deref(in.BasePath, ""), ContextID: deref(in.ContextID, "")})
+			remote, err := a.resolve(r, v, file.Scope{BasePath: deref(in.BasePath, ""), ContextID: deref(in.ContextID, "")})
 			if err != nil {
 				return err
 			}

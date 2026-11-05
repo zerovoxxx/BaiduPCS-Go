@@ -170,3 +170,8 @@ planned/partial/implemented贯穿Capability、Catalog、路由和checker；suppo
 P4证据补充：[39阶段真实百度报告](../../docs/http-api-p4-upstream-verification.json)，[P4逐项验收](../../docs/http-api-p4-verification.md)。YAML版本0.4.0-p4，P4阶段源码映射620条；51 implemented包括十个核心P4操作及独立DWN05扩展。
 
 P5当前证据：[指南](../../docs/http-api-p5-guide.md)、[逐项验收](../../docs/http-api-p5-verification.md)、[脱敏真实范围](../../docs/http-api-p5-upstream-verification.json)。源码映射622条，74 implemented。新增OfflineCursorMeta描述1000项真实上游窗口，JobItem可选字段input/fs_id/offline_task_id/remote_effect供写项目的完整结果与事件使用。schema v6保留旧任务和检查点；升级前停机一致备份密钥、DB、artifacts和staging。未知写结果只读reconcile，证据不足不重放。
+
+
+## P6当前实现
+
+契约0.6.0-p6、schema v7，104 implemented/0 partial/1 planned。P6的30项与原CLI映射见[P6指南](../../docs/http-api-p6-guide.md)、[P6验收](../../docs/http-api-p6-verification.md)。实际响应增加BAIDUPCS_P6_TOOL_RESPONSES、BAIDUPCS_P6_LOGIN_RESPONSES、BAIDUPCS_P6_MANAGEMENT_RESPONSES、BAIDUPCS_P6_RECEPTION_RESPONSES四组；CI与check_contract.py覆盖全部开放操作，包括INT06合法输入的明确503语义。SYS07在P7收尾。源码矩阵仍为622条，映射/实现/受控/真实验证分别统计。

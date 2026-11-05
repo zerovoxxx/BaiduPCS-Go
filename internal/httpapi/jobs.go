@@ -9,6 +9,7 @@ import (
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 )
@@ -81,7 +82,7 @@ func counters(r transfer.Record) map[string]string {
 		return publicCounts(transfer.Counts{Total: uint64(len(plan.Units))})
 	}
 
-	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
+	if r.Request.ToolPlan != "" || r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
 		if r.ScanResult != nil {
 			return publicCounts(r.ScanResult.Counts)
 		}
@@ -201,6 +202,36 @@ func publicJob(r transfer.Record, requestID string) any {
 	if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0" || r.State == "failed" && r.FailureCode != "") {
 		result["available_actions"] = []string{"retry"}
 	}
+	if r.Request.ToolPlan != "" {
+		var plan tool.Plan
+		_ = json.Unmarshal([]byte(r.Request.ToolPlan), &plan)
+		paths, locals := []string{}, []any{}
+		for _, u := range plan.Units {
+			if u.Path != "" {
+				paths = append(paths, u.Path)
+			}
+			if u.Local.RootID != "" {
+				locals = append(locals, u.Local)
+			}
+		}
+		result["resolved_paths"] = paths
+		result["local_files"] = locals
+		result["destination"] = plan.Destination
+		if r.Request.AccountID == "" {
+			result["account_id"] = nil
+			result["credential_revision"] = nil
+		}
+		actions := []string{}
+		if !r.Terminal() && r.State != "cancelling" && cp.Phase != "committing" && cp.Phase != "done" {
+			actions = append(actions, "cancel")
+		}
+		if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0") && r.Request.Kind != "local_encryption" && r.Request.Kind != "local_decryption" {
+			actions = append(actions, "retry")
+		}
+		result["available_actions"] = actions
+		return result
+	}
+
 	if r.Request.WritePlan != "" {
 		var plan write.Plan
 		raw := r.Plan
@@ -308,7 +339,7 @@ func jobFault(code string) *fault.Error {
 	switch code {
 	case "REMOTE_RESULT_UNKNOWN", "LOCAL_RESULT_UNKNOWN", "TARGET_EXISTS", "CHECKSUM_MISMATCH", "CREDENTIAL_REVISION_MISMATCH":
 		kind = fault.Conflict
-	case "CHECKPOINT_SOURCE_CHANGED", "CHECKPOINT_BINDING_MISMATCH", "CHECKPOINT_VERSION_UNSUPPORTED", "CHECKSUM_UNAVAILABLE", "UNSUPPORTED_OPTION", "BAIDU_CREDENTIAL_EXPIRED", "HTTPS_REQUIRED", "CREDENTIAL_REVOKED", "BAIDU_COOKIE_REQUIRED", "BAIDU_CREDENTIAL_MISSING":
+	case "TEMPORARY_SECRET_LOST", "CHECKPOINT_SOURCE_CHANGED", "CHECKPOINT_BINDING_MISMATCH", "CHECKPOINT_VERSION_UNSUPPORTED", "CHECKSUM_UNAVAILABLE", "UNSUPPORTED_OPTION", "BAIDU_CREDENTIAL_EXPIRED", "HTTPS_REQUIRED", "CREDENTIAL_REVOKED", "BAIDU_COOKIE_REQUIRED", "BAIDU_CREDENTIAL_MISSING":
 		kind = fault.Unsupported
 	case "LOCAL_PATH_FORBIDDEN":
 		kind = fault.Forbidden
@@ -328,6 +359,39 @@ func publicResult(r transfer.Record, requestIDs ...string) any {
 	if len(requestIDs) > 0 {
 		requestID = requestIDs[0]
 	}
+	if r.Request.ToolPlan != "" {
+		v := r.ScanResult
+		if v == nil {
+			v = &transfer.ScanResult{}
+		}
+		var result any
+		switch r.Request.Kind {
+		case "export":
+			var p tool.Plan
+			_ = json.Unmarshal([]byte(r.Request.ToolPlan), &p)
+			var o struct {
+				Format string `json:"format"`
+			}
+			_ = json.Unmarshal(p.Options, &o)
+			result = map[string]any{"summary": publicCounts(v.Counts), "format": o.Format, "artifact_ids": append([]string{}, v.ArtifactIDs...), "complete": v.Complete, "missing_fields": append([]string{}, v.MissingFields...)}
+		case "local_checksum", "file_verification":
+			items := []any{}
+			for _, i := range v.IntegrityItems {
+				items = append(items, map[string]any{"input": i.Input, "checksum": i.Checksum, "matches": i.Matches, "problem": publicProblem(i.Failure, requestID)})
+			}
+			result = map[string]any{"summary": publicCounts(v.Counts), "items": items, "complete": v.Complete, "artifact_ids": append([]string{}, v.ArtifactIDs...)}
+		case "checksum_fix":
+			items := []any{}
+			for _, i := range v.MutationItems {
+				items = append(items, map[string]any{"input": i.Input, "state": i.State, "path": nullable(i.Path), "fs_id": nil, "offline_task_id": nil, "problem": publicProblem(i.Failure, requestID), "remote_effect": i.RemoteEffect})
+			}
+			result = map[string]any{"summary": publicCounts(v.Counts), "items": items, "complete": v.Complete, "affected_count": uintString(v.Affected)}
+		default:
+			result = map[string]any{"summary": publicCounts(v.Counts), "complete": v.Complete, "artifact_ids": []string{}, "transferred_bytes": "0", "written_bytes": strconv.FormatInt(v.Written, 10), "child_job_ids": []string{}}
+		}
+		return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": result}
+	}
+
 	if r.Request.WritePlan != "" {
 		v := r.ScanResult
 		if v == nil {

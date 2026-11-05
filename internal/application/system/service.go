@@ -45,13 +45,18 @@ func (s *Service) Capabilities() []system.Capability {
 			implementation = "partial"
 			reason = "P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证，请遵守supported_option_values和limits"
 		}
+
+		if op.Implemented && (len(op.RequiredCredentials) > 0 || len(op.CredentialAlternatives) > 0) {
+			availability = "unverified"
+			reason = "本地实现已验收，上游能力须按账号、环境和时间验证"
+		}
 		if op.ID == "INT06" {
 			availability = "upstream_unavailable"
 			reason = "旧式秒传上游能力不可用"
 		}
-		if op.Implemented && (len(op.RequiredCredentials) > 0 || len(op.CredentialAlternatives) > 0) {
-			availability = "unverified"
-			reason = "本地实现已验收，上游能力须按账号、环境和时间验证"
+		if op.Availability != "" {
+			availability = op.Availability
+			reason = op.Reason
 		}
 		options := []string{}
 		options = append(options, op.SupportedOptions...)

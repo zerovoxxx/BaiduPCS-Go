@@ -10,9 +10,18 @@ import (
 	"io"
 )
 
-type Service struct{ files ports.StagingFiles }
+type Service struct {
+	files      ports.StagingFiles
+	receptions ports.ReceptionFiles
+}
 
-func New(files ports.StagingFiles) *Service { return &Service{files} }
+func New(files ports.StagingFiles, receptions ...ports.ReceptionFiles) *Service {
+	s := &Service{files: files}
+	if len(receptions) > 0 {
+		s.receptions = receptions[0]
+	}
+	return s
+}
 func (s *Service) Get(ctx context.Context, p auth.Principal, id string) (staging.File, error) {
 	f, err := s.files.Metadata(ctx, id)
 	if err != nil {

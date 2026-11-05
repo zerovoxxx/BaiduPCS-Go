@@ -283,3 +283,23 @@ func (s *Service) Capabilities(ctx context.Context, p auth.Principal, id string,
 	}
 	return caps, nil
 }
+
+// VerifyLogin checks an uncommitted exchange using an isolated temporary binding.
+// Login completion never installs unverified client-supplied credentials.
+func (s *Service) VerifyLogin(ctx context.Context, c account.Credentials) (account.Identity, error) {
+	c = c.Clone()
+	c.AccountID = "http_login_validation"
+	c.Revision = 1
+	cfg, e := s.cfg.Read(ctx)
+	if e != nil {
+		return account.Identity{}, e
+	}
+	identity, e := s.validator.ValidateAccount(ctx, cfg, c)
+	if e != nil {
+		return identity, e
+	}
+	if !identity.Verified || identity.UK == nil || *identity.UK == "0" || *identity.UK == "" {
+		return identity, fault.New(fault.Unsupported, "LOGIN_IDENTITY_UNVERIFIED", "登录凭据未取得有效百度身份")
+	}
+	return identity, nil
+}

@@ -42,7 +42,7 @@ func TestP5MigrationFromV5PreservesCheckpointReceiptAndStage(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Retain the encrypted v5 stage and reference while removing only v6 tables.
-	if _, err := s.db.Exec(`INSERT INTO staging_references VALUES('stage_v5','job_p2');DROP TABLE business_mutations;DROP TABLE share_inspections;PRAGMA user_version=5;`); err != nil {
+	if _, err := s.db.Exec(`INSERT INTO staging_references VALUES('stage_v5','job_p2');DROP TABLE resources;DROP TABLE business_mutations;DROP TABLE share_inspections;PRAGMA user_version=5;`); err != nil {
 		t.Fatal(err)
 	}
 	s.Close()
@@ -52,7 +52,7 @@ func TestP5MigrationFromV5PreservesCheckpointReceiptAndStage(t *testing.T) {
 	}
 	defer next.Close()
 	var v, refs int
-	if err = next.db.QueryRow("PRAGMA user_version").Scan(&v); err != nil || v != 6 {
+	if err = next.db.QueryRow("PRAGMA user_version").Scan(&v); err != nil || v != 7 {
 		t.Fatal(v, err)
 	}
 	got, err := next.Transfer(ctx, r.ID)

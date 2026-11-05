@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
@@ -45,7 +44,7 @@ func canonicalIDs(ids []string, max int) error {
 	}
 	return nil
 }
-func resolveWritePaths(paths []string, base, context string) ([]string, error) {
+func (a *API) resolveWritePaths(r *http.Request, paths []string, base, context string) ([]string, error) {
 	if len(paths) == 0 || len(paths) > 100 {
 		return nil, invalid("路径数量必须为1至100")
 	}
@@ -55,7 +54,7 @@ func resolveWritePaths(paths []string, base, context string) ([]string, error) {
 		if p == "" {
 			return nil, invalid("网盘路径不能为空")
 		}
-		v, err := appfiles.Resolve(p, file.Scope{BasePath: base, ContextID: context})
+		v, err := a.resolve(r, p, file.Scope{BasePath: base, ContextID: context})
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +138,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 		if err := decodeRequest(w, r, &in); err != nil {
 			return err
 		}
-		paths, err := resolveWritePaths(in.Paths, in.Base, in.Context)
+		paths, err := a.resolveWritePaths(r, in.Paths, in.Base, in.Context)
 		if err != nil {
 			return err
 		}
@@ -358,7 +357,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 		if err := decodeRequest(w, r, &in); err != nil {
 			return err
 		}
-		paths, err := resolveWritePaths(in.Paths, in.Base, in.Context)
+		paths, err := a.resolveWritePaths(r, in.Paths, in.Base, in.Context)
 		if err != nil {
 			return err
 		}
@@ -392,7 +391,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 			a.respond(w, r, 202, publicJob(*replay, requestID))
 			return nil
 		}
-		units, err := a.deps.Writes.Selection(ctx, p, account, in.Selector.Kind, in.Selector.Values, file.Scope{BasePath: in.Base, ContextID: in.Context})
+		units, err := a.deps.Writes.Selection(ctx, p, account, in.Selector.Kind, in.Selector.Values, a.frozenScope(r, file.Scope{BasePath: in.Base, ContextID: in.Context}))
 		if err != nil {
 			return err
 		}
@@ -424,7 +423,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 			if v.From == nil || v.To == nil {
 				return invalid("缺少from/to")
 			}
-			paths, err := resolveWritePaths([]string{*v.From, *v.To}, in.Base, in.Context)
+			paths, err := a.resolveWritePaths(r, []string{*v.From, *v.To}, in.Base, in.Context)
 			if err != nil {
 				return err
 			}
@@ -452,7 +451,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 		if in.Path == nil || in.Target == nil {
 			return invalid("缺少path/target_path")
 		}
-		paths, err := resolveWritePaths([]string{*in.Path, *in.Target}, in.Base, in.Context)
+		paths, err := a.resolveWritePaths(r, []string{*in.Path, *in.Target}, in.Base, in.Context)
 		if err != nil {
 			return err
 		}
@@ -489,7 +488,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 		if len(in.URLs) == 0 || len(in.URLs) > 100 || in.Path == nil || in.Path != nil && *in.Path == "" {
 			return invalid("离线创建输入无效")
 		}
-		target, err := appfiles.Resolve(*in.Path, file.Scope{BasePath: in.Base, ContextID: in.Context})
+		target, err := a.resolve(r, *in.Path, file.Scope{BasePath: in.Base, ContextID: in.Context})
 		if err != nil {
 			return err
 		}
@@ -578,7 +577,7 @@ func (a *API) serveP5(id string, w http.ResponseWriter, r *http.Request) error {
 		if in.Options.Download && (in.Options.Destination == nil || !configuration.ValidID(in.Options.Destination.RootID) || !configuration.ValidRelative(in.Options.Destination.Directory)) {
 			return invalid("下载子任务目标无效")
 		}
-		target, err := appfiles.Resolve(*in.Target, file.Scope{BasePath: in.Base, ContextID: in.Context})
+		target, err := a.resolve(r, *in.Target, file.Scope{BasePath: in.Base, ContextID: in.Context})
 		if err != nil {
 			return err
 		}

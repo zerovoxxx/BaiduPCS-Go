@@ -4,6 +4,7 @@ package transfer
 
 import (
 	"encoding/json"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/operation"
@@ -20,6 +21,7 @@ type Request struct {
 	ReconcileDry  bool   `json:",omitempty"`
 	Batch         string `json:",omitempty"`
 	ScanPlan      string `json:",omitempty"`
+	ToolPlan      string `json:",omitempty"`
 	ParentJobID   string `json:",omitempty"`
 	RetryOf       string `json:",omitempty"`
 	RetryScope    string `json:",omitempty"`
@@ -54,6 +56,8 @@ func (r Record) Clone() Record {
 		cp.ArtifactIDs = append([]string{}, cp.ArtifactIDs...)
 		cp.ChildJobIDs = append([]string{}, cp.ChildJobIDs...)
 		cp.MutationItems = append([]Item{}, cp.MutationItems...)
+		cp.IntegrityItems = append([]tool.ResultItem{}, cp.IntegrityItems...)
+		cp.MissingFields = append([]string{}, cp.MissingFields...)
 		r.ScanResult = &cp
 	}
 	r.Plan = append(json.RawMessage(nil), r.Plan...)

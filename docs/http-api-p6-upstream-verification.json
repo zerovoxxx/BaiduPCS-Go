@@ -1,0 +1,78 @@
+{
+  "allowed_remote_root": "/BaiduPCS-Go-P2-Verification/",
+  "credential_kind": "cookies",
+  "finished_at": "2026-11-05T13:33:22.576881063Z",
+  "go_version": "go1.23.12",
+  "not_claimed_as_upstream_verified": [
+    "password/captcha/SMS/email/QR login confirmation",
+    "FIL12 account-wide changes",
+    "multiple accounts",
+    "full 128GiB transfers",
+    "disk-full and SIGKILL injection"
+  ],
+  "passed": true,
+  "platform": "linux/amd64",
+  "schema_version": 1,
+  "scope": "P6 existing cookie; new dedicated directory only; login, account-wide delta and CLI config use controlled evidence",
+  "stages": {
+    "CTX01": "passed",
+    "CTX02_CTX03_CTX04": "passed",
+    "EXP01": "succeeded",
+    "INT01": "passed",
+    "INT02": "failed/UPSTREAM_ERROR",
+    "INT04": "succeeded",
+    "INT05": "passed",
+    "SYS06": "passed",
+    "cleanup": "passed",
+    "context_upload_fixture": "passed",
+    "existing_credential_validate": "passed"
+  },
+  "started_at": "2026-11-05T13:33:09.40987428Z",
+  "tls_certificate_verification": true,
+  "passed_means": "The scoped harness, existing-cookie reads and cleanup passed. INT02 was explicitly rejected after strict errno parsing; it is not a successful Baidu repair.",
+  "prior_attempts": [
+    {
+      "started_at": "2026-11-05T13:09:43.140681098Z",
+      "finished_at": "2026-11-05T13:09:57.358903392Z",
+      "outcome": "scoped harness and cleanup passed; INT02 success is superseded because the historical PCS parser ignored XPan errno"
+    },
+    {
+      "started_at": "2026-11-05T13:32:03.535432476Z",
+      "finished_at": "2026-11-05T13:32:28.691306927Z",
+      "outcome": "read-only credential validation timed out at network/protocol boundary; no round directory created; no new login attempted"
+    }
+  ],
+  "strict_repair_parser": "TestP6RapidRepairRequiresExplicitSuccessStatus; both errno and error_code must explicitly acknowledge success, absent status is unknown rather than success",
+  "operation_outcomes": {
+    "CFG06": "controlled_only",
+    "CFG08": "controlled_only",
+    "CFG09": "controlled_only",
+    "CTX01": "succeeded_in_dedicated_cookie_sample",
+    "CTX02": "succeeded_in_dedicated_cookie_sample",
+    "CTX03": "succeeded_in_dedicated_cookie_sample",
+    "CTX04": "succeeded_in_dedicated_cookie_sample",
+    "EXP01": "succeeded_in_dedicated_cookie_sample",
+    "FIL12": "controlled_only",
+    "INT01": "succeeded_in_dedicated_cookie_sample",
+    "INT02": "upstream_rejected_with_strict_status_parser",
+    "INT03": "local_operation_no_baidu_step",
+    "INT04": "succeeded_in_dedicated_cookie_sample",
+    "INT05": "succeeded_in_dedicated_cookie_sample",
+    "INT06": "implemented_permanent_upstream_unavailable_contract",
+    "LOC02": "local_operation_no_baidu_step",
+    "LOC03": "local_operation_no_baidu_step",
+    "LOG01": "controlled_only",
+    "LOG02": "controlled_only",
+    "LOG03": "controlled_only",
+    "LOG04": "controlled_only",
+    "LOG05": "controlled_only",
+    "LOG06": "controlled_only",
+    "SYS05": "controlled_only",
+    "SYS06": "succeeded_in_dedicated_cookie_sample",
+    "UPL05": "local_operation_no_baidu_step",
+    "UPL06": "local_operation_no_baidu_step",
+    "UPL07": "local_operation_no_baidu_step",
+    "UPL08": "local_operation_no_baidu_step",
+    "UPL09": "local_operation_no_baidu_step"
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-05T13:42:36.672640+00:00",
+  "contract_version": "0.6.0-p6",
+  "sqlite_schema": 7,
+  "implementation": {
+    "implemented": 104,
+    "partial": 0,
+    "planned": 1
+  },
+  "p6_operations": {
+    "CFG06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "CFG08": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "CFG09": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "CTX01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "CTX02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "CTX03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "CTX04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "EXP01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "FIL12": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "INT01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "INT02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "upstream_rejected_with_strict_status_parser"
+    },
+    "INT03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "INT04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "INT05": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "INT06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "implemented_permanent_upstream_unavailable_contract"
+    },
+    "LOC02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "LOC03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "LOG01": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "LOG02": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "LOG03": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "LOG04": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "LOG05": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "LOG06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "SYS05": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "controlled_only"
+    },
+    "SYS06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "succeeded_in_dedicated_cookie_sample"
+    },
+    "UPL05": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "UPL06": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "UPL07": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "UPL08": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    },
+    "UPL09": {
+      "implementation": "implemented",
+      "controlled_http": "passed",
+      "upstream": "local_operation_no_baidu_step"
+    }
+  },
+  "contract": {
+    "status": "passed",
+    "operations": 105,
+    "paths": 89,
+    "schemas": 191,
+    "actual_http_responses": 216,
+    "covered_implemented_operations": 104,
+    "source_inventory_entries": 622,
+    "schema_boundary_cases": 67,
+    "behavior_specifications": 25,
+    "specifications_with_executed_test_links": 10
+  },
+  "race": {
+    "status": "passed",
+    "full_scope": "./internal/domain/... ./internal/application/... ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap . ./baidupcs",
+    "final_affected_scope": "TestP6 and migrations in application/login, application/tools, persistence, bootstrap and baidupcs; includes strict repair decoder, context/listing snapshot, account update, process-secret idempotency and cleanup",
+    "initial_failures": "Historic 74/31 capability count required update to104/1; the initial response DTO used an unsupported remote_effect value, corrected to none; checks were rerun. A first full build/vet overlapped source editing and was superseded by the subsequent successful full race."
+  },
+  "cli_offline": {
+    "status": "passed",
+    "packages": 14
+  },
+  "build": {
+    "status": "passed",
+    "targets": 13,
+    "cgo_enabled": false,
+    "evidence": "http-api-p6-build-verification.json",
+    "runtime_scope": "linux/amd64 only"
+  },
+  "upstream_evidence": "http-api-p6-upstream-verification.json",
+  "credential_handling": "Ignored untracked 0600 .env retained; no new scan/SMS/password authorization requested",
+  "not_claimed": "All-account delta; real login interaction; multi-account upstream success; physical power loss; other target machine runtime"
+}

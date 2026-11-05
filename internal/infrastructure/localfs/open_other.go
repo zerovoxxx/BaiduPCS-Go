@@ -70,3 +70,22 @@ func (r *Registry) RemoveFile(ctx context.Context, id, relative string) error {
 	}
 	return err
 }
+
+func (r *Registry) RemoveOpenedFile(ctx context.Context, id, relative string, f *os.File) error {
+	p, e := r.File(ctx, id, relative, true)
+	if e != nil {
+		return e
+	}
+	a, e := os.Lstat(p)
+	if e != nil {
+		return e
+	}
+	b, e := f.Stat()
+	if e != nil {
+		return e
+	}
+	if !os.SameFile(a, b) {
+		return os.ErrInvalid
+	}
+	return os.Remove(p)
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 )
@@ -57,7 +58,7 @@ func (s *Service) Items(ctx context.Context, p auth.Principal, id string) ([]tra
 	if err != nil {
 		return nil, err
 	}
-	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
+	if r.Request.ToolPlan != "" || r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
 		return s.repo.TransferItems(ctx, id, 10001)
 	}
 	// Transfers currently execute one unit. Its public summary is projected from
@@ -69,7 +70,7 @@ func (s *Service) ItemPage(ctx context.Context, p auth.Principal, id, cursor str
 	if err != nil {
 		return query.Page{}, err
 	}
-	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
+	if r.Request.ToolPlan != "" || r.Request.Kind == "file_scan" || len(r.Plan) > 0 || r.Request.WritePlan != "" {
 		return s.repo.TransferItemPage(ctx, id, p.ID, cursor, size)
 	}
 	return q.Page(ctx, []any{"items", p.ID, id, size}, cursor, size, func() ([]json.RawMessage, error) {
@@ -89,6 +90,38 @@ func (s *Service) Retry(ctx context.Context, p auth.Principal, id, scope, key st
 		return r, fault.New(fault.Conflict, "JOB_NOT_FINISHED", "重试需要原任务处于终态")
 	}
 	req := r.Request
+	if req.ToolPlan != "" {
+		if req.Kind == "local_encryption" || req.Kind == "local_decryption" {
+			return r, fault.New(fault.Unsupported, "SECRET_RESUBMISSION_REQUIRED", "加解密重试需要重新提交密钥")
+		}
+		if r.State != "failed" && r.State != "partially_succeeded" && !(scope == "failed_and_cancelled" && r.State == "cancelled") {
+			return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有可重试项")
+		}
+		var plan tool.Plan
+		if err := json.Unmarshal([]byte(req.ToolPlan), &plan); err != nil {
+			return r, err
+		}
+		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
+		if err != nil {
+			return r, err
+		}
+		units := []tool.Unit{}
+		for _, item := range items {
+			if item.Index < uint64(len(plan.Units)) {
+				units = append(units, plan.Units[item.Index])
+			}
+		}
+		if len(units) > 0 {
+			plan.Units = units
+		} else if r.ScanResult != nil && r.ScanResult.Counts.Processed > 0 {
+			return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有符合范围的重试项")
+		}
+		raw, _ := json.Marshal(plan)
+		req.ToolPlan = string(raw)
+		req.RetryOf = id
+		req.RetryScope = scope
+		return s.Submit(ctx, p, req, key)
+	}
 	req.RetryOf = id
 	req.RetryScope = scope
 	if write.Operation(r.Request.Kind) != "" {

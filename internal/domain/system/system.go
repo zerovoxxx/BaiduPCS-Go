@@ -1,6 +1,7 @@
 package system
 
 type Operation struct {
+	Availability, Reason   string
 	ID                     string
 	Method                 string
 	Path                   string

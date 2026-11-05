@@ -11,10 +11,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/operation"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/ports"
@@ -61,6 +63,13 @@ func New(ctx context.Context, repo ports.TransferRepository, accounts ports.Acco
 	return s, nil
 }
 func permission(p auth.Principal, r transfer.Record) error {
+	if tool.Operation(r.Request.Kind) != "" {
+		var plan tool.Plan
+		if err := json.Unmarshal([]byte(r.Request.ToolPlan), &plan); err != nil {
+			return err
+		}
+		return tool.Permission(p, r.Owner, r.Request.AccountID, r.Request.Kind, plan)
+	}
 	if write.Operation(r.Request.Kind) != "" {
 		if !p.Has("write") || !p.AllowsAccount(r.Request.AccountID) || (r.Owner != p.ID && !p.Has("admin")) {
 			return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问写任务")
@@ -135,7 +144,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if err := permission(p, r); err != nil {
 		return r, err
 	}
-	if write.Operation(req.Kind) == "" && req.Kind != "file_scan" && req.Batch == "" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
+	if tool.Operation(req.Kind) == "" && write.Operation(req.Kind) == "" && req.Kind != "file_scan" && req.Batch == "" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
 		return r, fault.New(fault.Invalid, "INVALID_REQUEST", "单文件传输输入无效")
 	}
 	if key != "" {
@@ -163,6 +172,9 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if write.Operation(req.Kind) != "" {
 		op = write.Operation(req.Kind) + "/" + req.AccountID
 	}
+	if tool.Operation(req.Kind) != "" {
+		op = tool.Operation(req.Kind) + "/" + req.AccountID
+	}
 	if req.RetryOf != "" {
 		op = "JOB09/" + req.RetryOf
 	}
@@ -182,16 +194,26 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	} else if fault.As(err).Kind != fault.NotFound {
 		return r, err
 	}
-	a, err := s.accounts.Account(ctx, req.AccountID)
-	if err != nil {
-		return r, err
+	var a account.Entry
+	var err error
+	if req.AccountID != "" {
+		a, err = s.accounts.Account(ctx, req.AccountID)
+		if err != nil {
+			return r, err
+		}
 	}
 	cfg, err := s.configuration.Read(ctx)
 	if err != nil {
 		return r, err
 	}
 	r.Config, r.ConfigRevision, r.CredentialRevision = cfg.Client(), cfg.Revision(), a.Credentials.Revision
-	if req.Kind == "file_scan" {
+	if tool.Operation(req.Kind) != "" {
+		var plan tool.Plan
+		if err = json.Unmarshal([]byte(req.ToolPlan), &plan); err != nil {
+			return r, err
+		}
+		r.EffectiveOptions = plan.Options
+	} else if req.Kind == "file_scan" {
 		var plan struct{ Options json.RawMessage }
 		if err = json.Unmarshal([]byte(req.ScanPlan), &plan); err != nil {
 			return r, err
@@ -369,7 +391,11 @@ func (s *Service) schedule(r transfer.Record) {
 		}
 		var aErr error
 		if err == nil {
-			c, credentialErr := s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision)
+			var c account.Credentials
+			var credentialErr error
+			if r.Request.AccountID != "" {
+				c, credentialErr = s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision)
+			}
 			if r.Request.Reconcile {
 				a, err := s.accounts.Account(ctx, r.Request.AccountID)
 				credentialErr = err
@@ -380,7 +406,7 @@ func (s *Service) schedule(r transfer.Record) {
 				aErr = s.engine.Execute(ctx, r, c, func(cp json.RawMessage) error {
 					flush, done := context.WithTimeout(context.Background(), 5*time.Second)
 					defer done()
-					if _, err := s.accounts.CredentialVersion(flush, r.Request.AccountID, c.Revision); err != nil {
+					if _, err := s.credentialVersion(flush, r.Request.AccountID, c.Revision); err != nil {
 						return err
 					}
 					return s.repo.SaveTransferCheckpoint(flush, r.ID, cp)
@@ -486,7 +512,7 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 	}
 	state := ""
 	if resume {
-		if r.Request.Kind == "file_scan" || write.Operation(r.Request.Kind) != "" {
+		if r.Request.Kind == "file_scan" || write.Operation(r.Request.Kind) != "" || tool.Operation(r.Request.Kind) != "" {
 			return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "扫描中断后可取消，再重试创建新任务")
 		}
 		if _, active := s.running[id]; active {
@@ -647,6 +673,9 @@ func (s *Service) Reconcile(ctx context.Context, p auth.Principal, id string, dr
 	if err != nil {
 		return r, err
 	}
+	if r.Request.ToolPlan != "" {
+		return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "工具任务的未知提交不能重放，请保留任务并人工核对输出")
+	}
 	m := operation.New(p.ID, "JOB10/"+id, input.Key, dry)
 	if old, err := s.repo.ReplayControl(ctx, m); err != nil {
 		return r, err
@@ -718,4 +747,11 @@ func (s *Service) ReplaySubmission(ctx context.Context, p auth.Principal, kind, 
 		return nil, err
 	}
 	return r, nil
+}
+
+func (s *Service) credentialVersion(ctx context.Context, id string, revision uint64) (account.Credentials, error) {
+	if id == "" {
+		return account.Credentials{}, nil
+	}
+	return s.accounts.CredentialVersion(ctx, id, revision)
 }

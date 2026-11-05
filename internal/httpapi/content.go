@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/file"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
@@ -34,7 +33,7 @@ func (a *API) serveContent(id string, w http.ResponseWriter, r *http.Request) er
 		if in.Path == "" {
 			return invalid("缺少path")
 		}
-		remote, err := appfiles.Resolve(in.Path, file.Scope{BasePath: in.BasePath, ContextID: in.ContextID})
+		remote, err := a.resolve(r, in.Path, file.Scope{BasePath: in.BasePath, ContextID: in.ContextID})
 		if err != nil {
 			return err
 		}
@@ -80,7 +79,7 @@ func (a *API) serveContent(id string, w http.ResponseWriter, r *http.Request) er
 			var remote string
 			var err error
 			if in.Selector.Kind == "paths" {
-				remote, err = appfiles.Resolve(v, file.Scope{BasePath: in.BasePath, ContextID: in.ContextID})
+				remote, err = a.resolve(r, v, file.Scope{BasePath: in.BasePath, ContextID: in.ContextID})
 			} else if in.Selector.Kind == "fs_ids" {
 				number, e := strconv.ParseInt(v, 10, 64)
 				if e != nil || number <= 0 {
@@ -122,7 +121,7 @@ func (a *API) serveContent(id string, w http.ResponseWriter, r *http.Request) er
 	if q.Get("path") == "" {
 		return invalid("缺少path")
 	}
-	remote, err := appfiles.Resolve(q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
+	remote, err := a.resolve(r, q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
 	if err != nil {
 		return err
 	}
@@ -206,7 +205,7 @@ func (a *API) authenticateTicket(r *http.Request) (auth.Principal, error) {
 	if err != nil {
 		return auth.Principal{}, err
 	}
-	remote, err := appfiles.Resolve(q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
+	remote, err := a.resolve(r, q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
 	if err != nil {
 		return auth.Principal{}, err
 	}

@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/contexts"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
@@ -22,6 +23,7 @@ import (
 )
 
 type Service struct {
+	contexts *contexts.Service
 	accounts ports.AccountRepository
 	cfg      ports.ConfigurationRepository
 	repo     ports.BusinessRepository
@@ -307,7 +309,8 @@ func (s *Service) Recycle(ctx context.Context, p auth.Principal, id string, page
 	return g.List(page)
 }
 
-func (s *Service) Selectors(f *files.Service) { s.files = f }
+func (s *Service) Contexts(c *contexts.Service) { s.contexts = c }
+func (s *Service) Selectors(f *files.Service)   { s.files = f }
 func (s *Service) Selection(ctx context.Context, p auth.Principal, id, kind string, values []string, scope file.Scope) ([]write.Unit, error) {
 	if !p.Has("write") || !p.AllowsAccount(id) {
 		return nil, fault.New(fault.Forbidden, "FORBIDDEN", "缺少写权限")
@@ -316,6 +319,13 @@ func (s *Service) Selection(ctx context.Context, p auth.Principal, id, kind stri
 	// endpoint or return credential-bearing metadata to the caller.
 	reader := p.Clone()
 	reader.Scopes = append(reader.Scopes, "read")
+	if scope.ContextID != "" {
+		resolved, e := s.contexts.ResolveScope(ctx, p, id, scope)
+		if e != nil {
+			return nil, e
+		}
+		scope = resolved
+	}
 	out := []write.Unit{}
 	for _, v := range values {
 		switch kind {

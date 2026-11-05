@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
 info:
   title: BaiduPCS-Go HTTP API
-  version: 0.5.0-p5
+  version: 0.6.0-p6
   description: P3账号、文件读取、扫描、任务、事件和结果文件契约，2026-11-05。40个操作implemented、3个partial，其余62个planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
 servers:
 - url: http://127.0.0.1:5299
@@ -291,9 +291,9 @@ paths:
                   value:
                     data:
                     - id: INT06
-                      implementation: planned
+                      implementation: implemented
                       availability: upstream_unavailable
-                      enabled: false
+                      enabled: true
                       reason: 旧式秒传未获上游可用验证
                       required_credentials:
                       - bduss
@@ -374,10 +374,13 @@ paths:
   /api/v1/diagnostics/network:
     get:
       operationId: SYS05
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - system
       summary: 内网地址；可选主动检查出口 IP，不回显代理秘密
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -386,7 +389,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SYS05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -459,10 +462,13 @@ paths:
   /api/v1/accounts/{account_id}/diagnostics/pcs-servers:
     get:
       operationId: SYS06
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - system
       summary: PCS 候选节点和有效时间；条件
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -472,7 +478,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SYS06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: false
@@ -1571,9 +1577,9 @@ paths:
                   value:
                     data:
                     - id: INT06
-                      implementation: planned
+                      implementation: implemented
                       availability: upstream_unavailable
-                      enabled: false
+                      enabled: true
                       reason: 旧式秒传未获上游可用验证
                       required_credentials:
                       - bduss
@@ -1654,21 +1660,24 @@ paths:
   /api/v1/account-login-sessions:
     post:
       operationId: LOG01
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: method=password 或 qrcode；创建短期登录会话
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: true
@@ -1759,21 +1768,24 @@ paths:
   /api/v1/account-login-sessions/{session_id}:
     get:
       operationId: LOG02
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: waiting、challenge_required、confirmed、completed、expired、failed
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -1844,21 +1856,24 @@ paths:
       - $ref: '#/components/parameters/session_id'
     delete:
       operationId: LOG06
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: 撤销会话并清理短期秘密
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -1912,21 +1927,24 @@ paths:
   /api/v1/account-login-sessions/{session_id}/qrcode:
     get:
       operationId: LOG03
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: 经本服务授权返回二维码图片；仅 qrcode 会话
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: false
@@ -1984,21 +2002,24 @@ paths:
   /api/v1/account-login-sessions/{session_id}/responses:
     post:
       operationId: LOG04
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: challenge_id 和验证码或短信/邮箱响应；仅支持已实现的 challenge
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: true
@@ -2087,21 +2108,24 @@ paths:
   /api/v1/account-login-sessions/{session_id}/complete:
     post:
       operationId: LOG05
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - login
       summary: 使用服务保存的交换状态建立或更新账号；不让客户端提交临时 BDUSS 代替会话验证
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 返回200，因会话可能创建或更新账号。Location 给出账号地址；重复完成返回同一账号，未确认409，过期410。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 返回200，因会话可能创建或更新账号。Location 给出账号地址；重复完成返回同一账号，未确认409，过期410。
       x-phase: P6
       x-authorization:
         scopes:
         - admin
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: LOG05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -2205,21 +2229,24 @@ paths:
   /api/v1/contexts:
     post:
       operationId: CTX01
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - contexts
       summary: account_id、cwd；创建属于调用方的上下文
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - read
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: CTX01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -2305,21 +2332,24 @@ paths:
   /api/v1/contexts/{context_id}:
     get:
       operationId: CTX02
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - contexts
       summary: 返回所选账号和 cwd，等价于 who、pwd
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - read
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: CTX02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -2387,21 +2417,24 @@ paths:
       - $ref: '#/components/parameters/context_id'
     patch:
       operationId: CTX03
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - contexts
       summary: 切换账号或 cwd；校验目录；include_listing 可附列表；If-Match
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - read
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: CTX03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -2491,21 +2524,24 @@ paths:
                   include_listing: true
     delete:
       operationId: CTX04
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - contexts
       summary: 删除上下文，不影响已提交任务
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
         - read
         conditions:
-        - resource_owner_or_admin
+        - resource_owner
         - body_account_allowlist
         admin_satisfies_scopes: true
       x-capability:
         id: CTX04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -3993,10 +4029,13 @@ paths:
   /api/v1/accounts/{account_id}/file-changes:
     get:
       operationId: FIL12
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - files
       summary: cursor；上游增量结果、has_more、reset_required；条件
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 首次省略 cursor；reset_required=true 时客户端丢弃旧游标并重新扫描，不能继续套用旧结果。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 首次省略 cursor；reset_required=true 时客户端丢弃旧游标并重新扫描，不能继续套用旧结果。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4006,7 +4045,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: FIL12
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: false
@@ -4535,10 +4574,13 @@ paths:
   /api/v1/staging-upload-sessions:
     post:
       operationId: UPL05
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - uploads
       summary: filename、size_bytes、可选 expected checksum；扩展，创建可续传接收会话
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4548,7 +4590,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -4639,10 +4681,13 @@ paths:
   /api/v1/staging-upload-sessions/{session_id}:
     get:
       operationId: UPL06
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - uploads
       summary: 当前 offset、期望大小和过期时间
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4652,7 +4697,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -4724,10 +4769,13 @@ paths:
       - $ref: '#/components/parameters/session_id'
     delete:
       operationId: UPL09
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - uploads
       summary: 清理未完成接收
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4737,7 +4785,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL09
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -4791,10 +4839,13 @@ paths:
   /api/v1/staging-upload-sessions/{session_id}/content:
     patch:
       operationId: UPL07
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - uploads
       summary: 二进制数据和 Upload-Offset；原子前移 offset
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先 GET 核对。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先 GET 核对。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4804,7 +4855,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL07
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -4890,10 +4941,13 @@ paths:
   /api/v1/staging-upload-sessions/{session_id}/complete:
     post:
       operationId: UPL08
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - uploads
       summary: 校验接收长度和摘要，原子生成 staged_file_id
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复 complete 返回相同 staged_file_id，Location 指向UPL03。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复 complete 返回相同 staged_file_id，Location 指向UPL03。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4903,7 +4957,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL08
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -9038,10 +9092,13 @@ paths:
   /api/v1/accounts/{account_id}/file-checksums/inspect:
     post:
       operationId: INT01
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: paths；获取远端长度、MD5、slice MD5、CRC32 等信息；条件
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9051,7 +9108,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: false
@@ -9138,10 +9195,13 @@ paths:
   /api/v1/accounts/{account_id}/file-checksums/fix:
     post:
       operationId: INT02
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: paths；MD5 修复 job；条件
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9151,7 +9211,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: true
@@ -9274,10 +9334,13 @@ paths:
   /api/v1/local/checksums:
     post:
       operationId: INT03
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: root_id、paths；计算本地长度、MD5、256 KiB slice MD5、CRC32 的 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9287,7 +9350,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -9415,10 +9478,13 @@ paths:
   /api/v1/accounts/{account_id}/file-verifications:
     post:
       operationId: INT04
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: 网盘路径和本地文件引用；校验 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9430,7 +9496,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -9560,10 +9626,13 @@ paths:
   /api/v1/accounts/{account_id}/file-checksums/from-link:
     post:
       operationId: INT05
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: 服务已签发的 link_ref 及可选比较摘要；条件，禁止任意 URL 代理
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9574,7 +9643,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: false
@@ -9656,10 +9725,13 @@ paths:
   /api/v1/accounts/{account_id}/legacy/rapid-uploads:
     post:
       operationId: INT06
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - integrity
       summary: 旧式摘要秒传契约；默认报告上游能力不可用，不接受为成功任务
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 合法请求默认503 UPSTREAM_CAPABILITY_UNAVAILABLE，不能返回202或伪造成功。未实现路由501，参数格式错误400，凭据失效422。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 合法请求默认503 UPSTREAM_CAPABILITY_UNAVAILABLE，不能返回202或伪造成功。未实现路由501，参数格式错误400，凭据失效422。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9669,7 +9741,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: INT06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: true
       x-idempotency:
         supported: true
@@ -9751,10 +9823,13 @@ paths:
   /api/v1/accounts/{account_id}/exports:
     post:
       operationId: EXP01
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - exports
       summary: paths、recursive、root_path、format、max_retries；导出 job 和结果文件
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 options.root_path是输出内容的虚拟改写根；省略或空字符串保留原路径，允许相对值，不访问该路径。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 options.root_path是输出内容的虚拟改写根；省略或空字符串保留原路径，允许相对值，不访问该路径。
       x-phase: P6
       x-authorization:
         scopes:
@@ -9765,7 +9840,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: EXP01
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -10697,10 +10772,13 @@ paths:
   /api/v1/configuration/reload:
     post:
       operationId: CFG06
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - configuration
       summary: 从固定服务配置或旧 CLI 配置重新加载；支持 dry_run 和版本比较
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由 configuration.client 表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由 configuration.client 表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
       x-phase: P6
       x-authorization:
         scopes:
@@ -10709,7 +10787,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: CFG06
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -10927,10 +11005,13 @@ paths:
   /api/v1/configuration/cli-defaults:
     get:
       operationId: CFG08
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - configuration
       summary: CLI 默认账号及各账号默认工作目录的兼容映射
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -10939,7 +11020,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: CFG08
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -11003,10 +11084,13 @@ paths:
                 $ref: '#/components/schemas/Problem'
     patch:
       operationId: CFG09
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - configuration
       summary: 更新 CLI 默认值；不修改 HTTP context 和运行 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -11015,7 +11099,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: CFG09
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -11178,10 +11262,13 @@ paths:
   /api/v1/local/encryptions:
     post:
       operationId: LOC02
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - local
       summary: 本地文件引用、算法、秘密密钥、gzip 选项；兼容加密 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -11192,7 +11279,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: LOC02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true
@@ -11327,10 +11414,13 @@ paths:
   /api/v1/local/decryptions:
     post:
       operationId: LOC03
+      x-offline-evidence:
+      - internal/bootstrap/p6_test.go
+      - internal/infrastructure/localfs/p6_test.go
       tags:
       - local
       summary: 同上；兼容解密 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。
       x-phase: P6
       x-authorization:
         scopes:
@@ -11341,7 +11431,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: LOC03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: true

@@ -1,4 +1,4 @@
-name: HTTP API P5 contract transfers and write businesses
+name: HTTP API P6 contract and lifecycle
 on: [push, pull_request]
 permissions:
   contents: read
@@ -27,6 +27,10 @@ jobs:
           BAIDUPCS_P5_SHARE_RESPONSES: /tmp/baidupcs-p5-shares.json
           BAIDUPCS_P5_BUSINESS_RESPONSES: /tmp/baidupcs-p5-business.json
           BAIDUPCS_P5_RECONCILE_RESPONSES: /tmp/baidupcs-p5-reconcile.json
+          BAIDUPCS_P6_TOOL_RESPONSES: /tmp/baidupcs-p6-tools.json
+          BAIDUPCS_P6_LOGIN_RESPONSES: /tmp/baidupcs-p6-login.json
+          BAIDUPCS_P6_MANAGEMENT_RESPONSES: /tmp/baidupcs-p6-management.json
+          BAIDUPCS_P6_RECEPTION_RESPONSES: /tmp/baidupcs-p6-receptions.json
         run: >-
           go test -p=1 -race -count=1 -timeout=600s
           ./internal/domain/... ./internal/application/...
@@ -40,6 +44,6 @@ jobs:
           ./requester ./requester/rio ./requester/rio/speeds
           ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
       - name: Contract, embedded document and actual HTTP responses
-        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json
+        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json /tmp/baidupcs-p6-tools.json /tmp/baidupcs-p6-login.json /tmp/baidupcs-p6-management.json /tmp/baidupcs-p6-receptions.json
       - name: Preserve CLI build targets and isolate SQLite
         run: python api/openapi/tools/check_builds.py

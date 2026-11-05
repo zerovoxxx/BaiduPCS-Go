@@ -165,3 +165,8 @@ func (s *Store) releaseStaging(ctx context.Context, tx *sql.Tx, job string) erro
 	_, err := tx.ExecContext(ctx, "UPDATE staging_files SET expires_at=max(expires_at,?) WHERE file_id IN (SELECT file_id FROM staging_references WHERE job_id=?)", time.Now().Add(24*time.Hour).Unix(), job)
 	return err
 }
+
+func (s *Store) TouchStage(ctx context.Context, id string, expires int64) error {
+	_, e := s.db.ExecContext(ctx, "UPDATE staging_files SET expires_at=max(expires_at,?) WHERE file_id=? AND state='writing'", expires, id)
+	return e
+}

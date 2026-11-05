@@ -28,7 +28,7 @@ func Resolve(p string, scope file.Scope) (string, error) {
 		return "", fault.New(fault.Invalid, "AMBIGUOUS_PATH_SCOPE", "base_path与context_id不能同时提供")
 	}
 	if scope.ContextID != "" {
-		return "", fault.New(fault.Unsupported, "CONTEXT_NOT_AVAILABLE", "context服务在P6开放，请使用base_path")
+		return "", fault.New(fault.Invalid, "UNRESOLVED_CONTEXT", "路径解析前必须固定上下文")
 	}
 	if scope.BasePath != "" && (!path.IsAbs(scope.BasePath) || path.Clean(scope.BasePath) != scope.BasePath || !validPath(scope.BasePath)) {
 		return "", fault.New(fault.Invalid, "INVALID_REQUEST", "base_path必须是规范绝对路径")

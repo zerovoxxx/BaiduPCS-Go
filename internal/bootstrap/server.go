@@ -30,11 +30,14 @@ import (
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
 	appcontent "github.com/qjfoidnh/BaiduPCS-Go/internal/application/content"
+	appcontexts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/contexts"
 	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
+	applogin "github.com/qjfoidnh/BaiduPCS-Go/internal/application/login"
 	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
+	apptools "github.com/qjfoidnh/BaiduPCS-Go/internal/application/tools"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
@@ -64,6 +67,7 @@ type Options struct {
 	ClientTransport func(configuration.Client) *http.Transport
 }
 type startup struct {
+	Client             json.RawMessage   `json:"client,omitempty"`
 	LegacyAccountsFile string            `json:"legacy_accounts_file,omitempty"`
 	Listen             string            `json:"listen"`
 	DataDir            string            `json:"data_dir"`
@@ -95,6 +99,7 @@ type Runtime struct {
 	Handler                  http.Handler
 	Clients                  *baidu.ClientFactory
 	Transfers                *apptransfers.Service
+	logins                   *applogin.Service
 	DataDir                  string
 	CredentialFile           string
 	store                    *persistence.Store
@@ -236,7 +241,12 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	if err = runtime.store.CleanupReplays(ctx); err != nil {
 		return nil, err
 	}
+	sources, err := legacyconfig.NewSources(options.ConfigFile, cfg.LegacyAccountsFile)
+	if err != nil {
+		return nil, err
+	}
 	cfgService := appconfig.New(runtime.store, defaults, roots, network.Environment{})
+	cfgService.Sources(sources)
 	operations, baseline, err := contract.Catalog()
 	if err != nil {
 		return nil, err
@@ -255,26 +265,37 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	}
 	queries := appquery.New(runtime.store)
 	accountService := appaccounts.NewValidated(runtime.store, runtime.store, runtime.Clients)
+	legacyBindings := map[int]string{}
 	if cfg.LegacyAccountsFile != "" {
 		legacy, err := legacyconfig.ReadAccounts(cfg.LegacyAccountsFile)
 		if err != nil {
 			return nil, err
 		}
-		for _, v := range legacy {
-			if _, err = accountService.ImportCanonical(ctx, auth.Principal{ID: "legacy-import", Scopes: []string{"admin"}, Accounts: []string{"*"}}, v.Label, v.Username, v.Key, v.Credentials); err != nil {
-				return nil, err
+		for index, v := range legacy {
+			a, importErr := accountService.ImportCanonical(ctx, auth.Principal{ID: "legacy-import", Scopes: []string{"admin"}, Accounts: []string{"*"}}, v.Label, v.Username, v.Key, v.Credentials)
+			if importErr != nil {
+				return nil, importErr
 			}
+			legacyBindings[index] = a.ID
 		}
 	}
 	stageFiles, err := localfs.NewStaging(directory, runtime.store)
 	if err != nil {
 		return nil, err
 	}
+	receptions := localfs.NewReceptions(stageFiles, runtime.store)
 	transferEngine := baidu.NewSingleFileEngine(runtime.Clients, roots)
 	transferEngine.SetRepository(runtime.store)
 	transferEngine.SetStaging(stageFiles)
 	writeEngine := appwrites.NewEngine(runtime.Clients, runtime.Clients, runtime.Clients, runtime.Clients, runtime.Clients, runtime.store)
-	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{writes: writeEngine, transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
+	toolService := apptools.New(runtime.Clients, runtime.Clients, runtime.store, runtime.store, runtime.store, roots, artifactFiles, runtime.store)
+	if err = runtime.store.InterruptTransfers(ctx); err != nil {
+		return nil, err
+	}
+	if err = toolService.Recover(ctx); err != nil {
+		return nil, err
+	}
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{tools: toolService, writes: writeEngine, transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
 	if err != nil {
 		return nil, err
 	}
@@ -307,11 +328,15 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	configureP3Capabilities(operations)
 	configureP4Capabilities(operations)
 	configureP5Capabilities(operations)
+	configureP6Capabilities(operations, cfg.LegacyAccountsFile != "", options.ConfigFile != "")
 	fileService := appfiles.New(runtime.store, runtime.store, runtime.Clients, queries)
 	contentService := appcontent.New(runtime.store, runtime.store, runtime.Clients, runtime.store)
 	writeService := appwrites.New(runtime.store, runtime.store, runtime.store, runtime.Clients, runtime.Clients, runtime.Clients, queries)
+	runtime.logins = applogin.New(lifetime, runtime.Clients, runtime.store, accountService)
+	contextService := appcontexts.New(runtime.store, fileService)
+	writeService.Contexts(contextService)
 	writeService.Selectors(fileService)
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: fileService, Queries: queries, Local: applocal.New(roots), Writes: writeService, Content: contentService, Staging: appstaging.New(stageFiles), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: fileService, Queries: queries, Local: applocal.New(roots), Writes: writeService, Tools: toolService, Contexts: contextService, Login: runtime.logins, CLI: appconfig.NewCLI(legacyconfig.NewDefaults(cfg.LegacyAccountsFile, legacyBindings), runtime.store, fileService), Diagnostics: appsystem.NewDiagnostics(runtime.store, network.Environment{}, runtime.Clients), Content: contentService, Staging: appstaging.New(stageFiles, receptions), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
 		if err := runtime.Transfers.Ready(ctx); err != nil {
 			return err
 		}
@@ -342,7 +367,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 				return
 			case <-ticker.C:
 				clean, done := context.WithTimeout(lifetime, 10*time.Second)
-				err := errors.Join(artifactFiles.Cleanup(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean), runtime.store.CleanupBusiness(clean))
+				err := errors.Join(artifactFiles.Cleanup(clean), receptions.CleanupReceptions(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean), runtime.store.CleanupBusiness(clean), runtime.logins.Cleanup(clean))
 				done()
 				if err != nil && lifetime.Err() == nil && options.Logger != nil {
 					options.Logger.Error("service retention cleanup failed")
@@ -437,6 +462,9 @@ func (r *Runtime) Close() error {
 		}
 		if r.maintenanceDone != nil {
 			<-r.maintenanceDone
+		}
+		if r.logins != nil {
+			r.logins.Close()
 		}
 		if r.Transfers != nil {
 			if err := r.Transfers.Close(); err != nil {

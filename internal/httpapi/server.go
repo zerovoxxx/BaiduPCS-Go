@@ -20,11 +20,14 @@ import (
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
 	appcontent "github.com/qjfoidnh/BaiduPCS-Go/internal/application/content"
+	appcontexts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/contexts"
 	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
+	applogin "github.com/qjfoidnh/BaiduPCS-Go/internal/application/login"
 	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
+	apptools "github.com/qjfoidnh/BaiduPCS-Go/internal/application/tools"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
@@ -46,6 +49,11 @@ type Dependencies struct {
 	Staging       *appstaging.Service
 	Content       *appcontent.Service
 	Writes        *appwrites.Service
+	Tools         *apptools.Service
+	Contexts      *appcontexts.Service
+	Login         *applogin.Service
+	CLI           *appconfig.CLI
+	Diagnostics   *appsystem.Diagnostics
 	Local         *applocal.Service
 	Operations    []system.Operation
 	Contract      []byte
@@ -73,7 +81,7 @@ func principal(ctx context.Context) auth.Principal {
 }
 
 func Implemented(id string) bool {
-	if p5Operation(id) {
+	if p5Operation(id) || p6ToolOperation(id) || strings.HasPrefix(id, "CTX") || (id >= "UPL05" && id <= "UPL09") || strings.HasPrefix(id, "LOG") || id == "CFG06" || id == "CFG08" || id == "CFG09" || id == "SYS05" || id == "SYS06" {
 		return true
 	}
 	switch id {
@@ -180,6 +188,12 @@ func New(deps Dependencies) (http.Handler, error) {
 				api.problem(w, r, invalid("此接口不接受查询参数"))
 				return
 			}
+			scoped, err := api.freezePathScope(r, op.ID)
+			if err != nil {
+				api.problem(w, r, err)
+				return
+			}
+			r = scoped
 			if err := api.serve(op.ID, w, r); err != nil {
 				api.problem(w, r, err)
 			}
@@ -239,6 +253,9 @@ func (a *API) middleware(next http.Handler) http.Handler {
 		id := "req_" + hex.EncodeToString(random)
 		r = r.WithContext(context.WithValue(r.Context(), requestKey, id))
 		limit := int64(MaxJSONBodyBytes)
+		if r.Method == "PATCH" && strings.HasPrefix(r.URL.Path, "/api/v1/staging-upload-sessions/") && strings.HasSuffix(r.URL.Path, "/content") {
+			limit = 32 << 20
+		}
 		if r.URL.Path == "/api/v1/staging-files" {
 			limit = (256 << 20) + (64 << 10)
 		}
@@ -409,6 +426,21 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 			Configured bool      `json:"effective_root_configured"`
 		}{publicClient(defaults), runtime.GOOS + "/" + runtime.GOARCH, origin, template, defaults.SaveDir != nil})
 		return nil
+	}
+	if id == "CFG06" || id == "CFG08" || id == "CFG09" || id == "SYS05" || id == "SYS06" {
+		return a.serveManagement(id, w, r)
+	}
+	if strings.HasPrefix(id, "LOG") {
+		return a.serveLogin(id, w, r)
+	}
+	if id >= "UPL05" && id <= "UPL09" {
+		return a.serveReceptions(id, w, r)
+	}
+	if strings.HasPrefix(id, "CTX") {
+		return a.serveContexts(id, w, r)
+	}
+	if p6ToolOperation(id) {
+		return a.serveP6Tools(id, w, r)
 	}
 	if p5Operation(id) {
 		return a.serveP5(id, w, r)

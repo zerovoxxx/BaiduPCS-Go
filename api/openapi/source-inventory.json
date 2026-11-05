@@ -5,7 +5,7 @@
   "status": {
     "source_mapping": "complete",
     "http_implementation": "partial",
-    "implemented_operations": 74,
+    "implemented_operations": 104,
     "partial_operations": 0,
     "offline_contract": "checked_separately",
     "upstream_verification": "scoped_p2_report",
@@ -46,7 +46,7 @@
     "baidupcs/share.go": "084ee34998b79cc641d393eca1c875f815a65e8b7204a07e85de16e79d172ac0",
     "baidupcs/share_input.go": "998e2c6e00c6da7fd10549acecfe220071fd76f0564445031d4678ef7a483024",
     "baidupcs/transfer.go": "0a2412e3f08a05df09c81321ec5f245f88d34decdc8ce6be2f9d7542f21aa40d",
-    "baidupcs/upload.go": "cd5882720f2a844ccd6812cd9da578494e70ae6f3cbd5266ee7fea4d6d852d37",
+    "baidupcs/upload.go": "98673484fa40aa7856bec24d2049e09526ec7db59ffe2e026faf0fc6c950f67f",
     "baidupcs/util.go": "71c1093ace43edcb4091f0255784bf8116284024fd2b92a05d7f9943f88e41a5",
     "internal/pcscommand/cd.go": "865241c618d5d888d74d27ddd8319c25eef370dff6ef7e94b8553500667e70c3",
     "internal/pcscommand/cloud_dl.go": "6ca32234bfb9a1f476232e5efbf6beaf8fb655c6ae78564e95b30dce2dd8b838",
@@ -4697,7 +4697,7 @@
       "kind": "function",
       "name": "*BaiduPCS.FakeRapidUpload",
       "file": "baidupcs/upload.go",
-      "line": 117,
+      "line": 119,
       "coverage": {
         "mapping": "UPL01",
         "notes": "内部适配；当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用",
@@ -4712,7 +4712,7 @@
       "kind": "function",
       "name": "*BaiduPCS.GetRandomPCSHost",
       "file": "baidupcs/upload.go",
-      "line": 226,
+      "line": 252,
       "coverage": {
         "mapping": "UPL01、SYS06",
         "notes": "内部适配；上传节点选择，诊断可返回脱敏节点",
@@ -4728,7 +4728,7 @@
       "kind": "function",
       "name": "*BaiduPCS.RapidUpload",
       "file": "baidupcs/upload.go",
-      "line": 105,
+      "line": 107,
       "coverage": {
         "mapping": "UPL01",
         "notes": "内部适配；当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用",
@@ -4743,13 +4743,14 @@
       "kind": "function",
       "name": "*BaiduPCS.RapidUploadNoCheckDir",
       "file": "baidupcs/upload.go",
-      "line": 159,
+      "line": 161,
       "coverage": {
-        "mapping": "INT06",
-        "notes": "历史条件能力；旧式摘要上传；当前独立秒传不可承诺可用",
+        "mapping": "INT02、INT06",
+        "notes": "修复适配及历史条件能力；旧式摘要上传；当前独立秒传不可承诺可用",
         "coverage_line": 553
       },
       "route_ids": [
+        "INT02",
         "INT06"
       ],
       "classification": "http_business"
@@ -4758,7 +4759,7 @@
       "kind": "function",
       "name": "*BaiduPCS.UploadCreateSuperFile",
       "file": "baidupcs/upload.go",
-      "line": 205,
+      "line": 231,
       "coverage": {
         "mapping": "UPL01",
         "notes": "内部适配；当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用",
@@ -4773,7 +4774,7 @@
       "kind": "function",
       "name": "*BaiduPCS.UploadTmpFile",
       "file": "baidupcs/upload.go",
-      "line": 176,
+      "line": 202,
       "coverage": {
         "mapping": "UPL01",
         "notes": "内部适配；当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用",

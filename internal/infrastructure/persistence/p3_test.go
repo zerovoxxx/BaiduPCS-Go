@@ -317,7 +317,7 @@ func TestP3MigrationFromV3PreservesJobsAndCheckpoints(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Reproduce the actual v3 schema; P2 did not populate its reserved event table.
-	_, err := s.db.Exec(`DROP TABLE business_mutations;DROP TABLE share_inspections;DROP TABLE staging_references;DROP TABLE staging_files;DELETE FROM job_events;DROP TABLE account_credentials;DROP TABLE query_snapshots;DROP TABLE job_items;DROP TABLE artifacts;DROP INDEX jobs_query;ALTER TABLE jobs DROP COLUMN event_sequence;PRAGMA user_version=3;`)
+	_, err := s.db.Exec(`DROP TABLE resources;DROP TABLE business_mutations;DROP TABLE share_inspections;DROP TABLE staging_references;DROP TABLE staging_files;DELETE FROM job_events;DROP TABLE account_credentials;DROP TABLE query_snapshots;DROP TABLE job_items;DROP TABLE artifacts;DROP INDEX jobs_query;ALTER TABLE jobs DROP COLUMN event_sequence;PRAGMA user_version=3;`)
 	if err != nil {
 		t.Fatal(err)
 	}

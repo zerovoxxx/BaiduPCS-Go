@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
@@ -21,8 +23,9 @@ import (
 )
 
 type Store struct {
-	db   *sql.DB
-	seal cipher.AEAD
+	fingerprintKey [32]byte
+	db             *sql.DB
+	seal           cipher.AEAD
 }
 
 func Open(ctx context.Context, directory string, key []byte, defaults configuration.Client) (*Store, error) {
@@ -45,6 +48,9 @@ func Open(ctx context.Context, directory string, key []byte, defaults configurat
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	store := &Store{db: db, seal: seal}
+	fingerprint := hmac.New(sha256.New, key)
+	fingerprint.Write([]byte("BaiduPCS-Go HTTP ephemeral-secret identity v1"))
+	copy(store.fingerprintKey[:], fingerprint.Sum(nil))
 	ok := false
 	defer func() {
 		if !ok {
@@ -97,18 +103,28 @@ func (s *Store) migrate(ctx context.Context) error {
 	if err := s.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > 6 {
+	if version > 7 {
 		return errors.New("database schema is newer than this server")
 	}
-	if version == 6 {
+	if version == 7 {
 		return nil
+	}
+	if version == 6 {
+		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
+ CREATE TABLE resources(kind TEXT NOT NULL,id TEXT NOT NULL,owner TEXT NOT NULL,version INTEGER NOT NULL,expires INTEGER NOT NULL,payload BLOB NOT NULL,PRIMARY KEY(kind,id));
+ CREATE INDEX resources_expiry ON resources(kind,expires);
+ PRAGMA user_version=7;COMMIT;`)
+		return err
 	}
 	if version == 5 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
  CREATE TABLE share_inspections(inspection_id TEXT PRIMARY KEY,payload BLOB NOT NULL,expires_at INTEGER NOT NULL);
  CREATE TABLE business_mutations(principal TEXT NOT NULL,operation TEXT NOT NULL,key_hash BLOB NOT NULL,request_hash BLOB NOT NULL,payload BLOB,expires_at INTEGER NOT NULL,PRIMARY KEY(principal,operation,key_hash));
  PRAGMA user_version=6;COMMIT;`)
-		return err
+		if err != nil {
+			return err
+		}
+		return s.migrate(ctx)
 	}
 	if version == 4 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;

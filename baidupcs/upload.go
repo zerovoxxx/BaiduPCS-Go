@@ -1,9 +1,11 @@
 package baidupcs
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs/pcserror"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/converter"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -164,9 +166,33 @@ func (pcs *BaiduPCS) RapidUploadNoCheckDir(targetPath, contentMD5, sliceMD5, crc
 
 	defer dataReadCloser.Close()
 
-	pcsError = pcserror.DecodePCSJSONError(OperationRapidUpload, dataReadCloser)
-	if pcsError != nil {
-		return
+	// This path currently uses xpan/file/create. It may return errno rather
+	// than the historical PCS error_code; neither an absent code nor a rejected
+	// XPan response establishes a successful MD5 repair.
+	var reply struct {
+		Errno     *int `json:"errno"`
+		ErrorCode *int `json:"error_code"`
+	}
+	info := pcserror.NewPanErrorInfo(OperationRapidUpload)
+	decoder := json.NewDecoder(io.LimitReader(dataReadCloser, 1<<20))
+	if err := decoder.Decode(&reply); err != nil {
+		info.SetJSONError(err)
+		return info
+	}
+	if reply.Errno == nil && reply.ErrorCode == nil {
+		info.SetJSONError(errors.New("rapid upload response lacks an explicit status"))
+		return info
+	}
+	if reply.Errno != nil && *reply.Errno != 0 {
+		info.ErrNo = *reply.Errno
+		info.SetRemoteError()
+		return info
+	}
+	if reply.ErrorCode != nil && *reply.ErrorCode != 0 {
+		legacy := pcserror.NewPCSErrorInfo(OperationRapidUpload)
+		legacy.ErrCode = *reply.ErrorCode
+		legacy.SetRemoteError()
+		return legacy
 	}
 
 	return nil

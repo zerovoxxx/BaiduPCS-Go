@@ -66,7 +66,7 @@ func (s *Store) CreateTransfer(ctx context.Context, r transfer.Record) (bool, er
 		return false, err
 	}
 	defer tx.Rollback()
-	if r.Request.Public {
+	if r.Request.Public && r.Request.AccountID != "" {
 		a, err := s.account(ctx, tx, r.Request.AccountID)
 		if err != nil {
 			return false, err
@@ -232,7 +232,7 @@ func (s *Store) SaveTransferCheckpoint(ctx context.Context, id string, checkpoin
 }
 
 func (s *Store) InterruptTransfers(ctx context.Context) error {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state='cancelling'")
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id,record FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear','checksum_fix','local_checksum','file_verification','export','local_encryption','local_decryption') AND state='cancelling'")
 	if err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 			return err
 		}
 	}
-	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state IN ('running','pausing')")
+	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear','checksum_fix','local_checksum','file_verification','export','local_encryption','local_decryption') AND state IN ('running','pausing')")
 	if err != nil {
 		return err
 	}
@@ -301,7 +301,7 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return s.loseTemporarySecrets(ctx)
 }
 
 func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) error {
@@ -347,7 +347,7 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 		if err = s.releaseStaging(ctx, tx, id); err != nil {
 			return err
 		}
-		if r.Request.Kind != "file_scan" && len(r.Plan) == 0 && r.Request.WritePlan == "" {
+		if r.Request.ToolPlan == "" && r.Request.Kind != "file_scan" && len(r.Plan) == 0 && r.Request.WritePlan == "" {
 			if err = s.appendEvent(ctx, tx, id, "item.completed", nil); err != nil {
 				return err
 			}
@@ -360,7 +360,7 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 }
 
 func (s *Store) QueuedTransfers(ctx context.Context, limit int) ([]transfer.Record, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
+	rows, err := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear','checksum_fix','local_checksum','file_verification','export','local_encryption','local_decryption') AND state='queued' ORDER BY created_at,job_id LIMIT ?", limit)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func (s *Store) ReplayControl(ctx context.Context, m operation.Mutation) (*trans
 
 func (s *Store) ActiveTransferCount(ctx context.Context) (int, error) {
 	var n int
-	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear') AND state IN ('queued','running','cancelling')").Scan(&n)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE kind IN ('upload','download','file_scan','mkdir','file_delete','file_copy','file_move','file_rename','share_cancel','share_transfer','offline_add','offline_cancel','offline_delete','offline_clear','recycle_restore','recycle_delete','recycle_clear','checksum_fix','local_checksum','file_verification','export','local_encryption','local_decryption') AND state IN ('queued','running','cancelling')").Scan(&n)
 	return n, err
 }
 
@@ -509,4 +509,60 @@ func (s *Store) ReconcileTransfer(ctx context.Context, id string, writeJob bool,
 		return r, err
 	}
 	return r, tx.Commit()
+}
+
+func (s *Store) loseTemporarySecrets(ctx context.Context) error {
+	rows, e := s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('local_encryption','local_decryption') AND state IN ('queued','running','pausing','paused','interrupted')")
+	if e != nil {
+		return e
+	}
+	ids := []string{}
+	for rows.Next() {
+		var id string
+		if e = rows.Scan(&id); e != nil {
+			rows.Close()
+			return e
+		}
+		ids = append(ids, id)
+	}
+	e = rows.Err()
+	rows.Close()
+	if e != nil {
+		return e
+	}
+	for _, id := range ids {
+		tx, e := s.db.BeginTx(ctx, nil)
+		if e != nil {
+			return e
+		}
+		r, e := s.transfer(ctx, tx, id)
+		if e != nil {
+			tx.Rollback()
+			return e
+		}
+		if r.FailureCode == "TEMPORARY_SECRET_LOST" || r.FailureCode == "LOCAL_RESULT_UNKNOWN" {
+			tx.Rollback()
+			continue
+		}
+		var cp struct{ Phase string }
+		_ = json.Unmarshal(r.Checkpoint, &cp)
+		r.FailureCode = "TEMPORARY_SECRET_LOST"
+		if cp.Phase == "committing" || cp.Phase == "done" {
+			r.FailureCode = "LOCAL_RESULT_UNKNOWN"
+		}
+		if e = s.saveRecord(ctx, tx, r); e == nil {
+			_, e = tx.ExecContext(ctx, "UPDATE jobs SET state='interrupted' WHERE job_id=?", id)
+		}
+		if e == nil {
+			e = s.appendEvent(ctx, tx, id, "job.state_changed", nil)
+		}
+		if e != nil {
+			tx.Rollback()
+			return e
+		}
+		if e = tx.Commit(); e != nil {
+			return e
+		}
+	}
+	return nil
 }

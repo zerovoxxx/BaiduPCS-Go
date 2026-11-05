@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"encoding/json"
-	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/artifact"
@@ -27,7 +26,7 @@ func p3Operation(id string) bool {
 }
 func acceptsQuery(id string) bool {
 	switch id {
-	case "FIL01", "FIL02", "FIL04", "JOB01", "JOB03", "DWN03", "DWN04", "SHR02", "OFF02", "REC01":
+	case "SYS05", "FIL12", "FIL01", "FIL02", "FIL04", "JOB01", "JOB03", "DWN03", "DWN04", "SHR02", "OFF02", "REC01":
 		return true
 	}
 	return false
@@ -245,7 +244,7 @@ func (a *API) serveP3(id string, w http.ResponseWriter, r *http.Request) error {
 		if id == "FIL02" && q.Get("path") == "" {
 			return invalid("缺少path")
 		}
-		remote, err := appfiles.Resolve(q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
+		remote, err := a.resolve(r, q.Get("path"), file.Scope{BasePath: q.Get("base_path"), ContextID: q.Get("context_id")})
 		if err != nil {
 			return err
 		}
@@ -349,7 +348,7 @@ func (a *API) serveP3(id string, w http.ResponseWriter, r *http.Request) error {
 			if v == "" {
 				return invalid("路径不能为空")
 			}
-			resolved, err := appfiles.Resolve(v, scope)
+			resolved, err := a.resolve(r, v, scope)
 			if err != nil {
 				return err
 			}

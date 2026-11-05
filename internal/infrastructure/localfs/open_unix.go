@@ -106,3 +106,28 @@ func (r *Registry) RemoveFile(ctx context.Context, id, relative string) error {
 	}
 	return err
 }
+
+func (r *Registry) RemoveOpenedFile(ctx context.Context, id, relative string, f *os.File) error {
+	if _, e := r.File(ctx, id, relative, true); e != nil {
+		return e
+	}
+	fd, leaf, e := r.openParent(id, relative)
+	if e != nil {
+		return e
+	}
+	defer unix.Close(fd)
+	var a, b unix.Stat_t
+	if e = unix.Fstatat(fd, leaf, &a, unix.AT_SYMLINK_NOFOLLOW); e != nil {
+		return e
+	}
+	if e = unix.Fstat(int(f.Fd()), &b); e != nil {
+		return e
+	}
+	if a.Ino != b.Ino || a.Dev != b.Dev || a.Mode&unix.S_IFMT != unix.S_IFREG {
+		return unix.EINVAL
+	}
+	if e = unix.Unlinkat(fd, leaf, 0); e != nil {
+		return e
+	}
+	return unix.Fsync(fd)
+}

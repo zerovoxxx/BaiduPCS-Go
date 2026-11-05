@@ -365,6 +365,11 @@ def main():
             if media_type == 'application/problem+json' and record['method'] != 'HEAD':
                 require(record['body']['status']==record['status'],f'{oid}: live Problem status mismatch')
             if record['status'] < 300: covered.add(oid)
+            # INT06 implements a deliberate permanent-unavailability contract.
+            # A typed, validated 503 is its complete behavior, not a placeholder.
+            if oid == 'INT06' and record['status'] == 503:
+                require(record['body']['code']=='UPSTREAM_CAPABILITY_UNAVAILABLE' and record['body']['retryable'] is False,'INT06: unavailable semantics drift')
+                covered.add(oid)
             if record['status'] >= 400: rejected.add(oid)
             if oid == 'SYS08': require(record['body']==spec,'served OpenAPI differs from canonical YAML')
             if oid == 'SYS04' and record['status']==200:

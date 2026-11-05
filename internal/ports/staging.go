@@ -22,3 +22,17 @@ type StagingFiles interface {
 	Delete(context.Context, string, operation.Mutation) error
 	Cleanup(context.Context) error
 }
+
+type ReceptionRepository interface {
+	StagingRepository
+	ResourceRepository
+	TouchStage(context.Context, string, int64) error
+}
+type ReceptionFiles interface {
+	CreateReception(context.Context, string, string, int64, *staging.Expected, string) (staging.Reception, error)
+	Reception(context.Context, string) (staging.Reception, error)
+	PatchReception(context.Context, string, int64, io.Reader) (staging.Reception, error)
+	CompleteReception(context.Context, string) (staging.File, error)
+	DeleteReception(context.Context, string) error
+	CleanupReceptions(context.Context) error
+}

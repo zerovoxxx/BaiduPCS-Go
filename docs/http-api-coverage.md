@@ -550,7 +550,7 @@
 | --- | --- | --- | --- | --- |
 | *BaiduPCS.RapidUpload | UPL01 | 内部适配 | 当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用 | [baidupcs/upload.go:105](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L105) |
 | *BaiduPCS.FakeRapidUpload | UPL01 | 内部适配 | 当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用 | [baidupcs/upload.go:117](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L117) |
-| *BaiduPCS.RapidUploadNoCheckDir | INT06 | 历史条件能力 | 旧式摘要上传；当前独立秒传不可承诺可用 | [baidupcs/upload.go:159](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L159) |
+| *BaiduPCS.RapidUploadNoCheckDir | INT02、INT06 | 修复适配及历史条件能力 | 旧式摘要上传；当前独立秒传不可承诺可用 | [baidupcs/upload.go:159](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L159) |
 | *BaiduPCS.UploadTmpFile | UPL01 | 内部适配 | 当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用 | [baidupcs/upload.go:176](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L176) |
 | *BaiduPCS.UploadCreateSuperFile | UPL01 | 内部适配 | 当前预创建、快速检查、分片和合并流程；不把分片握手拆成任意公网调用 | [baidupcs/upload.go:205](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L205) |
 | *BaiduPCS.GetRandomPCSHost | UPL01、SYS06 | 内部适配 | 上传节点选择，诊断可返回脱敏节点 | [baidupcs/upload.go:226](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/baidupcs/upload.go#L226) |
@@ -923,7 +923,7 @@
 | 旧式秒传与秒传链接 | 当前转存流程已拒绝旧格式 | INT06 说明上游不可用；V2 上传快速检查仍属于正常上传流程 |
 | 导出大小提示 | 旧 20GB 文案与当前 128 GiB 常量不一致 | 能力限制从实际代码和上游验证分别给出，不传播旧提示为事实 |
 | xpan 两个 HTTP 路由 | 参考项目新增，主项目没有同等完整适配 | 可选扩展，不计入主项目必需覆盖率 |
-| QR 登录及客户端分片接收 | 服务体验扩展 | 在 P6 实施，单列新增能力而不伪装成当前主项目已有 HTTP 接口 |
+| QR 登录及客户端分片接收 | 服务体验扩展 | P6已交付，单列扩展；HTTP完整会话与原主检出QR工作分别维护 |
 
 ## 12 覆盖更新规则
 
@@ -1019,3 +1019,12 @@ P4当前清单620条；51 implemented、0 partial、54 planned。计数含DWN05�
 application/writes与domain/write提供写计划、执行、逐项结果及只读核验；ports/writes按实际领域划分File/Share/Offline/Recycle，baidu适配器只持有绑定账号和配置的独立Session。HTTP P5路由沿用严格输入、权限、幂等和公共DTO，原transfers负责有界持久派发和控制。persistence/business只存加密inspection与同步分享提交意图，write_cancel将排队取消的逐项无副作用结果与终态/事件同事务提交。新业务不借用CLI全局当前账号，不重建通用任务平台。
 
 核心CopyMovePolicy复用PCS解析及缓存失效；ParseShareInput为CLI/HTTP共用整段文本解析；ExtractShareInfo修复CLI首批截断；CloudDlQueryTask超过100明确错误。新协作者按业务分组映射，不增加HTTP端点计数。当前622条AST映射、74 implemented、0 partial、31 planned，P4十个核心与DWN05扩展、P5全部23项的离线/真实上游范围分别见[P4验收](http-api-p4-verification.md)、[P5验收](http-api-p5-verification.md)。
+
+
+## 15 P6实现与条件能力核销
+
+30项均有生产handler和受控验收：INT01—INT06、EXP01、FIL12、LOC02/03、LOG01—LOG06、CTX01—CTX04、CFG06/08/09、SYS05/06、UPL05—UPL09。全契约104 implemented、0 partial、1 planned（SYS07）。当前622条原CLI/配置/选项/核心AST记录保持逐项映射，没有将新增HTTP应用服务混入原业务分母。
+
+密码协议保留原机器状态、RSA和验证码分支，隔离HTTP客户端并去除终端打印；QR作为独立服务会话实现，未混入主检出。加解密保持原AES/IV字节格式，受限I/O、原子提交和临时秘密处理在基础设施与应用边界实现。摘要修复复用当前核心NoCheckDir协议；独立INT06保持长期不可用。CLI默认值只写固定授权快照，不共享全局对象。
+
+逐项离线/真实状态与限制见[P6验收](http-api-p6-verification.md)、[P6指南](http-api-p6-guide.md)和[真实范围](http-api-p6-upstream-verification.json)。P3—P5报告保持当时范围，不扩大为新参数或多账号真实验证。
