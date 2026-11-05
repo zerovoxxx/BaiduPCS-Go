@@ -2,13 +2,17 @@
   {
     "id": "AUTH-01",
     "operations": [
-      "ACC03",
+      "FIL01",
       "DWN03"
     ],
     "given": "百度账号凭据已过期，服务token有效",
     "when": "读取网盘或请求代理",
-    "then": "422 BAIDU_CREDENTIAL_EXPIRED；不返回401；服务token仍能查询任务",
-    "verification": "acceptance_spec_only"
+    "then": "百度读取失败为422 BAIDU_CREDENTIAL_EXPIRED，不返回服务token的401；本地账号元数据和任务查询仍可200。",
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p7_test.go#TestP7SettledJobCountersAndExpiredCredentialBoundary",
+      "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts"
+    ]
   },
   {
     "id": "AUTH-02",
@@ -19,8 +23,12 @@
     ],
     "given": "DWN05返回60秒票据",
     "when": "不带长期token访问票据URL，随后票据过期或owner权限撤销",
-    "then": "仅绑定账号/path可200或206；错误绑定403，过期410，权限撤销403；不授权其他路由",
-    "verification": "acceptance_spec_only"
+    "then": "仅绑定账号/path可200或206；错误绑定403，过期或凭据版本变化410，owner仍存在但权限撤销403，owner删除401；不授权其他路由。",
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
+      "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+    ]
   },
   {
     "id": "CTX-01",
@@ -31,7 +39,10 @@
     "given": "context属于调用方且绑定A账号",
     "when": "在B账号路径携带context_id",
     "then": "409 CONTEXT_ACCOUNT_MISMATCH，不切换账号",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay"
+    ]
   },
   {
     "id": "PATH-01",
@@ -44,7 +55,13 @@
     "given": "相对网盘路径、显式selector和允许local root",
     "when": "提交无scope相对路径，或同时提供context/base_path，或root软链接逃逸",
     "then": "400 RELATIVE_PATH_REQUIRES_SCOPE / AMBIGUOUS_PATH_SCOPE；root逃逸403 LOCAL_PATH_FORBIDDEN；字面量*不自动匹配",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+      "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+      "internal/infrastructure/localfs/roots_test.go#TestRootBoundaryAndServiceSecrets",
+      "internal/infrastructure/localfs/p6_unix_test.go#TestP6ToolsRejectSymlinkAndFIFO"
+    ]
   },
   {
     "id": "PAGE-01",
@@ -84,7 +101,11 @@
     "given": "100个或101个百度离线ID，且其中某ID上游未返回",
     "when": "精确查询、批量添加或显式清空",
     "then": "101项413；100项每个输入都有结果，未返回ID记失败；添加/清空202 job，百度ID仅在最终result.items",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+      "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource"
+    ]
   },
   {
     "id": "IDEMP-01",
@@ -98,7 +119,13 @@
     "given": "同principal/account/method/route和相同Idempotency-Key",
     "when": "以同body重放或改body、路径参数重放",
     "then": "同输入返回首次资源和首次状态；不同输入409 IDEMPOTENCY_KEY_REUSED；入库与job/event原子提交",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+      "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+      "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+      "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey"
+    ]
   },
   {
     "id": "ETAG-01",
@@ -110,7 +137,12 @@
     "given": "当前ETag为\"7\"",
     "when": "缺少If-Match、带\"6\"、带\"7\"",
     "then": "依次428 IF_MATCH_REQUIRED、412 REVISION_MISMATCH、200新revision；不接受弱标签或*",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/server_test.go#TestRuntimeHTTPConfigurationAndAuth",
+      "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+      "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay"
+    ]
   },
   {
     "id": "OPT-01",
@@ -122,7 +154,11 @@
     "given": "配置no_check=true、ignore_illegal=true",
     "when": "显式verify_checksum=true、check_filename=true、max_retries=0、max_rate=0",
     "then": "显式值覆盖配置；retry=0不重试；rate=0不限速；最终有效选项完整返回",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
+      "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery"
+    ]
   },
   {
     "id": "UP-01",
@@ -132,7 +168,12 @@
     "given": "skip/overwrite/rsync、空文件、同名文件和跨账号断点",
     "when": "执行上传或恢复",
     "then": "rsync只比较大小；正常跳过记skipped；断点绑定账号/目标/大小/mtime/摘要；不能误用旧uploadid",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/p7_test.go#TestP7RsyncComparesSizeAndDryRunHasNoTransfer",
+      "internal/infrastructure/baidu/transfer_test.go#TestSingleFileTransferRejectsChangedSourceAndCheckpointBinding",
+      "internal/infrastructure/baidu/p4_test.go#TestP4DirectoryHierarchyEmptyFilesAndOptions"
+    ]
   },
   {
     "id": "UP-02",
@@ -145,7 +186,12 @@
     "given": "A与B正在上传，随后提交C",
     "when": "暂停/取消A，恢复A或启动C",
     "then": "只影响A；分片边界保存后paused；B继续，C可启动；NoSplitFile=true为422 UNSUPPORTED_OPTION",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+      "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+      "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay"
+    ]
   },
   {
     "id": "STAGE-01",
@@ -158,7 +204,11 @@
     "given": "接收会话size=6、offset=3",
     "when": "以offset=0发送块，或正确offset=3完成",
     "then": "偏移冲突409 UPLOAD_OFFSET_MISMATCH；正确持久化后offset=6；完成前无staged_file_id；重复complete返回同ID",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p6_test.go#TestP6ReceptionOffsetRecoveryAndHTTP",
+      "internal/bootstrap/p6_process_test.go#TestP6ReceptionSIGKILLHTTP"
+    ]
   },
   {
     "id": "STAGE-02",
@@ -183,7 +233,12 @@
     "given": "/a/x和/b/x，多根路径以及full/relative模式",
     "when": "下载或test=true、dry_run=true",
     "then": "多根relative先去重并移除被目录覆盖的子项，再从所有选择根父目录的最近公共祖先保留相对路径；/a/x和/b/x保存为a/x和b/x；test实际传输但written_bytes=0；dry_run不传输；目标冲突需明确失败",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/p4_test.go#TestP4DirectoryHierarchyEmptyFilesAndOptions",
+      "internal/infrastructure/baidu/p7_test.go#TestP7RsyncComparesSizeAndDryRunHasNoTransfer",
+      "internal/infrastructure/baidu/p4_test.go#TestP4NoOverwriteConcurrentCommit"
+    ]
   },
   {
     "id": "STREAM-01",
@@ -196,7 +251,11 @@
     "given": "文件17字节，单Range、If-Range、多Range和断连",
     "when": "GET/HEAD bytes=0-3、bytes=99-、多个范围或If-Range失效",
     "then": "分别206+Content-Range、416+bytes */17、400 MULTIPLE_RANGES_UNSUPPORTED、完整200；HEAD所有状态无body；流开始后错误断流",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP",
+      "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts"
+    ]
   },
   {
     "id": "STREAM-02",
@@ -278,8 +337,12 @@
     ],
     "given": "旧式摘要秒传和依赖上游头的摘要/导出",
     "when": "请求历史能力或缺少摘要头",
-    "then": "INT06合法请求503 UPSTREAM_CAPABILITY_UNAVAILABLE；缺头422 CHECKSUM_UNAVAILABLE；代码存在不计available",
-    "verification": "acceptance_spec_only"
+    "then": "INT06合法请求503 UPSTREAM_CAPABILITY_UNAVAILABLE、retryable=false；读取缺头返回null及可信度，依赖缺失摘要的修复/legacy_command逐项CHECKSUM_UNAVAILABLE；不编造摘要或假报可用。",
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+      "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus"
+    ]
   },
   {
     "id": "LOCAL-01",
@@ -290,7 +353,13 @@
     "given": "源文件、显式临时密钥、gzip选项",
     "when": "加解密失败、成功或重启后密钥缺失",
     "then": "默认保留源；只有结果提交成功且remove_source=true才删除；缺密钥中断；密钥不进入job、日志、事件或artifact",
-    "verification": "acceptance_spec_only"
+    "verification": "offline_tests",
+    "offline_evidence": [
+      "internal/bootstrap/p6_edges_test.go#TestP6RestartLosesKeyExplicitlyAndCleansUncommittedPlaintext",
+      "internal/infrastructure/localfs/p6_test.go#TestP6CryptoModesLegacyCompatibilityAndFailureCleanup",
+      "internal/infrastructure/localfs/p6_test.go#TestP6CryptoDiskFullCancellationAndCommitReceipt",
+      "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP"
+    ]
   },
   {
     "id": "CAP-01",
@@ -298,9 +367,9 @@
       "SYS04",
       "ACC09"
     ],
-    "given": "源码映射已完成，HTTP分别为planned/partial/implemented，上游验证独立于实现状态",
+    "given": "全部HTTP操作已implemented，上游验证仍独立于实现状态",
     "when": "读取能力",
-    "then": "implementation/availability/enabled/verified_at独立，不能报告available或100%实现",
+    "then": "implementation/availability/enabled/verified_at独立；完整源码映射与105项实现不代表所有上游可用或全部真实百度验证。",
     "verification": "offline_tests",
     "offline_evidence": [
       "internal/bootstrap/p2_test.go#TestP2RuntimeAccountsCapabilitiesAndPersistence",

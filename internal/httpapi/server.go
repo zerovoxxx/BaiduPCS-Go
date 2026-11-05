@@ -32,12 +32,14 @@ import (
 	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/metrics"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
 )
 
 const MaxJSONBodyBytes int64 = 1 << 20
 
 type Dependencies struct {
+	Metrics       *metrics.Registry
 	Auth          *appauth.Service
 	Configuration *appconfig.Service
 	System        *appsystem.Service
@@ -85,7 +87,7 @@ func Implemented(id string) bool {
 		return true
 	}
 	switch id {
-	case "UPL01", "UPL02", "UPL03", "UPL04", "DWN01", "DWN02", "DWN03", "DWN04", "DWN05", "JOB07", "JOB08", "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
+	case "SYS07", "UPL01", "UPL02", "UPL03", "UPL04", "DWN01", "DWN02", "DWN03", "DWN04", "DWN05", "JOB07", "JOB08", "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
 		return true
 	}
 	return false
@@ -274,6 +276,7 @@ func (a *API) middleware(next http.Handler) http.Handler {
 			if status == 0 {
 				status = 200
 			}
+			a.deps.Metrics.HTTP(record.operation, status, time.Since(start))
 			// Templates and fixed operation IDs only: no URL query, headers, body or raw error.
 			a.deps.Logger.Info("http request", "request_id", id, "method", r.Method, "route", record.route, "operation", record.operation, "status", status, "duration_ms", time.Since(start).Milliseconds())
 		}()
@@ -317,6 +320,16 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 	case "SYS04":
 		a.success(w, r, a.deps.System.Capabilities())
 		return nil
+	case "SYS07":
+		if a.deps.Metrics == nil {
+			return fault.New(fault.Unavailable, "METRICS_UNAVAILABLE", "指标尚未就绪")
+		}
+		var queued, executing int64
+		if a.deps.Transfers != nil {
+			queued, executing = a.deps.Transfers.MetricsSnapshot()
+		}
+		w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+		return a.deps.Metrics.Write(w, queued, executing)
 	case "SYS08":
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(a.deps.Contract)

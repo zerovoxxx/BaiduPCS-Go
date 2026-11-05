@@ -433,7 +433,7 @@ func (e *SingleFileEngine) executePlan(ctx context.Context, r transfer.Record, c
 					}
 				}
 			}
-			if r.Request.Kind == "download" {
+			if r.Request.Kind == "download" && !downloadSettings(r).Test {
 				item.Written = item.Transferred
 			}
 			var progress fileCheckpoint

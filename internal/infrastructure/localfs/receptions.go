@@ -282,11 +282,16 @@ func (s *Receptions) DeleteReception(ctx context.Context, id string) error {
 	if e != nil {
 		return e
 	}
+	if v.State == "expired" {
+		return nil
+	}
 	if e = s.files.Delete(ctx, v.StageID, operation.Mutation{}); e != nil {
 		return e
 	}
 	v.State = "expired"
-	v.Expires = 0
+	if v.Expires > time.Now().Unix() {
+		v.Expires = time.Now().Unix() - 1
+	}
 	_, e = s.put(ctx, v, operation.Mutation{})
 	return e
 }

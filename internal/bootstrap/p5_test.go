@@ -209,6 +209,10 @@ func TestP5OfflineWindowIDsAndRecycleActualRestoreIDs(t *testing.T) {
 		t.Fatal("101 IDs reached upstream")
 	}
 	u.mu.Unlock()
+	hundred := p3Wire(t, h, "OFF03", "POST", base+"/offline-tasks/query", p5JSON(map[string]any{"offline_task_ids": ids[:100]}), nil, 200, nil)
+	if got := dataMap(t, hundred)["items"].([]any); len(got) != 100 {
+		t.Fatal("missing per-input results for 100 IDs", len(got))
+	}
 	job = p5Submit(t, h, &rows, "OFF04", base, "/offline-tasks/cancellations", p5JSON(map[string]any{"offline_task_ids": []string{offlineID}}))
 	p3Wait(t, h, job, "succeeded")
 	job = p5Submit(t, h, &rows, "OFF05", base, "/offline-tasks/deletions", p5JSON(map[string]any{"offline_task_ids": []string{offlineID}}))

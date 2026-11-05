@@ -101,3 +101,12 @@ func (s *Store) Resources(ctx context.Context, kind string, limit int) ([]sessio
 	}
 	return out, rows.Err()
 }
+
+// Retain gone-resource tombstones for a day, then prune in bounded batches.
+// Staging bytes and job references have their own independent retention rules.
+func (s *Store) CleanupResources(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM resources WHERE rowid IN (
+ SELECT rowid FROM resources WHERE kind IN ('context','reception') AND expires < ?
+ ORDER BY expires LIMIT 512)`, time.Now().Add(-24*time.Hour).Unix())
+	return err
+}

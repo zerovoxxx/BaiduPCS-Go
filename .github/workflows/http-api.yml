@@ -1,4 +1,4 @@
-name: HTTP API P6 contract and lifecycle
+name: HTTP API P7 complete contract and recovery
 on: [push, pull_request]
 permissions:
   contents: read
@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: 1.23.12
@@ -31,6 +33,7 @@ jobs:
           BAIDUPCS_P6_LOGIN_RESPONSES: /tmp/baidupcs-p6-login.json
           BAIDUPCS_P6_MANAGEMENT_RESPONSES: /tmp/baidupcs-p6-management.json
           BAIDUPCS_P6_RECEPTION_RESPONSES: /tmp/baidupcs-p6-receptions.json
+          BAIDUPCS_P7_METRICS_RESPONSES: /tmp/baidupcs-p7-metrics.json
         run: >-
           go test -p=1 -race -count=1 -timeout=600s
           ./internal/domain/... ./internal/application/...
@@ -44,6 +47,8 @@ jobs:
           ./requester ./requester/rio ./requester/rio/speeds
           ./requester/uploader ./internal/pcscommand ./internal/pcsfunctions/pcsupload
       - name: Contract, embedded document and actual HTTP responses
-        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json /tmp/baidupcs-p6-tools.json /tmp/baidupcs-p6-login.json /tmp/baidupcs-p6-management.json /tmp/baidupcs-p6-receptions.json
+        run: python api/openapi/tools/check_contract.py --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json /tmp/baidupcs-p6-tools.json /tmp/baidupcs-p6-login.json /tmp/baidupcs-p6-management.json /tmp/baidupcs-p6-receptions.json /tmp/baidupcs-p7-metrics.json
+      - name: Stopped backup restore and actual old binary refusal
+        run: python api/openapi/tools/check_recovery.py
       - name: Preserve CLI build targets and isolate SQLite
         run: python api/openapi/tools/check_builds.py

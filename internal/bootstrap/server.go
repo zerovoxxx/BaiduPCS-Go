@@ -42,6 +42,7 @@ import (
 	appwrites "github.com/qjfoidnh/BaiduPCS-Go/internal/application/writes"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/metrics"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/system"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/write"
@@ -257,6 +258,11 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 			operations[i].Limits = []system.Limit{{Name: "request_body_max_bytes", Value: &limit, Unit: "bytes", Source: "service"}}
 		}
 	}
+	metricIDs := make([]string, 0, len(operations))
+	for _, op := range operations {
+		metricIDs = append(metricIDs, op.ID)
+	}
+	instrumentation := metrics.New(metricIDs)
 	lifetime, cancel := context.WithCancel(context.Background())
 	runtime.cancel = cancel
 	artifactFiles, err := localfs.NewArtifacts(directory, runtime.store)
@@ -295,7 +301,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	if err = toolService.Recover(ctx); err != nil {
 		return nil, err
 	}
-	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{tools: toolService, writes: writeEngine, transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{tools: toolService, writes: writeEngine, transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)}, instrumentation)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +342,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 	contextService := appcontexts.New(runtime.store, fileService)
 	writeService.Contexts(contextService)
 	writeService.Selectors(fileService)
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: fileService, Queries: queries, Local: applocal.New(roots), Writes: writeService, Tools: toolService, Contexts: contextService, Login: runtime.logins, CLI: appconfig.NewCLI(legacyconfig.NewDefaults(cfg.LegacyAccountsFile, legacyBindings), runtime.store, fileService), Diagnostics: appsystem.NewDiagnostics(runtime.store, network.Environment{}, runtime.Clients), Content: contentService, Staging: appstaging.New(stageFiles, receptions), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	handler, err := httpapi.New(httpapi.Dependencies{Metrics: instrumentation, Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: fileService, Queries: queries, Local: applocal.New(roots), Writes: writeService, Tools: toolService, Contexts: contextService, Login: runtime.logins, CLI: appconfig.NewCLI(legacyconfig.NewDefaults(cfg.LegacyAccountsFile, legacyBindings), runtime.store, fileService), Diagnostics: appsystem.NewDiagnostics(runtime.store, network.Environment{}, runtime.Clients), Content: contentService, Staging: appstaging.New(stageFiles, receptions), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
 		if err := runtime.Transfers.Ready(ctx); err != nil {
 			return err
 		}
@@ -367,7 +373,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 				return
 			case <-ticker.C:
 				clean, done := context.WithTimeout(lifetime, 10*time.Second)
-				err := errors.Join(artifactFiles.Cleanup(clean), receptions.CleanupReceptions(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean), runtime.store.CleanupBusiness(clean), runtime.logins.Cleanup(clean))
+				err := errors.Join(artifactFiles.Cleanup(clean), receptions.CleanupReceptions(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean), runtime.store.CleanupBusiness(clean), runtime.store.CleanupResources(clean), runtime.logins.Cleanup(clean))
 				done()
 				if err != nil && lifetime.Err() == nil && options.Logger != nil {
 					options.Logger.Error("service retention cleanup failed")

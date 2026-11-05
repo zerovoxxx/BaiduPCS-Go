@@ -2,8 +2,8 @@ openapi: 3.1.1
 jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
 info:
   title: BaiduPCS-Go HTTP API
-  version: 0.6.0-p6
-  description: P3账号、文件读取、扫描、任务、事件和结果文件契约，2026-11-05。40个操作implemented、3个partial，其余62个planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
+  version: 0.7.0-p7
+  description: P0—P7完整HTTP契约，2026-11-05。105个操作implemented、0个partial、0个planned，SQLite schema v7；真实上游可用性按阶段限定报告，与实现状态分开。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
 servers:
 - url: http://127.0.0.1:5299
   description: 服务默认监听地址；实际地址由启动参数指定。
@@ -290,48 +290,93 @@ paths:
                   summary: 合成响应；不代表实现或百度实测通过
                   value:
                     data:
-                    - id: INT06
-                      implementation: implemented
-                      availability: upstream_unavailable
+                    - availability: upstream_unavailable
                       enabled: true
-                      reason: 旧式秒传未获上游可用验证
-                      required_credentials:
-                      - bduss
-                      supported_options: []
+                      id: INT06
+                      implementation: implemented
                       limits: []
-                      verified_at: null
-                    - id: UPL01
-                      implementation: implemented
-                      availability: unverified
-                      enabled: true
-                      reason: P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证
+                      reason: 旧式秒传上游能力不可用
                       required_credentials:
                       - bduss
-                      supported_options: []
-                      limits:
-                      - name: max_file_size
-                        value: '33554432'
-                        unit: bytes
-                        source: service
-                        verified_at: null
+                      supported_options:
+                      - context_id
+                      - base_path
                       verified_at: null
+                    - availability: unverified
+                      enabled: true
+                      id: UPL01
+                      implementation: implemented
+                      limits:
+                      - name: max_files_per_request
+                        source: service
+                        unit: count
+                        value: '100'
+                        verified_at: null
+                      - name: max_plan_items
+                        source: service
+                        unit: count
+                        value: '10000'
+                        verified_at: null
+                      - name: min_file_size
+                        source: service
+                        unit: bytes
+                        value: '0'
+                        verified_at: null
+                      - name: max_file_size
+                        source: service
+                        unit: bytes
+                        value: '137438953472'
+                        verified_at: null
+                      - name: file_concurrency_max
+                        source: service
+                        unit: count
+                        value: '16'
+                        verified_at: null
+                      - name: parallel_per_file_max
+                        source: service
+                        unit: count
+                        value: '32'
+                        verified_at: null
+                      - name: thread_budget_max
+                        source: service
+                        unit: count
+                        value: '256'
+                        verified_at: null
+                      - name: running_jobs
+                        source: service
+                        unit: count
+                        value: '2'
+                        verified_at: null
+                      - name: waiting_jobs
+                        source: service
+                        unit: count
+                        value: '16'
+                        verified_at: null
+                      reason: 本地实现已验收，上游能力须按账号、环境和时间验证
+                      required_credentials:
+                      - bduss
                       supported_option_values:
-                        file_concurrency:
-                        - '1'
-                        parallel_per_file:
-                        - '1'
-                        max_retries:
-                        - '0'
-                        policy:
-                        - skip
-                        skip_rapid_check:
-                        - 'true'
-                        check_filename:
-                        - 'false'
                         no_split_file:
                         - 'false'
-                        max_rate_bytes_per_second:
-                        - '0'
+                        policy:
+                        - skip
+                        - overwrite
+                        - rsync
+                        source_type:
+                        - local
+                        - staged
+                      supported_options:
+                      - file_concurrency
+                      - parallel_per_file
+                      - max_retries
+                      - policy
+                      - skip_rapid_check
+                      - check_filename
+                      - max_rate_bytes_per_second
+                      - dry_run
+                      - context_id
+                      - base_path
+                      verified_at: null
                     meta:
                       request_id: req_example
         '400':
@@ -545,7 +590,7 @@ paths:
       tags:
       - system
       summary: 经授权的任务、错误、队列和传输指标
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: 授权管理员读取固定标签的进程内计数器与有界派发快照；抓取不扫描历史任务，不访问上游或取得执行锁。计数器重启归零，字节为本进程执行收尾时确认的检查点增量。
       x-phase: P7
       x-authorization:
         scopes:
@@ -554,7 +599,7 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: SYS07
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
       x-idempotency:
         supported: false
@@ -607,6 +652,10 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-offline-evidence:
+      - internal/bootstrap/p7_test.go
+      - internal/domain/metrics/metrics_test.go
+      - internal/application/transfers/metrics_test.go
   /api/v1/openapi.json:
     get:
       operationId: SYS08
@@ -2963,7 +3012,8 @@ paths:
       tags:
       - files
       summary: path、keyword、recursive、fields；快照分页或有界结果
-      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 410。结果容量超限返回 413 QUERY_SNAPSHOT_LIMIT，改用 FIL05 扫描。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 410。结果容量超限返回 413 QUERY_SNAPSHOT_LIMIT，改用 FIL05
+        扫描。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。
       x-phase: P3
       x-authorization:
         scopes:
@@ -4845,7 +4895,8 @@ paths:
       tags:
       - uploads
       summary: 二进制数据和 Upload-Offset；原子前移 offset
-      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先 GET 核对。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 不宣称实现 tus。Upload-Offset 必填，块长加 offset 不超过声明长度；磁盘持久化成功后返回新偏移，提交结果未知时先
+        GET 核对。
       x-phase: P6
       x-authorization:
         scopes:
@@ -4947,7 +4998,8 @@ paths:
       tags:
       - uploads
       summary: 校验接收长度和摘要，原子生成 staged_file_id
-      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复 complete 返回相同 staged_file_id，Location 指向UPL03。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 只有完整长度和摘要通过后生成 staged_file_id；缺少字节或摘要不符409。重复
+        complete 返回相同 staged_file_id，Location 指向UPL03。
       x-phase: P6
       x-authorization:
         scopes:
@@ -5343,7 +5395,8 @@ paths:
       tags:
       - downloads
       summary: path、Range、If-Range；经授权的文件代理内容
-      description: P4已实现；输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
+      description: P4已实现；输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。
+        base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
       x-phase: P4
       x-authorization:
         scopes:
@@ -5463,7 +5516,8 @@ paths:
       tags:
       - downloads
       summary: 与 GET 一致的元信息和授权，无响应体
-      description: P4已实现；输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code 头表达。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
+      description: P4已实现；输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code
+        头表达。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
       x-phase: P4
       x-authorization:
         scopes:
@@ -5702,7 +5756,7 @@ paths:
       tags:
       - downloads
       summary: path、有效期；扩展，生成仅用于该文件内容的短期 URL
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: 已实现；受控验收及真实上游范围见逐操作报告。输入限制与权限在调用上游前校验。
       x-phase: P4
       x-authorization:
         scopes:
@@ -6237,7 +6291,8 @@ paths:
       tags:
       - jobs
       summary: SSE 和 Last-Event-ID，有限事件回放
-      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 heartbeat，无 ID。回放过期410；流开始后的错误终止流，不追加 Problem JSON。'
+      description: P3已实现。账号、路径、资源所有权及输入上限在执行前校验；上游可用性单独报告。 heartbeat，无 ID。回放过期410；流开始后的错误终止流，不追加 Problem
+        JSON。'
       x-phase: P3
       x-authorization:
         scopes: []
@@ -7537,7 +7592,8 @@ paths:
       tags:
       - share-transfers
       summary: 分享 URL 或整段分享文本、提取码；返回可选择项和短期 inspection_id
-      description: P5已实现；输入限制与权限在调用上游前校验。 inspection 绑定账号、owner 和凭据版本，默认600秒，过期410。目录展开与 cursor 分页均复用已验证会话；selection_complete=false 时不能将当前页视为全部分享。
+      description: P5已实现；输入限制与权限在调用上游前校验。 inspection 绑定账号、owner 和凭据版本，默认600秒，过期410。目录展开与 cursor 分页均复用已验证会话；selection_complete=false
+        时不能将当前页视为全部分享。
       x-phase: P5
       x-authorization:
         scopes:
@@ -7656,7 +7712,8 @@ paths:
       tags:
       - share-transfers
       summary: 分享输入或 inspection_id、target_dir、fs_ids、collect、download_after；返回转存 job
-      description: P5已实现；输入限制与权限在调用上游前校验。 省略 fs_ids 表示全部共享根项，由服务分页解析后固定。显式 fs_ids 必须属于 inspection；download_after 在 options 中，子任务关系持久化。
+      description: P5已实现；输入限制与权限在调用上游前校验。 省略 fs_ids 表示全部共享根项，由服务分页解析后固定。显式 fs_ids 必须属于 inspection；download_after
+        在 options 中，子任务关系持久化。
       x-phase: P5
       x-authorization:
         scopes:
@@ -10011,7 +10068,8 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                          (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10114,7 +10172,8 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                            (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10327,7 +10386,8 @@ paths:
                       - name: user_agent
                         type: string
                         unit: null
-                        default_value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                        default_value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                          (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         minimum: null
                         maximum: null
                         enum_values: []
@@ -10566,7 +10626,8 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                          (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10687,7 +10748,8 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                            (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10778,7 +10840,8 @@ paths:
       tags:
       - configuration
       summary: 从固定服务配置或旧 CLI 配置重新加载；支持 dry_run 和版本比较
-      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由 configuration.client 表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
+      description: P6已实现；受控验收与真实上游范围分别记录。输入限制与权限在调用上游前校验。 必须 If-Match，即使dry_run也检查；dry_run=true返回现有revision和候选变更字段，具体候选值由
+        configuration.client 表达，绝不写入；来源只能是启动时固定路径。 只重载22个客户端字段，账号/凭据不随配置重载导入；启动字段变更422。
       x-phase: P6
       x-authorization:
         scopes:
@@ -10820,7 +10883,8 @@ paths:
                           max_upload_load: 4
                           max_download_rate: '0'
                           max_upload_rate: '0'
-                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                            (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                           pcs_ua: ''
                           pcs_addr: pcs.baidu.com
                           pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -10943,7 +11007,8 @@ paths:
                         max_upload_load: 4
                         max_download_rate: '0'
                         max_upload_rate: '0'
-                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+                        user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36
+                          (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
                         pcs_ua: ''
                         pcs_addr: pcs.baidu.com
                         pan_ua: netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;
@@ -12072,7 +12137,8 @@ components:
       name: Idempotency-Key
       in: header
       required: false
-      description: 可选但建议所有资源创建和写操作使用。按 principal、account、方法和路由模板隔离；摘要包含路径参数、语义查询和规范化 body。multipart 包含文件内容摘要。至少保留 24h；同 key 不同输入 409；活动 job 绑定保留到终态。 重放保持首次逻辑结果、HTTP状态和资源版本；request_id及X-Request-ID为本次HTTP请求生成，不复用旧跟踪ID。
+      description: 可选但建议所有资源创建和写操作使用。按 principal、account、方法和路由模板隔离；摘要包含路径参数、语义查询和规范化 body。multipart 包含文件内容摘要。至少保留
+        24h；同 key 不同输入 409；活动 job 绑定保留到终态。 重放保持首次逻辑结果、HTTP状态和资源版本；request_id及X-Request-ID为本次HTTP请求生成，不复用旧跟踪ID。
       schema:
         type: string
         minLength: 1
@@ -13159,7 +13225,8 @@ components:
       required: []
       additionalProperties: false
       minProperties: 1
-      description: 缺失保留；null 清除指定凭据；空字符串非法。cookies 与单独 Cookie 字段不能同次更新；允许单独追加 access_token。 cookies字符串原子替换整个规范化Cookie Jar；cookies=null清除所有Cookie凭据，包括派生的BDUSS/PTOKEN/STOKEN/SBOXTKN/BAIDUID，但保留独立access_token。单字段更新/清除同步作用于唯一Jar，防止旧cookies副本恢复已吊销凭据。
+      description: 缺失保留；null 清除指定凭据；空字符串非法。cookies 与单独 Cookie 字段不能同次更新；允许单独追加 access_token。 cookies字符串原子替换整个规范化Cookie
+        Jar；cookies=null清除所有Cookie凭据，包括派生的BDUSS/PTOKEN/STOKEN/SBOXTKN/BAIDUID，但保留独立access_token。单字段更新/清除同步作用于唯一Jar，防止旧cookies副本恢复已吊销凭据。
       not:
         required:
         - cookies
@@ -14739,7 +14806,8 @@ components:
           $ref: '#/components/schemas/DownloadOptions'
       required: []
       additionalProperties: false
-      description: randomize_name=true 当前 422。download_after=true 时必须提供 download_destination；否则禁止 download_destination 和 download_options。
+      description: randomize_name=true 当前 422。download_after=true 时必须提供 download_destination；否则禁止 download_destination
+        和 download_options。
       allOf:
       - if:
           properties:
@@ -15214,7 +15282,8 @@ components:
             credential_revision:
               $ref: '#/components/schemas/Revision'
       unevaluatedProperties: false
-      description: 所有长操作返回持久化 job。effective_options 为已填默认值且脱敏的执行快照；P0 示例不代表路由已实现。dry_run 也创建 job，只解析计划，不执行数据修改或传输。 account_id与credential_revision仅本地任务可为null；远端任务必须绑定确定版本。
+      description: 所有长操作返回持久化 job。effective_options 为已填默认值且脱敏的执行快照；P0 示例不代表路由已实现。dry_run 也创建 job，只解析计划，不执行数据修改或传输。
+        account_id与credential_revision仅本地任务可为null；远端任务必须绑定确定版本。
     JobControlRequest:
       type: object
       properties:
@@ -16585,7 +16654,8 @@ components:
           default: '0'
         user_agent:
           $ref: '#/components/schemas/HeaderText'
-          default: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+          default: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko)
+            Chrome/63.0.3239.132 Safari/537.36
         pcs_ua:
           $ref: '#/components/schemas/HeaderText'
           default: ''

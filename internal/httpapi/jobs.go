@@ -128,7 +128,13 @@ func bytesConfirmed(r transfer.Record) (string, string) {
 	}
 	written := int64(0)
 	if r.Request.Kind == "download" {
-		written = transferred
+		var options struct {
+			Test bool `json:"test"`
+		}
+		_ = json.Unmarshal(r.EffectiveOptions, &options)
+		if !options.Test {
+			written = transferred
+		}
 	}
 	return strconv.FormatInt(max(transferred, 0), 10), strconv.FormatInt(max(written, 0), 10)
 }

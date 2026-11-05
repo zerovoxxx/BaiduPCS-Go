@@ -74,7 +74,7 @@ func TestP2RuntimeAccountsCapabilitiesAndPersistence(t *testing.T) {
 			}
 		}
 	}
-	if counts["implemented"] != 104 || counts["partial"] != 0 || counts["planned"] != 1 {
+	if counts["implemented"] != 105 || counts["partial"] != 0 || counts["planned"] != 0 {
 		t.Fatalf("wrong implementation counts: %v", counts)
 	}
 	if err = runtime.Close(); err != nil {

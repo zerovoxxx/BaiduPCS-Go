@@ -192,7 +192,20 @@ func TestP5CancellationKeepsRemoteEffectsAndQueuedItems(t *testing.T) {
 	if !changed || notSubmitted {
 		t.Fatal("cancel invented rollback or submitted another unit")
 	}
-	p3Wire(t, h, "JOB10", "POST", "/api/v1/jobs/"+a+"/reconcile", `{}`, nil, 202, nil)
+	// A persisted interrupted state can become visible before the original
+	// worker's deferred target/slot cleanup ends. JOB10 correctly rejects that
+	// short draining window; retry only this explicit non-mutating conflict.
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		reply := request(t, h, "POST", "/api/v1/jobs/"+a+"/reconcile", testToken, "", "", `{}`)
+		if reply.Code == 202 {
+			break
+		}
+		if reply.Code != 409 || !strings.Contains(reply.Body.String(), "原执行器仍在排空") || time.Now().After(deadline) {
+			wantStatus(t, reply, 202)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 	p3Wait(t, h, a, "partially_succeeded")
 	items, _ = runtime.store.TransferItems(context.Background(), a, 100)
 	if len(items) != 2 || items[0].State != "succeeded" || items[1].State != "cancelled" {

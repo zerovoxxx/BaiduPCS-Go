@@ -140,7 +140,7 @@ func (s *Service) Delete(ctx context.Context, p auth.Principal, id, key string) 
 		}
 		return e
 	}
-	r.Expires = 0
+	r.Expires = time.Now().Unix() - 1
 	_, e = s.repo.PutResource(ctx, r, r.Revision, m)
 	return e
 }

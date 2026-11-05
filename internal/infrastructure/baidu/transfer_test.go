@@ -390,7 +390,9 @@ func (f *transferFixture) submit(t *testing.T, a account.Entry, kind, local, rem
 }
 func (f *transferFixture) wait(t *testing.T, id, state string) transfer.Record {
 	t.Helper()
-	deadline := time.Now().Add(8 * time.Second)
+	// Race instrumentation and per-chunk SQLite fsync can exceed 8s on a busy disk.
+	// Keep the state/content assertions, with a bounded lifecycle deadline.
+	deadline := time.Now().Add(30 * time.Second)
 	for time.Now().Before(deadline) {
 		r, err := f.store.Transfer(context.Background(), id)
 		if err != nil {

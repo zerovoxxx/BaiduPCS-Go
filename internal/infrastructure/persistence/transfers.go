@@ -318,12 +318,7 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
 	}
 	r.FailureCode = code
-	if r.ScanResult != nil && state == "succeeded" && (r.ScanResult.Counts.Failed > 0 || r.ScanResult.Counts.Cancelled > 0) {
-		state = "failed"
-		if r.ScanResult.Counts.Succeeded > 0 || r.ScanResult.Counts.Skipped > 0 {
-			state = "partially_succeeded"
-		}
-	}
+	state = transfer.ResultState(state, r.ScanResult)
 	data, err := s.sealValue("job/"+id, r)
 	if err != nil {
 		return err

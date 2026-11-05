@@ -53,3 +53,15 @@ type Filter struct {
 func Terminal(state string) bool {
 	return state == "succeeded" || state == "partially_succeeded" || state == "failed" || state == "cancelled"
 }
+
+// ResultState is shared by durable completion and its process metrics. A
+// successful executor may still have durable per-item failures/cancellations.
+func ResultState(state string, result *ScanResult) string {
+	if result != nil && state == "succeeded" && (result.Counts.Failed > 0 || result.Counts.Cancelled > 0) {
+		if result.Counts.Succeeded > 0 || result.Counts.Skipped > 0 {
+			return "partially_succeeded"
+		}
+		return "failed"
+	}
+	return state
+}

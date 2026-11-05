@@ -9,12 +9,14 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/metrics"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/operation"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/tool"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
@@ -34,6 +36,8 @@ type Service struct {
 	mu                      sync.Mutex
 	closing                 bool
 	storageError            error
+	metrics                 *metrics.Registry
+	queued                  atomic.Int64
 	running                 map[string]context.CancelFunc
 	targets                 map[string]*targetLock
 	slots, workers          chan struct{}
@@ -48,7 +52,7 @@ type targetLock struct {
 	references int
 }
 
-func New(ctx context.Context, repo ports.TransferRepository, accounts ports.AccountRepository, cfg ports.ConfigurationRepository, engine ports.TransferEngine) (*Service, error) {
+func New(ctx context.Context, repo ports.TransferRepository, accounts ports.AccountRepository, cfg ports.ConfigurationRepository, engine ports.TransferEngine, instrumentation ...*metrics.Registry) (*Service, error) {
 	if err := repo.InterruptTransfers(ctx); err != nil {
 		return nil, err
 	}
@@ -58,6 +62,9 @@ func New(ctx context.Context, repo ports.TransferRepository, accounts ports.Acco
 	}
 	lifetime, cancel := context.WithCancel(ctx)
 	s := &Service{repo: repo, accounts: accounts, configuration: cfg, engine: engine, ctx: lifetime, stop: cancel, running: map[string]context.CancelFunc{}, targets: map[string]*targetLock{}, slots: make(chan struct{}, 18), workers: make(chan struct{}, 2), wake: make(chan struct{}, 1), dispatchDone: make(chan struct{}), closeDone: make(chan struct{})}
+	if len(instrumentation) > 0 {
+		s.metrics = instrumentation[0]
+	}
 	go s.dispatchLoop()
 	s.notify()
 	return s, nil
@@ -293,6 +300,7 @@ func (s *Service) dispatchLoop() {
 			}
 			continue
 		}
+		s.queued.Store(int64(len(records)))
 		s.mu.Lock()
 		if !s.closing && s.ctx.Err() == nil {
 			for _, r := range records {
@@ -381,6 +389,7 @@ func (s *Service) schedule(r transfer.Record) {
 			s.recordStorageError(err)
 			return
 		}
+		s.metrics.Started(r.Request.Kind)
 		target := r.TargetKey
 		if target == "" {
 			target = r.Request.Kind + ":" + r.Request.AccountID + ":" + r.Request.RootID + ":" + r.Request.RelativePath + ":" + r.Request.RemotePath
@@ -444,10 +453,28 @@ func (s *Service) schedule(r transfer.Record) {
 				state = "failed"
 			}
 		}
+		// Snapshot completed item/checkpoint evidence before publishing the final
+		// state. Metrics must not add a storage read between visible completion
+		// and releasing the executor/target locks.
+		var final transfer.Record
+		var metricsReady bool
+		if s.metrics != nil {
+			var readErr error
+			final, readErr = s.repo.Transfer(flush, r.ID)
+			s.recordStorageError(readErr)
+			metricsReady = readErr == nil
+		}
 		if finishErr := s.repo.FinishTransfer(flush, r.ID, state, code); finishErr != nil {
 			s.recordStorageError(finishErr)
-		} else if state == "cancelled" {
-			s.cleanup(flush, r.ID)
+		} else {
+			if metricsReady {
+				before, beforeWritten := confirmedBytes(r)
+				after, afterWritten := confirmedBytes(final)
+				s.metrics.Settled(r.Request.Kind, transfer.ResultState(state, final.ScanResult), after-before, afterWritten-beforeWritten)
+			}
+			if state == "cancelled" {
+				s.cleanup(flush, r.ID)
+			}
 		}
 	}()
 }
@@ -580,6 +607,7 @@ func (s *Service) recordStorageError(err error) {
 	if err == nil {
 		return
 	}
+	s.metrics.StorageError()
 	s.mu.Lock()
 	// Preserve the first failure without growing an unbounded error chain if a
 	// failed storage device makes every subsequent dispatch scan fail as well.

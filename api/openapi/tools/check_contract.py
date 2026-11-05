@@ -118,7 +118,7 @@ def inventory(observed, operation_ids, implemented_count=0, partial_count=0):
         'schema_version': 1,
         'source_baseline': '1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73',
         'generated_by': 'go run api/openapi/tools/inventory.go + check_contract.py --write-inventory',
-        'status': {'source_mapping': 'complete', 'http_implementation': 'partial' if implemented_count or partial_count else 'planned', 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_p2_report', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json', 'p3_offline_evidence': 'docs/http-api-p3-verification.md', 'p3_upstream_verification': 'scoped_p3_report', 'p3_upstream_evidence': 'docs/http-api-p3-upstream-verification.json', 'p4_offline_evidence': 'docs/http-api-p4-verification.md', 'p4_upstream_verification': 'scoped_p4_report', 'p4_upstream_evidence': 'docs/http-api-p4-upstream-verification.json', 'p5_offline_evidence': 'docs/http-api-p5-verification.md', 'p5_upstream_verification': 'scoped_p5_report', 'p5_upstream_evidence': 'docs/http-api-p5-upstream-verification.json'},
+        'status': {'source_mapping': 'complete', 'http_implementation': 'complete' if implemented_count == len(operation_ids) and partial_count == 0 else ('partial' if implemented_count or partial_count else 'planned'), 'implemented_operations': implemented_count, 'partial_operations': partial_count, 'offline_contract': 'checked_separately', 'upstream_verification': 'scoped_phase_reports', 'upstream_evidence': 'docs/http-api-p2-upstream-verification.json', 'p3_offline_evidence': 'docs/http-api-p3-verification.md', 'p3_upstream_verification': 'scoped_p3_report', 'p3_upstream_evidence': 'docs/http-api-p3-upstream-verification.json', 'p4_offline_evidence': 'docs/http-api-p4-verification.md', 'p4_upstream_verification': 'scoped_p4_report', 'p4_upstream_evidence': 'docs/http-api-p4-upstream-verification.json', 'p5_offline_evidence': 'docs/http-api-p5-verification.md', 'p5_upstream_verification': 'scoped_p5_report', 'p5_upstream_evidence': 'docs/http-api-p5-upstream-verification.json', 'p6_offline_evidence': 'docs/http-api-p6-verification.md', 'p6_upstream_evidence': 'docs/http-api-p6-upstream-verification.json', 'p7_offline_evidence': 'docs/http-api-p7-verification.md', 'operation_evidence': 'docs/http-api-p7-operations.json'},
         'counts': dict(sorted(collections.Counter(e['kind'] for e in entries).items())),
         'files': observed['files'], 'entries': entries,
     }
@@ -404,7 +404,7 @@ def main():
     print(f'PASS: OpenAPI 3.1.1; {len(routes)} operations / {len(spec["paths"])} paths / {len(schemas)} schemas')
     print(f'PASS: {len(request_examples)} typed request examples; {len(success_examples)} JSON response examples; {len(wire)} HTTP exchanges; {checks} instance validations')
     backed = sum(case['verification'] == 'offline_tests' for case in scenarios)
-    print(f'PASS: {len(cases)} schema boundary cases; {len(scenarios)} behavior specifications ({backed} linked to offline tests, others pending); {sse_events} SSE frames')
+    print(f'PASS: {len(cases)} schema boundary cases; {len(scenarios)} behavior specifications ({backed} linked to offline tests, {len(scenarios)-backed} pending); {sse_events} SSE frames')
     print(f'PASS: {len(observed["entries"])} AST entries mapped, no source/matrix drift; counts={baseline["counts"]}')
 
 

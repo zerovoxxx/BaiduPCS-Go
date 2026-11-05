@@ -1,7 +1,7 @@
 [
   {
     "operation_id": "SYS01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/healthz",
@@ -25,7 +25,7 @@
   },
   {
     "operation_id": "SYS02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/readyz",
@@ -49,7 +49,7 @@
   },
   {
     "operation_id": "SYS03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/system",
@@ -79,7 +79,7 @@
   },
   {
     "operation_id": "SYS04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/capabilities",
@@ -96,64 +96,122 @@
       "body": {
         "data": [
           {
-            "id": "INT06",
-            "implementation": "planned",
             "availability": "upstream_unavailable",
-            "enabled": false,
-            "reason": "旧式秒传未获上游可用验证",
+            "enabled": true,
+            "id": "INT06",
+            "implementation": "implemented",
+            "limits": [],
+            "reason": "旧式秒传上游能力不可用",
             "required_credentials": [
               "bduss"
             ],
-            "supported_options": [],
-            "limits": [],
+            "supported_options": [
+              "context_id",
+              "base_path"
+            ],
             "verified_at": null
           },
           {
-            "id": "UPL01",
-            "implementation": "partial",
             "availability": "unverified",
             "enabled": true,
-            "reason": "P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证",
-            "required_credentials": [
-              "bduss"
-            ],
-            "supported_options": [],
+            "id": "UPL01",
+            "implementation": "implemented",
             "limits": [
               {
-                "name": "max_file_size",
-                "value": "33554432",
-                "unit": "bytes",
+                "name": "max_files_per_request",
                 "source": "service",
+                "unit": "count",
+                "value": "100",
+                "verified_at": null
+              },
+              {
+                "name": "max_plan_items",
+                "source": "service",
+                "unit": "count",
+                "value": "10000",
+                "verified_at": null
+              },
+              {
+                "name": "min_file_size",
+                "source": "service",
+                "unit": "bytes",
+                "value": "0",
+                "verified_at": null
+              },
+              {
+                "name": "max_file_size",
+                "source": "service",
+                "unit": "bytes",
+                "value": "137438953472",
+                "verified_at": null
+              },
+              {
+                "name": "file_concurrency_max",
+                "source": "service",
+                "unit": "count",
+                "value": "16",
+                "verified_at": null
+              },
+              {
+                "name": "parallel_per_file_max",
+                "source": "service",
+                "unit": "count",
+                "value": "32",
+                "verified_at": null
+              },
+              {
+                "name": "thread_budget_max",
+                "source": "service",
+                "unit": "count",
+                "value": "256",
+                "verified_at": null
+              },
+              {
+                "name": "running_jobs",
+                "source": "service",
+                "unit": "count",
+                "value": "2",
+                "verified_at": null
+              },
+              {
+                "name": "waiting_jobs",
+                "source": "service",
+                "unit": "count",
+                "value": "16",
                 "verified_at": null
               }
             ],
-            "verified_at": null,
+            "reason": "本地实现已验收，上游能力须按账号、环境和时间验证",
+            "required_credentials": [
+              "bduss"
+            ],
             "supported_option_values": {
-              "file_concurrency": [
-                "1"
-              ],
-              "parallel_per_file": [
-                "1"
-              ],
-              "max_retries": [
-                "0"
-              ],
-              "policy": [
-                "skip"
-              ],
-              "skip_rapid_check": [
-                "true"
-              ],
-              "check_filename": [
-                "false"
-              ],
               "no_split_file": [
                 "false"
               ],
-              "max_rate_bytes_per_second": [
-                "0"
+              "policy": [
+                "skip",
+                "overwrite",
+                "rsync"
+              ],
+              "source_type": [
+                "local",
+                "staged"
               ]
-            }
+            },
+            "supported_options": [
+              "file_concurrency",
+              "parallel_per_file",
+              "max_retries",
+              "policy",
+              "skip_rapid_check",
+              "check_filename",
+              "max_rate_bytes_per_second",
+              "dry_run",
+              "context_id",
+              "base_path"
+            ],
+            "verified_at": null
           }
         ],
         "meta": {
@@ -164,7 +222,7 @@
   },
   {
     "operation_id": "SYS05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/diagnostics/network",
@@ -193,7 +251,7 @@
   },
   {
     "operation_id": "SYS06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/diagnostics/pcs-servers",
@@ -220,7 +278,7 @@
   },
   {
     "operation_id": "SYS07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/metrics",
@@ -239,7 +297,7 @@
   },
   {
     "operation_id": "SYS08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/openapi.json",
@@ -258,7 +316,7 @@
   },
   {
     "operation_id": "SYS09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/docs",
@@ -277,7 +335,7 @@
   },
   {
     "operation_id": "ACC01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts",
@@ -333,7 +391,7 @@
   },
   {
     "operation_id": "ACC02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts",
@@ -357,7 +415,7 @@
   },
   {
     "operation_id": "ACC03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example",
@@ -405,7 +463,7 @@
   },
   {
     "operation_id": "ACC04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/accounts/acct_example",
@@ -458,7 +516,7 @@
   },
   {
     "operation_id": "ACC05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/accounts/acct_example",
@@ -475,7 +533,7 @@
   },
   {
     "operation_id": "ACC06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/accounts/acct_example/credentials",
@@ -528,7 +586,7 @@
   },
   {
     "operation_id": "ACC07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/validate",
@@ -580,7 +638,7 @@
   },
   {
     "operation_id": "ACC08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/quota",
@@ -609,7 +667,7 @@
   },
   {
     "operation_id": "ACC09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/capabilities",
@@ -694,7 +752,7 @@
   },
   {
     "operation_id": "LOG01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/account-login-sessions",
@@ -734,7 +792,7 @@
   },
   {
     "operation_id": "LOG02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/account-login-sessions/session_example",
@@ -767,7 +825,7 @@
   },
   {
     "operation_id": "LOG06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/account-login-sessions/session_example",
@@ -784,7 +842,7 @@
   },
   {
     "operation_id": "LOG03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/account-login-sessions/session_example/qrcode",
@@ -804,7 +862,7 @@
   },
   {
     "operation_id": "LOG04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/account-login-sessions/session_example/responses",
@@ -842,7 +900,7 @@
   },
   {
     "operation_id": "LOG05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/account-login-sessions/session_example/complete",
@@ -893,7 +951,7 @@
   },
   {
     "operation_id": "CTX01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/contexts",
@@ -929,7 +987,7 @@
   },
   {
     "operation_id": "CTX02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/contexts/ctx_example",
@@ -960,7 +1018,7 @@
   },
   {
     "operation_id": "CTX03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/contexts/ctx_example",
@@ -997,7 +1055,7 @@
   },
   {
     "operation_id": "CTX04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/contexts/ctx_example",
@@ -1014,7 +1072,7 @@
   },
   {
     "operation_id": "FIL01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/files?path=%2F%E8%B5%84%E6%96%99&page=1&page_size=100",
@@ -1068,7 +1126,7 @@
   },
   {
     "operation_id": "FIL02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/files/metadata?path=%2F%E8%B5%84%E6%96%99%2Freport.txt",
@@ -1105,7 +1163,7 @@
   },
   {
     "operation_id": "FIL03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/files/metadata",
@@ -1178,7 +1236,7 @@
   },
   {
     "operation_id": "FIL04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/files/search?keyword=report",
@@ -1231,7 +1289,7 @@
   },
   {
     "operation_id": "FIL05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-scans",
@@ -1314,7 +1372,7 @@
   },
   {
     "operation_id": "FIL06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/path-matches",
@@ -1353,7 +1411,7 @@
   },
   {
     "operation_id": "FIL07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/directories",
@@ -1430,7 +1488,7 @@
   },
   {
     "operation_id": "FIL08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-deletions",
@@ -1512,7 +1570,7 @@
   },
   {
     "operation_id": "FIL09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-copies",
@@ -1592,7 +1650,7 @@
   },
   {
     "operation_id": "FIL10",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-moves",
@@ -1672,7 +1730,7 @@
   },
   {
     "operation_id": "FIL11",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-renames",
@@ -1748,7 +1806,7 @@
   },
   {
     "operation_id": "FIL12",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/file-changes",
@@ -1777,7 +1835,7 @@
   },
   {
     "operation_id": "UPL01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/uploads",
@@ -1882,7 +1940,7 @@
   },
   {
     "operation_id": "UPL02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/staging-files",
@@ -1920,7 +1978,7 @@
   },
   {
     "operation_id": "UPL03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/staging-files/staged_example",
@@ -1951,7 +2009,7 @@
   },
   {
     "operation_id": "UPL04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/staging-files/staged_example",
@@ -1968,7 +2026,7 @@
   },
   {
     "operation_id": "UPL05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/staging-upload-sessions",
@@ -2007,7 +2065,7 @@
   },
   {
     "operation_id": "UPL06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/staging-upload-sessions/session_example",
@@ -2040,7 +2098,7 @@
   },
   {
     "operation_id": "UPL09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/staging-upload-sessions/session_example",
@@ -2057,7 +2115,7 @@
   },
   {
     "operation_id": "UPL07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/staging-upload-sessions/session_example/content",
@@ -2093,7 +2151,7 @@
   },
   {
     "operation_id": "UPL08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/staging-upload-sessions/session_example/complete",
@@ -2125,7 +2183,7 @@
   },
   {
     "operation_id": "DWN01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/downloads",
@@ -2241,7 +2299,7 @@
   },
   {
     "operation_id": "DWN02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/download-links",
@@ -2300,7 +2358,7 @@
   },
   {
     "operation_id": "DWN03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/content?path=%2Freport.txt",
@@ -2324,7 +2382,7 @@
   },
   {
     "operation_id": "DWN04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "HEAD",
       "url": "/api/v1/accounts/acct_example/content?path=%2Freport.txt",
@@ -2346,7 +2404,7 @@
   },
   {
     "operation_id": "DWN05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/download-tickets",
@@ -2380,7 +2438,7 @@
   },
   {
     "operation_id": "JOB01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs",
@@ -2410,7 +2468,7 @@
   },
   {
     "operation_id": "JOB02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs/job_example",
@@ -2487,7 +2545,7 @@
   },
   {
     "operation_id": "JOB03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs/job_example/items",
@@ -2517,7 +2575,7 @@
   },
   {
     "operation_id": "JOB04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs/job_example/result",
@@ -2559,7 +2617,7 @@
   },
   {
     "operation_id": "JOB05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs/job_example/events",
@@ -2579,7 +2637,7 @@
   },
   {
     "operation_id": "JOB06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/jobs/job_example/cancel",
@@ -2658,7 +2716,7 @@
   },
   {
     "operation_id": "JOB07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/jobs/job_example/pause",
@@ -2737,7 +2795,7 @@
   },
   {
     "operation_id": "JOB08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/jobs/job_example/resume",
@@ -2816,7 +2874,7 @@
   },
   {
     "operation_id": "JOB09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/jobs/job_example/retry",
@@ -2896,7 +2954,7 @@
   },
   {
     "operation_id": "JOB10",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/jobs/job_example/reconcile",
@@ -2975,7 +3033,7 @@
   },
   {
     "operation_id": "JOB11",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/jobs/job_example/artifacts",
@@ -2999,7 +3057,7 @@
   },
   {
     "operation_id": "SHR01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/shares",
@@ -3037,7 +3095,7 @@
   },
   {
     "operation_id": "SHR02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/shares",
@@ -3068,7 +3126,7 @@
   },
   {
     "operation_id": "SHR03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/shares/9007199254740993",
@@ -3097,7 +3155,7 @@
   },
   {
     "operation_id": "SHR04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/share-cancellations",
@@ -3172,7 +3230,7 @@
   },
   {
     "operation_id": "TRF01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/share-inspections",
@@ -3229,7 +3287,7 @@
   },
   {
     "operation_id": "TRF02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/share-transfers",
@@ -3309,7 +3367,7 @@
   },
   {
     "operation_id": "OFF01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/offline-tasks",
@@ -3385,7 +3443,7 @@
   },
   {
     "operation_id": "OFF02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/offline-tasks",
@@ -3420,7 +3478,7 @@
   },
   {
     "operation_id": "OFF03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/offline-tasks/query",
@@ -3461,7 +3519,7 @@
   },
   {
     "operation_id": "OFF04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/offline-tasks/cancellations",
@@ -3536,7 +3594,7 @@
   },
   {
     "operation_id": "OFF05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/offline-tasks/deletions",
@@ -3611,7 +3669,7 @@
   },
   {
     "operation_id": "OFF06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/offline-tasks/clear",
@@ -3680,7 +3738,7 @@
   },
   {
     "operation_id": "OFF07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/offline-tasks/9007199254740993",
@@ -3718,7 +3776,7 @@
   },
   {
     "operation_id": "REC01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/accounts/acct_example/recycle",
@@ -3749,7 +3807,7 @@
   },
   {
     "operation_id": "REC02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/recycle/restorations",
@@ -3824,7 +3882,7 @@
   },
   {
     "operation_id": "REC03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/recycle/deletions",
@@ -3899,7 +3957,7 @@
   },
   {
     "operation_id": "REC04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/recycle/clear",
@@ -3968,7 +4026,7 @@
   },
   {
     "operation_id": "INT01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-checksums/inspect",
@@ -4009,7 +4067,7 @@
   },
   {
     "operation_id": "INT02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-checksums/fix",
@@ -4086,7 +4144,7 @@
   },
   {
     "operation_id": "INT03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/local/checksums",
@@ -4173,7 +4231,7 @@
   },
   {
     "operation_id": "INT04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-verifications",
@@ -4264,7 +4322,7 @@
   },
   {
     "operation_id": "INT05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/file-checksums/from-link",
@@ -4298,7 +4356,7 @@
   },
   {
     "operation_id": "INT06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/legacy/rapid-uploads",
@@ -4332,7 +4390,7 @@
   },
   {
     "operation_id": "EXP01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/accounts/acct_example/exports",
@@ -4414,7 +4472,7 @@
   },
   {
     "operation_id": "CFG01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/configuration",
@@ -4469,7 +4527,7 @@
   },
   {
     "operation_id": "CFG02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/configuration",
@@ -4540,7 +4598,7 @@
   },
   {
     "operation_id": "CFG03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/configuration/schema",
@@ -4858,7 +4916,7 @@
   },
   {
     "operation_id": "CFG04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/configuration/validate",
@@ -4918,7 +4976,7 @@
   },
   {
     "operation_id": "CFG05",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/configuration/reset",
@@ -4985,7 +5043,7 @@
   },
   {
     "operation_id": "CFG06",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/configuration/reload",
@@ -5050,7 +5108,7 @@
   },
   {
     "operation_id": "CFG07",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/configuration/defaults",
@@ -5106,7 +5164,7 @@
   },
   {
     "operation_id": "CFG08",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/configuration/cli-defaults",
@@ -5135,7 +5193,7 @@
   },
   {
     "operation_id": "CFG09",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "PATCH",
       "url": "/api/v1/configuration/cli-defaults",
@@ -5169,7 +5227,7 @@
   },
   {
     "operation_id": "LOC01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/local/roots",
@@ -5193,7 +5251,7 @@
   },
   {
     "operation_id": "LOC02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/local/encryptions",
@@ -5291,7 +5349,7 @@
   },
   {
     "operation_id": "LOC03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "POST",
       "url": "/api/v1/local/decryptions",
@@ -5389,7 +5447,7 @@
   },
   {
     "operation_id": "ART01",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/artifacts/artifact_example",
@@ -5423,7 +5481,7 @@
   },
   {
     "operation_id": "ART04",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "DELETE",
       "url": "/api/v1/artifacts/artifact_example",
@@ -5440,7 +5498,7 @@
   },
   {
     "operation_id": "ART02",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "GET",
       "url": "/api/v1/artifacts/artifact_example/content",
@@ -5464,7 +5522,7 @@
   },
   {
     "operation_id": "ART03",
-    "note": "P0 合成示例，尚无HTTP实现；EXAMPLE_ONLY不是有效凭据。",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
     "request": {
       "method": "HEAD",
       "url": "/api/v1/artifacts/artifact_example/content",
