@@ -97,3 +97,18 @@ func TestLayerDependencyDirection(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestP4TransferUnitsDoNotReadCLIConfigOrRegisterSignals(t *testing.T) {
+	for _, file := range []string{"../pcsfunctions/pcsupload/upload_task_unit.go", "../pcsfunctions/pcsupload/upload.go", "../pcsfunctions/pcsdownload/download_task_unit.go"} {
+		source, err := parser.ParseFile(token.NewFileSet(), file, nil, parser.ImportsOnly)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, item := range source.Imports {
+			p, _ := strconv.Unquote(item.Path.Value)
+			if strings.HasSuffix(p, "/pcsconfig") || p == "os/signal" {
+				t.Fatalf("TaskUnit still uses global config/lifecycle: %s", file)
+			}
+		}
+	}
+}

@@ -41,7 +41,7 @@ func value[T any](p *T, fallback T) T {
 	return fallback
 }
 func optionError() error {
-	return fault.New(fault.Unsupported, "UNSUPPORTED_OPTION", "P2仅支持声明的单文件固定选项；请查询capabilities和P2操作指南")
+	return fault.New(fault.Unsupported, "UNSUPPORTED_OPTION", "所选历史选项尚无有效实现；请查询capabilities")
 }
 func resolveOptions(r *transfer.Record) error {
 	if !r.Request.Public {
@@ -68,10 +68,13 @@ func resolveOptions(r *transfer.Record) error {
 		if concurrency < 1 || concurrency > 256 || parallel < 1 || parallel > 256 || retries < 0 || retries > 100 || policy != "skip" && policy != "overwrite" && policy != "rsync" || !decimal(rate) {
 			return bad()
 		}
-		if concurrency != 1 || parallel != 1 || retries != 0 || policy != "skip" || !rapid || check || split || rate != "0" {
+		if split {
 			return optionError()
 		}
-		r.Config.MaxUploadRate = 0
+		if concurrency > 16 || parallel > 32 || concurrency*parallel > 256 {
+			return fault.New(fault.Unsupported, "TRANSFER_BUDGET_EXCEEDED", "文件并发最多16、单文件线程最多32、总线程最多256")
+		}
+		r.Config.MaxUploadRate, _ = strconv.ParseInt(rate, 10, 64)
 		effective = map[string]any{"file_concurrency": concurrency, "parallel_per_file": parallel, "max_retries": retries, "policy": policy, "skip_rapid_check": rapid, "check_filename": check, "no_split_file": split, "max_rate_bytes_per_second": rate}
 	} else {
 		var o DownloadOptions
@@ -84,10 +87,10 @@ func resolveOptions(r *transfer.Record) error {
 		if parallel < 1 || parallel > 256 || concurrency < 1 || concurrency > 256 || retries < 0 || retries > 100 || index < 0 || index > 99 || mode != "locate" && mode != "pcs" && mode != "stream" || pathMode != "relative" && pathMode != "full" || !decimal(rate) {
 			return bad()
 		}
-		if mode != "pcs" || pathMode != "relative" || parallel != 1 || concurrency != 1 || retries != 0 || index != 0 || overwrite || !verify || mtime || executable || test || report || rate != "0" {
-			return optionError()
+		if concurrency > 16 || parallel > 32 || concurrency*parallel > 256 {
+			return fault.New(fault.Unsupported, "TRANSFER_BUDGET_EXCEEDED", "文件并发最多16、单文件线程最多32、总线程最多256")
 		}
-		r.Config.MaxDownloadRate = 0
+		r.Config.MaxDownloadRate, _ = strconv.ParseInt(rate, 10, 64)
 		effective = map[string]any{"mode": mode, "path_mode": pathMode, "parallel": parallel, "file_concurrency": concurrency, "max_retries": retries, "overwrite": overwrite, "verify_checksum": verify, "preserve_mtime": mtime, "executable": executable, "link_index": index, "test": test, "report_workers": report, "max_rate_bytes_per_second": rate}
 	}
 	r.EffectiveOptions, _ = json.Marshal(effective)
@@ -102,6 +105,6 @@ func decimal(s string) bool {
 			return false
 		}
 	}
-	_, err := strconv.ParseUint(s, 10, 64)
+	_, err := strconv.ParseInt(s, 10, 64)
 	return err == nil
 }

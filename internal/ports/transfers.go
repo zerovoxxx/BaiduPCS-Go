@@ -61,3 +61,8 @@ type TransferPreparer interface {
 type TransferCleaner interface {
 	CleanupTransfer(context.Context, transfer.Record) error
 }
+
+// TransferPlanner freezes directory selections before durable admission.
+type TransferPlanner interface {
+	Plan(context.Context, transfer.Record, account.Credentials) (json.RawMessage, error)
+}

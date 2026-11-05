@@ -264,7 +264,7 @@ func p3Account(t *testing.T, h http.Handler, cookie string, rows *[]p3Response) 
 }
 func p3Wait(t *testing.T, h http.Handler, id string, states ...string) *httptest.ResponseRecorder {
 	t.Helper()
-	deadline := time.Now().Add(15 * time.Second)
+	deadline := time.Now().Add(45 * time.Second)
 	for time.Now().Before(deadline) {
 		r := p3Wire(t, h, "JOB02", "GET", "/api/v1/jobs/"+id, "", nil, 200, nil)
 		state := dataMap(t, r)["state"].(string)

@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -23,6 +23,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/localfs"
+	"github.com/qjfoidnh/BaiduPCS-Go/internal/ports"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/downloader"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/multipartreader"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/rio"
@@ -34,10 +35,12 @@ import (
 type SingleFileEngine struct {
 	clients *ClientFactory
 	roots   *localfs.Registry
+	repo    ports.TransferRepository
+	staging *localfs.Staging
 }
 
 func NewSingleFileEngine(clients *ClientFactory, roots *localfs.Registry) *SingleFileEngine {
-	return &SingleFileEngine{clients, roots}
+	return &SingleFileEngine{clients: clients, roots: roots}
 }
 
 type fileCheckpoint struct {
@@ -47,6 +50,10 @@ type fileCheckpoint struct {
 	Skipped                     bool
 	Size, Mtime, Offset         int64
 	Upload                      *uploader.InstanceState
+	BlockMD5                    []string
+	BlockSize                   int64
+	Rapid                       bool
+	Workers                     []transfer.Worker
 }
 
 func unsupported(code, message string) error { return fault.New(fault.Unsupported, code, message) }
@@ -65,8 +72,9 @@ func (e *SingleFileEngine) Execute(ctx context.Context, r transfer.Record, c acc
 			result = upstreamFault(result)
 		}
 	}()
-	if r.Request.Kind == "upload" && r.Config.MaxUploadRate != 0 || r.Request.Kind == "download" && r.Config.MaxDownloadRate != 0 {
-		return unsupported("UNSUPPORTED_OPTION", "P2最小验证暂不支持限速，不能忽略已配置的速率限制")
+	ctx = transferContext(ctx, r)
+	if len(r.Plan) > 0 {
+		return e.executePlan(ctx, r, c, save)
 	}
 	if !configuration.ValidID(r.ID) || r.Request.AccountID != c.AccountID || r.CredentialRevision != c.Revision || r.Request.RemotePath == "/" || !strings.HasPrefix(r.Request.RemotePath, "/") || path.Clean(r.Request.RemotePath) != r.Request.RemotePath || strings.ContainsAny(r.Request.RemotePath, "\x00\r\n") {
 		return unsupported("INVALID_TRANSFER_BINDING", "任务必须绑定明确的账号版本和绝对文件路径")
@@ -100,25 +108,26 @@ func (e *SingleFileEngine) Execute(ctx context.Context, r transfer.Record, c acc
 	// The job context owns transfer duration; synchronous metadata still has the
 	// configured transport's header/connection timeouts.
 	session.HTTP.SetTimeout(0)
+	session.HTTP.Client.Transport = pacedTransport{base: session.HTTP.Client.Transport, limiter: ctx.Value(limiterKey{}).(*rio.Limiter), ctx: ctx}
 	switch r.Request.Kind {
 	case "upload":
-		return e.upload(ctx, r, session, &cp, persist)
+		return executeAttempts(ctx, r, &cp, persist, func() error { return e.upload(ctx, r, session, &cp, persist) })
 	case "download":
-		return e.download(ctx, r, session, &cp, persist)
+		return executeAttempts(ctx, r, &cp, persist, func() error { return e.download(ctx, r, session, &cp, persist) })
 	default:
 		return unsupported("UNSUPPORTED_OPTION", "最小验证仅支持单文件上传和下载")
 	}
 }
-func sourceFingerprint(file *os.File) (size, mtime int64, sha, md string, err error) {
+func sourceFingerprint(file *os.File, contexts ...context.Context) (size, mtime int64, sha, md string, err error) {
 	before, err := file.Stat()
 	if err != nil {
 		return 0, 0, "", "", err
 	}
-	if !before.Mode().IsRegular() || before.Size() == 0 || before.Size() > 32<<20 {
-		return 0, 0, "", "", unsupported("UNSUPPORTED_OPTION", "P2最小验证仅支持1字节至32MiB的普通文件")
+	if !before.Mode().IsRegular() || before.Size() < 0 || before.Size() > baidupcs.MaxUploadSize {
+		return 0, 0, "", "", unsupported("UNSUPPORTED_OPTION", "仅支持不超过128GiB的普通文件")
 	}
 	s, m := sha256.New(), md5.New()
-	if _, err = io.Copy(io.MultiWriter(s, m), file); err != nil {
+	if _, err = io.Copy(io.MultiWriter(s, m), contextReader{Reader: file, ctx: firstContext(contexts)}); err != nil {
 		return 0, 0, "", "", err
 	}
 	after, err := file.Stat()
@@ -140,7 +149,7 @@ func (e *SingleFileEngine) upload(ctx context.Context, r transfer.Record, s *Ses
 		return err
 	}
 	defer f.Close()
-	size, mtime, sha, md, err := sourceFingerprint(f)
+	size, mtime, sha, md, err := sourceFingerprint(f, ctx)
 	if err != nil {
 		return err
 	}
@@ -159,44 +168,22 @@ func (e *SingleFileEngine) upload(ctx context.Context, r transfer.Record, s *Ses
 		cp.Phase = "done"
 		return persist()
 	}
-	if cp.Upload == nil {
-		// skip is a successful per-item outcome and transfers zero bytes.
-		meta, metaErr := s.PCS.FilesDirectoriesMeta(r.Request.RemotePath)
-		if metaErr == nil {
-			if meta.Isdir {
-				return fault.New(fault.Conflict, "TARGET_EXISTS", "上传目标是目录")
-			}
-			cp.Skipped = true
-			cp.Phase = "done"
-			return persist()
-		}
-		if fault.As(upstreamFault(metaErr)).Kind != fault.NotFound {
-			return upstreamFault(metaErr)
-		}
-		// Persist the source binding before creating an upstream upload session.
-		cp.Phase = "preparing"
-		if err = persist(); err != nil {
-			return err
-		}
-		upErr, pre := s.PCS.FakeRapidUpload(r.Request.RemotePath, baidupcs.SkipPolicy, size)
-		if upErr != nil {
-			return upErr
-		}
-		if pre.UploadID == "" {
-			return errors.New("upstream omitted upload session")
-		}
-		cp.Upload = &uploader.InstanceState{Uploadid: pre.UploadID, BlockList: uploader.SplitBlock(size, baidupcs.MinUploadBlockSize)}
-		cp.Phase = "uploading"
-		if err = persist(); err != nil {
-			return err
-		}
+	opts := uploadSettings(r)
+	if err = prepareUpload(ctx, r, s, f, cp, persist, opts); err != nil {
+		return err
 	}
-	provider := &singleUpload{session: s, ctx: ctx, checkpoint: cp, persist: persist, target: r.Request.RemotePath}
+	if cp.Phase == "done" {
+		return nil
+	}
+	provider := &singleUpload{session: s, ctx: ctx, checkpoint: cp, persist: persist, target: r.Request.RemotePath, file: f}
+	if size == 0 {
+		return provider.CreateSuperFile("", opts.Policy, cp.Upload.Uploadid, 0, map[int]string{0: baidupcs.EmptyContentMD5})
+	}
 	provider.verify = func() error {
 		if _, err := f.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
-		currentSize, currentMtime, currentSHA, _, err := sourceFingerprint(f)
+		currentSize, currentMtime, currentSHA, _, err := sourceFingerprint(f, ctx)
 		if err != nil {
 			return err
 		}
@@ -205,8 +192,10 @@ func (e *SingleFileEngine) upload(ctx context.Context, r transfer.Record, s *Ses
 		}
 		return ctx.Err()
 	}
-	engine := uploader.NewMultiUploader(provider, rio.NewFileReaderAtLen64(f), &uploader.MultiUploaderConfig{Parallel: 1, BlockSize: baidupcs.MinUploadBlockSize, Policy: baidupcs.SkipPolicy}, r.Request.RemotePath)
+	engine := uploader.NewMultiUploader(provider, rio.NewFileReaderAtLen64(f), &uploader.MultiUploaderConfig{Parallel: opts.Parallel, BlockSize: cp.BlockSize, Policy: opts.Policy}, r.Request.RemotePath)
 	engine.SetInstanceState(cp.Upload)
+	stop := context.AfterFunc(ctx, engine.Cancel)
+	defer stop()
 	var runErr error
 	engine.OnError(func(err error) { runErr = err })
 	engine.OnCancel(func() { runErr = context.Canceled })
@@ -221,6 +210,28 @@ func (e *SingleFileEngine) upload(ctx context.Context, r transfer.Record, s *Ses
 }
 
 func (e *SingleFileEngine) CleanupTransfer(ctx context.Context, r transfer.Record) error {
+	if len(r.Plan) > 0 && r.State == "cancelled" {
+		var plan transfer.Plan
+		var cp planCheckpoint
+		if json.Unmarshal(r.Plan, &plan) != nil || json.Unmarshal(r.Checkpoint, &cp) != nil || cp.Binding != binding(r) {
+			return nil
+		}
+		for i, u := range plan.Units {
+			child := r.Clone()
+			child.ID = fmt.Sprintf("%s_u%d", r.ID, i)
+			child.Plan = nil
+			child.Request.Batch = ""
+			child.Request.RootID = u.RootID
+			child.Request.RelativePath = u.RelativePath
+			child.Request.RemotePath = u.RemotePath
+			child.Checkpoint = cp.Units[fmt.Sprint(i)]
+			if err := e.CleanupTransfer(ctx, child); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	if r.Request.Kind != "download" || r.State != "cancelled" || len(r.Checkpoint) == 0 {
 		return nil
 	}
@@ -246,6 +257,7 @@ type singleUpload struct {
 	target     string
 	mu         sync.Mutex
 	verify     func() error
+	file       *os.File
 }
 
 func (p *singleUpload) Precreate() (string, pcserror.Error) { return p.session.PCS.GetPCSAddr(), nil }
@@ -254,10 +266,19 @@ func (p *singleUpload) TmpFile(ctx context.Context, id, target string, part int,
 		body := multipartreader.NewMultipartReader()
 		body.AddFormFile("uploadedfile", "", reader)
 		body.CloseMultipart()
-		return p.session.HTTP.Req(http.MethodPost, address, body, nil)
+		req, err := http.NewRequestWithContext(p.ctx, http.MethodPost, address, body)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", body.ContentType())
+		req.ContentLength = body.Len()
+		return p.session.HTTP.Client.Do(req)
 	})
 	if upErr != nil {
 		return "", &uploader.MultiError{Terminated: true, Err: upErr}
+	}
+	if part < 0 || part >= len(p.checkpoint.BlockMD5) || !strings.EqualFold(checksum, p.checkpoint.BlockMD5[part]) {
+		return "", &uploader.MultiError{Terminated: true, Err: fault.New(fault.Conflict, "CHECKSUM_MISMATCH", "上游分片摘要与本地分片不一致")}
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -285,6 +306,13 @@ func (p *singleUpload) CreateSuperFile(_, policy, id string, size int64, checksu
 		return err
 	}
 	if err := p.session.PCS.UploadCreateSuperFile(id, policy, size, p.target, checksums); err != nil {
+		if err.GetErrType() == pcserror.ErrTypeRemoteError {
+			p.checkpoint.Phase = "uploading"
+			if saveErr := p.persist(); saveErr != nil {
+				return saveErr
+			}
+			return err
+		}
 		return fault.New(fault.Conflict, "REMOTE_RESULT_UNKNOWN", "远端合并结果未确认，须核对后恢复")
 	}
 	p.checkpoint.Phase = "done"
@@ -294,6 +322,7 @@ func (p *singleUpload) CreateSuperFile(_, policy, id string, size int64, checksu
 	return nil
 }
 func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *Session, cp *fileCheckpoint, persist func() error) error {
+	opts := downloadSettings(r)
 	target, err := e.roots.File(ctx, r.Request.RootID, r.Request.RelativePath, true)
 	if err != nil {
 		return fault.New(fault.Forbidden, "LOCAL_PATH_FORBIDDEN", "本地下载目标不可访问")
@@ -302,16 +331,19 @@ func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *S
 	if err != nil {
 		return err
 	}
-	if meta.Isdir || meta.Size < 1 || meta.Size > 32<<20 {
-		return unsupported("UNSUPPORTED_OPTION", "P2最小验证仅支持不超过32MiB的单文件")
+	if meta.Isdir || meta.Size < 0 || meta.Size > baidupcs.MaxUploadSize {
+		return unsupported("UNSUPPORTED_OPTION", "仅支持不超过128GiB的单个普通文件")
 	}
 	if cp.Phase != "" && (cp.Size != meta.Size || cp.MD5 != meta.MD5) {
 		return unsupported("CHECKPOINT_SOURCE_CHANGED", "远端文件与检查点不一致")
 	}
-	if len(meta.MD5) != 32 {
+	if opts.Verify && len(meta.MD5) != 32 {
 		return unsupported("CHECKSUM_UNAVAILABLE", "缺少可核对摘要，拒绝复用下载检查点")
 	}
 	cp.Size, cp.MD5 = meta.Size, meta.MD5
+	if opts.Test && cp.Phase == "done" {
+		return persist()
+	}
 	if cp.Phase == "committing" || cp.Phase == "done" {
 		if file, err := e.roots.OpenFile(ctx, r.Request.RootID, r.Request.RelativePath, os.O_RDWR, 0); err == nil {
 			size, _, sha, _, err := sourceFingerprint(file)
@@ -323,7 +355,7 @@ func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *S
 			return fault.New(fault.Conflict, "LOCAL_RESULT_UNKNOWN", "最终文件与已确认下载结果不一致")
 		}
 	}
-	if _, err = os.Lstat(target); err == nil || !os.IsNotExist(err) {
+	if _, err = os.Lstat(target); !opts.Overwrite && !opts.Test && (err == nil || !os.IsNotExist(err)) {
 		return fault.New(fault.Conflict, "TARGET_EXISTS", "下载目标已存在")
 	}
 	if cp.Temp == "" {
@@ -371,20 +403,40 @@ func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *S
 	if err = persist(); err != nil {
 		return err
 	}
-	err = s.PCS.DownloadFile(r.Request.RemotePath, func(address string, _ http.CookieJar) error {
-		d := downloader.NewDownloader(address, f, &downloader.Config{MaxParallel: 1})
-		d.SetClient(s.HTTP)
-		d.SetFileContentLength(meta.Size)
-		return d.ExecuteContext(ctx, cp.Offset, func(offset int64) error {
-			if err := f.Sync(); err != nil {
-				return err
-			}
-			cp.Offset = offset
-			return persist()
-		})
+	address, urlErr := downloadURL(s, r.Request.RemotePath, opts.Mode, opts.Index)
+	if urlErr != nil {
+		return urlErr
+	}
+	d := downloader.NewDownloader(address, f, &downloader.Config{MaxParallel: opts.Parallel})
+	d.SetClient(s.HTTP)
+	d.SetFileContentLength(meta.Size)
+	var progressMu sync.Mutex
+	err = d.ExecuteContext(ctx, cp.Offset, func(offset int64) error {
+		progressMu.Lock()
+		defer progressMu.Unlock()
+		if err := f.Sync(); err != nil {
+			return err
+		}
+		cp.Offset = offset
+		return persist()
+	}, func(id int, offset, n int64, state string) {
+		if !opts.Report {
+			return
+		}
+		progressMu.Lock()
+		defer progressMu.Unlock()
+		for len(cp.Workers) <= id {
+			cp.Workers = append(cp.Workers, transfer.Worker{ID: fmt.Sprintf("worker_%d", len(cp.Workers)), State: "waiting"})
+		}
+		cp.Workers[id].State = state
+		cp.Workers[id].Offset = offset + n
+		cp.Workers[id].Transferred += n
 	})
 	if err != nil {
 		return err
+	}
+	for i := range cp.Workers {
+		cp.Workers[i].State = "completed"
 	}
 	if err = ctx.Err(); err != nil {
 		return err
@@ -392,19 +444,43 @@ func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *S
 	if _, err = f.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
-	_, _, sha, md, err := sourceFingerprint(f)
+	_, _, sha, md, err := sourceFingerprint(f, ctx)
 	if err != nil {
 		return err
 	}
-	if cp.MD5 != "" && !strings.EqualFold(cp.MD5, md) {
+	if opts.Verify && cp.MD5 != "" && !strings.EqualFold(cp.MD5, md) {
 		return fault.New(fault.Conflict, "CHECKSUM_MISMATCH", "下载内容摘要与远端元信息不一致")
 	}
 	cp.SHA256 = sha
+	if opts.Executable {
+		if err = f.Chmod(0700); err != nil {
+			return err
+		}
+	}
+	if opts.Mtime {
+		if err = localfs.SetFileMtime(f, meta.Mtime); err != nil {
+			return err
+		}
+	}
+	if err = f.Sync(); err != nil {
+		return err
+	}
+	if opts.Test {
+		if err = e.roots.RemoveFile(ctx, r.Request.RootID, partialRef); err != nil {
+			return err
+		}
+		cp.Phase = "done"
+		return persist()
+	}
 	cp.Phase = "committing"
 	if err = persist(); err != nil {
 		return err
 	}
-	if err = e.roots.CommitFile(ctx, r.Request.RootID, partialRef, r.Request.RelativePath, f); err != nil {
+	commit := e.roots.CommitFile
+	if opts.Overwrite {
+		commit = e.roots.ReplaceFile
+	}
+	if err = commit(ctx, r.Request.RootID, partialRef, r.Request.RelativePath, f); err != nil {
 		return fault.New(fault.Conflict, "LOCAL_RESULT_UNKNOWN", "文件提交结果须在恢复时核对")
 	}
 	cp.Phase = "done"
@@ -412,4 +488,22 @@ func (e *SingleFileEngine) download(ctx context.Context, r transfer.Record, s *S
 		return fault.New(fault.Conflict, "LOCAL_RESULT_UNKNOWN", "文件已提交但完成状态未持久化，须核对后恢复")
 	}
 	return nil
+}
+
+type contextReader struct {
+	io.Reader
+	ctx context.Context
+}
+
+func (r contextReader) Read(b []byte) (int, error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return r.Reader.Read(b)
+}
+func firstContext(all []context.Context) context.Context {
+	if len(all) > 0 {
+		return all[0]
+	}
+	return context.Background()
 }

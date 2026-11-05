@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "contract_version": "0.4.0-p4",
+  "database_schema": 5,
+  "source_base": "d1ae687",
+  "source_inventory_count": 620,
+  "actual_http_responses": 117,
+  "implemented": 51,
+  "partial": 0,
+  "planned": 54,
+  "race": "passed; complete related scope with -p=1; final affected checks separate",
+  "cli_offline_packages": 14,
+  "cross_compile_targets": 13,
+  "upstream_evidence": "http-api-p4-upstream-verification.json",
+  "core_operations": [
+    "DWN01",
+    "DWN02",
+    "DWN03",
+    "DWN04",
+    "JOB07",
+    "JOB08",
+    "UPL01",
+    "UPL02",
+    "UPL03",
+    "UPL04"
+  ],
+  "extensions": {
+    "DWN05": "implemented and verified separately"
+  },
+  "known_baseline_failures": "P0 downloader test compile, developer paths and network examples remain excluded"
+}

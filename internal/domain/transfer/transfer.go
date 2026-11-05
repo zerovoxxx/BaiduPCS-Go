@@ -14,6 +14,7 @@ type Request struct {
 	// Options contains canonical request options, not secrets. Public requests
 	// resolve omitted values against their one persisted configuration snapshot.
 	Options    string
+	Batch      string `json:",omitempty"`
 	ScanPlan   string `json:",omitempty"`
 	RetryOf    string `json:",omitempty"`
 	RetryScope string `json:",omitempty"`
@@ -27,6 +28,7 @@ type Record struct {
 	ConfigRevision                   uint64
 	CredentialRevision               uint64
 	Checkpoint                       json.RawMessage
+	Plan                             json.RawMessage `json:",omitempty"`
 	FailureCode                      string
 	UpdatedAt, StartedAt, FinishedAt string
 	Version                          uint64
@@ -47,6 +49,7 @@ func (r Record) Clone() Record {
 		cp.ArtifactIDs = append([]string{}, cp.ArtifactIDs...)
 		r.ScanResult = &cp
 	}
+	r.Plan = append(json.RawMessage(nil), r.Plan...)
 	r.Checkpoint = append(json.RawMessage(nil), r.Checkpoint...)
 	r.EffectiveOptions = append(json.RawMessage(nil), r.EffectiveOptions...)
 	return r

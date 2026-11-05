@@ -22,6 +22,9 @@ func (e *SingleFileEngine) Prepare(ctx context.Context, r transfer.Record, c acc
 	if r.Config.ForceLoginUsername != "" {
 		return "", unsupported("UNSUPPORTED_OPTION", "P2不支持force_login_username身份回退")
 	}
+	if len(r.Plan) > 0 {
+		return "batch:" + r.Request.AccountID + ":" + r.Request.Kind + ":" + r.Request.RootID + ":" + r.Request.RemotePath, nil
+	}
 	name, err := e.roots.File(ctx, r.Request.RootID, r.Request.RelativePath, r.Request.Kind == "download")
 	if err != nil {
 		if f := fault.As(err); f.Kind == fault.Unsupported || f.Kind == fault.Conflict {
@@ -38,12 +41,12 @@ func (e *SingleFileEngine) Prepare(ctx context.Context, r transfer.Record, c acc
 			return "", upstreamFault(err)
 		}
 		defer file.Close()
-		if _, _, _, _, err = sourceFingerprint(file); err != nil {
+		if _, _, _, _, err = sourceFingerprint(file, ctx); err != nil {
 			return "", err
 		}
 		return "remote:" + r.Request.AccountID + ":" + r.Request.RemotePath, nil
 	}
-	if _, err = os.Lstat(name); err == nil || !os.IsNotExist(err) {
+	if _, err = os.Lstat(name); !downloadSettings(r).Overwrite && !downloadSettings(r).Test && (err == nil || !os.IsNotExist(err)) {
 		return "", fault.New(fault.Conflict, "TARGET_EXISTS", "下载目标已存在")
 	}
 	s, err := e.clients.New(ctx, configuration.NewSnapshot(r.ConfigRevision, r.Config), c)
@@ -55,10 +58,10 @@ func (e *SingleFileEngine) Prepare(ctx context.Context, r transfer.Record, c acc
 	if err != nil {
 		return "", upstreamFault(err)
 	}
-	if meta.Isdir || meta.Size < 1 || meta.Size > 32<<20 {
+	if meta.Isdir || meta.Size < 0 || meta.Size > 128<<30 {
 		return "", unsupported("UNSUPPORTED_OPTION", "P2仅支持1字节至32MiB的普通文件")
 	}
-	if len(meta.MD5) != 32 || strings.Trim(meta.MD5, "0123456789abcdefABCDEF") != "" {
+	if downloadSettings(r).Verify && (len(meta.MD5) != 32 || strings.Trim(meta.MD5, "0123456789abcdefABCDEF") != "") {
 		return "", unsupported("CHECKSUM_UNAVAILABLE", "缺少可信摘要，不能执行已承诺的校验下载")
 	}
 	if runtime.GOOS == "windows" {

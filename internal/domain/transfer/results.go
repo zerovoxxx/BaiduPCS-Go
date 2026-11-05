@@ -2,7 +2,12 @@ package transfer
 
 import "github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 
+type Worker struct {
+	ID, State           string
+	Offset, Transferred int64
+}
 type Item struct {
+	Workers                           []Worker
 	ID                                string
 	Index                             uint64
 	Path, RootID, RelativePath, State string
@@ -15,6 +20,7 @@ type Item struct {
 }
 type Counts struct{ Total, Processed, Succeeded, Failed, Skipped, Cancelled uint64 }
 type ScanResult struct {
+	Transferred, Written      int64
 	Counts                    Counts
 	Complete                  bool
 	Truncation                string

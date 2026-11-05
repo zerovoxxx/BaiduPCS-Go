@@ -11,7 +11,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -33,6 +35,9 @@ type observedEngine struct {
 	t      *testing.T
 }
 
+func (o observedEngine) Plan(ctx context.Context, r transfer.Record, c account.Credentials) (json.RawMessage, error) {
+	return o.engine.Plan(ctx, r, c)
+}
 func (o observedEngine) Prepare(ctx context.Context, r transfer.Record, c account.Credentials) (string, error) {
 	return o.engine.Prepare(ctx, r, c)
 }
@@ -53,21 +58,25 @@ type remoteUpload struct {
 	parts         map[int][]byte
 }
 type transferUpstream struct {
-	mu          sync.Mutex
-	files       map[string][]byte
-	uploads     map[string]*remoteUpload
-	parts       map[string]map[int]int
-	blockedOnce map[string]bool
-	blocked     chan string
-	resumed     chan int64
-	creates     int
-	dropCommit  bool
-	holdCommit  bool
-	committed   chan struct{}
+	mu           sync.Mutex
+	files        map[string][]byte
+	directories  map[string]bool
+	rapidNine    bool
+	badChecksum  bool
+	expireUpload bool
+	uploads      map[string]*remoteUpload
+	parts        map[string]map[int]int
+	blockedOnce  map[string]bool
+	blocked      chan string
+	resumed      chan int64
+	creates      int
+	dropCommit   bool
+	holdCommit   bool
+	committed    chan struct{}
 }
 
 func newTransferUpstream() *transferUpstream {
-	return &transferUpstream{files: map[string][]byte{}, uploads: map[string]*remoteUpload{}, parts: map[string]map[int]int{}, blockedOnce: map[string]bool{}, blocked: make(chan string, 16), resumed: make(chan int64, 16)}
+	return &transferUpstream{directories: map[string]bool{}, files: map[string][]byte{}, uploads: map[string]*remoteUpload{}, parts: map[string]map[int]int{}, blockedOnce: map[string]bool{}, blocked: make(chan string, 16), resumed: make(chan int64, 16)}
 }
 func digest(b []byte) string { s := md5.Sum(b); return hex.EncodeToString(s[:]) }
 func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,12 +122,48 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		name := param.List[0].Path
 		u.mu.Lock()
 		body, ok := u.files[key(name)]
+		isDir := u.directories[key(name)]
 		u.mu.Unlock()
+		if isDir {
+			respond(map[string]any{"list": []any{map[string]any{"fs_id": 1, "path": name, "server_filename": filepath.Base(name), "size": 0, "isdir": 1}}})
+			return
+		}
 		if !ok {
 			respond(map[string]any{"error_code": 31066, "error_msg": "not found"})
 			return
 		}
-		respond(map[string]any{"list": []any{map[string]any{"fs_id": 1, "path": name, "server_filename": filepath.Base(name), "size": len(body), "md5": digest(body), "isdir": 0}}})
+		respond(map[string]any{"list": []any{map[string]any{"fs_id": 1, "path": name, "server_filename": filepath.Base(name), "size": len(body), "md5": digest(body), "isdir": 0, "mtime": 1700000000}}})
+	case "mkdir":
+		u.mu.Lock()
+		u.directories[key(r.URL.Query().Get("path"))] = true
+		u.mu.Unlock()
+		respond(map[string]any{})
+		return
+	case "list":
+		dir := r.URL.Query().Get("dir")
+		if dir == "" {
+			dir = r.URL.Query().Get("path")
+		}
+		list := []any{}
+		u.mu.Lock()
+		for k, b := range u.files {
+			p := strings.TrimPrefix(k, owner+"\x00")
+			if strings.HasPrefix(k, owner+"\x00") && path.Dir(p) == dir {
+				list = append(list, map[string]any{"fs_id": len(list) + 1, "path": p, "server_filename": path.Base(p), "size": len(b), "md5": digest(b), "isdir": 0})
+			}
+		}
+		for k := range u.directories {
+			p := strings.TrimPrefix(k, owner+"\x00")
+			if strings.HasPrefix(k, owner+"\x00") && path.Dir(p) == dir {
+				list = append(list, map[string]any{"fs_id": len(list) + 1, "path": p, "server_filename": path.Base(p), "isdir": 1})
+			}
+		}
+		u.mu.Unlock()
+		respond(map[string]any{"errno": 0, "list": list})
+		return
+	case "locatedownload":
+		respond(map[string]any{"urls": []any{map[string]any{"url": "https://pcs.baidu.com/rest/2.0/pcs/file?method=download&path=" + url.QueryEscape(r.URL.Query().Get("path")), "encrypt": 0}}})
+		return
 	case "precreate":
 		r.ParseForm()
 		target := r.Form.Get("path")
@@ -126,6 +171,10 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		id := fmt.Sprint("up-", len(u.uploads)+1)
 		u.uploads[id] = &remoteUpload{owner, target, map[int][]byte{}}
 		u.mu.Unlock()
+		if u.rapidNine && r.Form.Get("content-md5") != "" {
+			respond(map[string]any{"errno": -9, "uploadid": id})
+			return
+		}
 		respond(map[string]any{"errno": 0, "return_type": 1, "uploadid": id})
 	case "upload":
 		target := r.URL.Query().Get("path")
@@ -144,7 +193,7 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		if strings.Contains(target, "cancel") || (strings.Contains(target, "restart") && part == 1) {
+		if strings.Contains(target, "cancel") || strings.Contains(target, "pause") || (strings.Contains(target, "restart") && part == 1) {
 			u.mu.Lock()
 			seen := u.blockedOnce[key(target)]
 			u.blockedOnce[key(target)] = true
@@ -168,6 +217,17 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		u.parts[key(target)][part]++
 		u.mu.Unlock()
+		if u.badChecksum {
+			respond(map[string]any{"md5": digest([]byte("wrong"))})
+			return
+		}
+		if u.expireUpload {
+			u.mu.Lock()
+			u.expireUpload = false
+			u.mu.Unlock()
+			respond(map[string]any{"error_code": 31363})
+			return
+		}
 		respond(map[string]any{"md5": digest(body)})
 	case "create":
 		r.ParseForm()
@@ -216,14 +276,26 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var offset int64
+		last := int64(len(body) - 1)
 		if header := r.Header.Get("Range"); header != "" {
-			fmt.Sscanf(header, "bytes=%d-", &offset)
-			u.resumed <- offset
-			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", offset, len(body)-1, len(body)))
-			w.Header().Set("Content-Length", strconv.Itoa(len(body)-int(offset)))
+			fmt.Sscanf(header, "bytes=%d-%d", &offset, &last)
+			select {
+			case u.resumed <- offset:
+			default:
+			}
+			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", offset, last, len(body)))
+			w.Header().Set("Content-Length", strconv.FormatInt(last-offset+1, 10))
 			w.WriteHeader(206)
 		} else {
 			w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		}
+		if strings.Contains(r.URL.Query().Get("path"), "slow-proxy") {
+			w.Write(body[offset : offset+1])
+			w.(http.Flusher).Flush()
+			u.blocked <- "slow-proxy"
+			<-r.Context().Done()
+			u.blocked <- "slow-proxy-closed"
+			return
 		}
 		if strings.Contains(r.URL.Query().Get("path"), "download-restart") && offset == 0 {
 			w.Write(body[:256<<10])
@@ -232,7 +304,7 @@ func (u *transferUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			<-r.Context().Done()
 			return
 		}
-		w.Write(body[offset:])
+		w.Write(body[offset : last+1])
 	default:
 		http.Error(w, "unexpected operation", 400)
 	}
@@ -275,7 +347,14 @@ func (f *transferFixture) open(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.service, err = apptransfers.New(context.Background(), f.store, f.store, f.store, observedEngine{NewSingleFileEngine(f.clients, roots), t})
+	engine := NewSingleFileEngine(f.clients, roots)
+	engine.SetRepository(f.store)
+	stage, err := localfs.NewStaging(f.directory, f.store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine.SetStaging(stage)
+	f.service, err = apptransfers.New(context.Background(), f.store, f.store, f.store, observedEngine{engine, t})
 	if err != nil {
 		t.Fatal(err)
 	}

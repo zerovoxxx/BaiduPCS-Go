@@ -56,7 +56,7 @@ func (s *Service) Items(ctx context.Context, p auth.Principal, id string) ([]tra
 	if err != nil {
 		return nil, err
 	}
-	if r.Request.Kind == "file_scan" {
+	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
 		return s.repo.TransferItems(ctx, id, 10001)
 	}
 	// Transfers currently execute one unit. Its public summary is projected from
@@ -68,7 +68,7 @@ func (s *Service) ItemPage(ctx context.Context, p auth.Principal, id, cursor str
 	if err != nil {
 		return query.Page{}, err
 	}
-	if r.Request.Kind == "file_scan" {
+	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
 		return s.repo.TransferItemPage(ctx, id, p.ID, cursor, size)
 	}
 	return q.Page(ctx, []any{"items", p.ID, id, size}, cursor, size, func() ([]json.RawMessage, error) {
@@ -90,6 +90,37 @@ func (s *Service) Retry(ctx context.Context, p auth.Principal, id, scope, key st
 	req := r.Request
 	req.RetryOf = id
 	req.RetryScope = scope
+	if len(r.Plan) > 0 {
+		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
+		if err != nil {
+			return r, err
+		}
+		selected := map[uint64]bool{}
+		for _, item := range items {
+			selected[item.Index] = true
+		}
+		var plan transfer.Plan
+		_ = json.Unmarshal(r.Plan, &plan)
+		b := transfer.Batch{}
+		for i, u := range plan.Units {
+			if !selected[uint64(i)] {
+				continue
+			}
+			u.SHA256 = ""
+			u.Mtime = 0
+			u.Size = 0
+			b.RetryUnits = append(b.RetryUnits, u)
+		}
+		if len(b.RetryUnits) == 0 {
+			return r, fault.New(fault.Conflict, "NO_RETRYABLE_ITEMS", "没有符合范围的重试项")
+		}
+		var original transfer.Batch
+		_ = json.Unmarshal([]byte(req.Batch), &original)
+		b.Directory = original.Directory
+		raw, _ := json.Marshal(b)
+		req.Batch = string(raw)
+		return s.Submit(ctx, p, req, key)
+	}
 	if r.Request.Kind == "file_scan" {
 		items, err := s.repo.RetryTransferItems(ctx, id, scope == "failed_and_cancelled")
 		if err != nil {
@@ -165,6 +196,7 @@ func (s *Service) Events(ctx context.Context, p auth.Principal, id string, after
 }
 func TransferItem(r transfer.Record) transfer.Item {
 	var cp struct {
+		Workers      []transfer.Worker
 		Phase        string
 		Size, Offset int64
 		Skipped      bool
@@ -183,10 +215,16 @@ func TransferItem(r transfer.Record) transfer.Item {
 	if state == "cancelling" {
 		state = "running"
 	}
+	if state == "paused" || state == "pausing" {
+		state = "interrupted"
+		for i := range cp.Workers {
+			cp.Workers[i].State = "paused"
+		}
+	}
 	if state == "succeeded" && cp.Skipped {
 		state = "skipped"
 	}
-	item := transfer.Item{ID: "item_0", Path: r.Request.RemotePath, RootID: r.Request.RootID, RelativePath: r.Request.RelativePath, State: state, CheckpointAvailable: len(r.Checkpoint) > 0}
+	item := transfer.Item{Workers: cp.Workers, ID: "item_0", Path: r.Request.RemotePath, RootID: r.Request.RootID, RelativePath: r.Request.RelativePath, State: state, CheckpointAvailable: len(r.Checkpoint) > 0}
 	if r.StartedAt != "" {
 		item.Attempts = 1
 	}

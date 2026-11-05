@@ -24,3 +24,12 @@ func Authorize(p auth.Principal, scopes []string, accountID string) error {
 	}
 	return nil
 }
+
+func (s *Service) Principal(ctx context.Context, id string) (auth.Principal, error) {
+	if directory, ok := s.provider.(interface {
+		Principal(context.Context, string) (auth.Principal, error)
+	}); ok {
+		return directory.Principal(ctx, id)
+	}
+	return auth.Principal{}, fault.New(fault.Unsupported, "TICKET_NOT_AVAILABLE", "身份提供者不支持票据权限复核")
+}

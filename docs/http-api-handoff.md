@@ -1,6 +1,6 @@
-# HTTP API 工程交接：P3 已交付，从 P4 继续
+# HTTP API 工程交接：P4 已交付，从 P5 继续
 
-日期：2026-11-05。分支 `codex/http-api-design`；P3 开发基线 `4fc00ce`。契约 `0.3.0-p3`，SQLite schema v4。原业务源码基线仍为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1 历史清单保留。
+日期：2026-11-05。分支 `codex/http-api-design`；P3 开发基线 `4fc00ce`。契约 `0.4.0-p4`，SQLite schema v5。原业务源码基线仍为 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1 历史清单保留。
 
 ## 1 当前交付
 
@@ -9,18 +9,18 @@
 | P0/P1 | 105 操作、89 路径、190 schema；12 个系统/配置操作保持 implemented | 当前源码映射 616 条；映射、实现、离线和上游实测分开统计 |
 | P2 | 账号/单文件/任务、持久派发、取消、关闭和恢复保留 | [P2 验收](http-api-p2-verification.md)及原真实百度脱敏报告不重写 |
 | P3 | 完整 ACC01—ACC09、FIL01—FIL06、JOB01—JOB06/JOB09/JOB11、ART01—ART04、LOC01 | [P3逐项验收](http-api-p3-verification.md)、[操作指南](http-api-p3-guide.md) |
-| 传输 | UPL01、DWN01、JOB08 继续 P2 子集 | 完整目录、策略、并发、暂停、暂存和内容代理仍在 P4 |
+| P4 传输 | UPL01—UPL04、DWN01—DWN04、JOB07—JOB08及独立DWN05扩展 | 完整目录、策略、并发、限速、真实暂停、暂存引用、内容代理和票据见P4记录 |
 | 上游 | 使用新扫码会话完成P3专用目录真实验收 | [P3脱敏报告](http-api-p3-upstream-verification.json)中33个检查阶段通过；小目录/单账号实测与离线规模及故障证据分开 |
 
-当前为 **40 implemented、3 partial、62 planned**。P3 的24个归属操作和4个P2账号切片已完整核销。planned 操作授权后返回501。QR辅助认证不计为LOG操作实现；HTTP登录会话仍在P6。
+当前为 **51 implemented、0 partial、54 planned**。P3 的24个归属操作和4个P2账号切片已完整核销；P4十个核心操作及独立DWN05扩展已核销。planned 操作授权后返回501。QR辅助认证不计为LOG操作实现；HTTP登录会话仍在P6。
 
-推荐先读：本文件 → [P3指南](http-api-p3-guide.md) → [P3验收](http-api-p3-verification.md) → [实施计划](http-api-implementation-plan.md) → [设计](http-api-design.md) → [源码覆盖](http-api-coverage.md) → [契约校验](../api/openapi/README.md)。
+推荐先读：本文件 → [P4指南](http-api-p4-guide.md) → [P4验收](http-api-p4-verification.md) → [P3指南](http-api-p3-guide.md) → [P3验收](http-api-p3-verification.md) → [实施计划](http-api-implementation-plan.md) → [设计](http-api-design.md) → [源码覆盖](http-api-coverage.md) → [契约校验](../api/openapi/README.md)。
 
 ## 2 代码接入点
 
 | 位置 | 当前职责 | 后续扩展边界 |
 | --- | --- | --- |
-| bootstrap/server.go、p3.go | 目录锁后装配唯一服务、固定旧账号来源、维护清理、ready和有序关闭；p3Engine按kind路由 | 沿现有生命周期加入P4引擎，不再重建任务基础 |
+| bootstrap/server.go、p3.go | 目录锁后装配唯一服务、固定旧账号来源、维护清理、ready和有序关闭；p3Engine按kind路由 | 沿现有生命周期加入已装配P4目录计划、暂存与内容服务；后续写业务引擎，不再重建任务基础 |
 | application/accounts、persistence/accounts.go | 规范凭据、独立ID、版本/归档/吊销、强ETag、配额、删除和幂等 | 交互登录在P6；身份未知字段保持null，UK不冒充UID |
 | infrastructure/legacyconfig | 显式legacy_accounts_file只读导入，不使用CLI全局对象 | 源指纹/索引永久重放，重复UID不合并；CLI默认值和客户端参数导入/管理在P6 |
 | application/files、infrastructure/baidu/files.go | 列表/元数据、搜索、通配符、流式扫描；实例客户端和有界上游响应 | 文件写业务P5复用读取；绝对/base_path先行，不依赖P6 context |
@@ -68,7 +68,7 @@ P2有效值继续见[P2指南](http-api-p2-guide.md)：普通文件1字节至32M
 
 ## 5 存储、安全和生命周期
 
-- 数据目录独立，master.key/DB/artifacts配对备份，密文不能换新key解读。v4只能增量升级；P2二进制拒绝v4，回滚需恢复升级前一致备份。P0/P1冻结清单不重写。
+- 数据目录独立，master.key/DB/artifacts配对备份，密文不能换新key解读。当前v5由v4增量升级；旧二进制拒绝高版本schema，回滚需恢复升级前一致备份。P0/P1冻结清单不重写。
 - bootstrap先获得目录锁再恢复/派发。直接组合Store/Service的单元测试不等于允许生产多实例。
 - 单独SQL状态/时间/version为权威，所有提交检查错误。维护每分钟处理事件/幂等/无引用到期结果；活动job重放保留，旧配置导入指纹长期保留。未承诺主机掉电一致性。
 - credentials、proxy、uploadid、签名URL/票据、本地绝对root不进DTO/日志。日志仅路由模板；401仍是服务API身份问题，百度失效为422。
@@ -81,4 +81,8 @@ P2有效值继续见[P2指南](http-api-p2-guide.md)：普通文件1字节至32M
 
 契约变更：YAML/设计/示例 → export_contract.py → 实际HTTP响应重新导出 → checker。源码或覆盖变化先人工审矩阵，再--write-inventory，最后不带该参数检查。当前616项包含新增FilesDirectoriesListPage；新分层内部协作者按覆盖矩阵分组管理，不按函数名制造HTTP端点。
 
-从P4完整传输继续，沿既有上传下载执行器、持久队列和P3查询/事件/结果能力扩展。用户已授权在本工作区0600的`.env`中保留新扫码凭据供后续验证复用，文件已保存、由Git忽略且未被跟踪；复用命令见[P3验收](http-api-p3-verification.md)。临时二维码及测试服务数据已清理，远端本轮子目录清理通过。远端文件操作授权仍仅限`/BaiduPCS-Go-P2-Verification/`；凭据缺失或过期时再联系用户扫码，不读取日常账号或文件。所有实测记录时间、平台、参数及范围，交接者无需依赖聊天或本机/tmp判断剩余工作。
+从P5网盘写业务继续，沿既有执行器、持久队列和P3查询/事件/结果能力扩展。用户已授权在本工作区0600的`.env`中保留新扫码凭据供后续验证复用，文件已保存、由Git忽略且未被跟踪；复用命令见[P3验收](http-api-p3-verification.md)。临时二维码及测试服务数据已清理，远端本轮子目录清理通过。远端文件操作授权仍仅限`/BaiduPCS-Go-P2-Verification/`；凭据缺失或过期时再联系用户扫码，不读取日常账号或文件。所有实测记录时间、平台、参数及范围，交接者无需依赖聊天或本机/tmp判断剩余工作。
+
+## P4 收尾与下一步
+
+P4十个核心操作和DWN05独立扩展已实现，详细限制、证据和迁移回滚见[P4指南](http-api-p4-guide.md)及[验收](http-api-p4-verification.md)。SingleFileEngine保留P2检查点和握手/提交边界，新增transfer_plan冻结目录与源指纹；暂存引用与任务同事务。JOB07真实排空后paused，恢复给新context。CLI TaskUnit已显式注入客户端/限速/调用控制，旧下载cache按实例分配。schema v5只增加staging_files/staging_references。真实百度本轮39阶段和清理通过，参数范围见[P4报告](http-api-p4-upstream-verification.json)。从P5的cpmvOp准备错误修复继续；不得重置P3/P4本地提交。

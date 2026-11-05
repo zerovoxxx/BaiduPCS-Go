@@ -66,6 +66,32 @@ func permission(p auth.Principal, r transfer.Record) error {
 		}
 		return nil
 	}
+	if r.Request.Batch != "" {
+		var b transfer.Batch
+		if json.Unmarshal([]byte(r.Request.Batch), &b) != nil {
+			return fault.New(fault.Invalid, "INVALID_REQUEST", "传输选择无效")
+		}
+		if !p.Has("transfer") || !p.AllowsAccount(r.Request.AccountID) || (r.Owner != p.ID && !p.Has("admin")) {
+			return fault.New(fault.Forbidden, "FORBIDDEN", "无权访问传输任务")
+		}
+		if r.Request.Kind == "download" {
+			if !p.Has("local.write") || !p.AllowsRoot(r.Request.RootID) {
+				return fault.New(fault.Forbidden, "FORBIDDEN", "无权写入本地目录")
+			}
+		} else {
+			for _, unit := range b.RetryUnits {
+				if unit.StagedFileID == "" && (!p.Has("local.read") || !p.AllowsRoot(unit.RootID)) {
+					return fault.New(fault.Forbidden, "FORBIDDEN", "无权读取重试源")
+				}
+			}
+			for _, source := range b.Sources {
+				if source.Type == "local" && (!p.Has("local.read") || !p.AllowsRoot(source.RootID)) {
+					return fault.New(fault.Forbidden, "FORBIDDEN", "无权读取本地上传源")
+				}
+			}
+		}
+		return nil
+	}
 	local := "local.read"
 	if r.Request.Kind == "download" {
 		local = "local.write"
@@ -92,7 +118,7 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 	if err := permission(p, r); err != nil {
 		return r, err
 	}
-	if req.Kind != "file_scan" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
+	if req.Kind != "file_scan" && req.Batch == "" && (req.Kind != "upload" && req.Kind != "download" || !configuration.ValidID(req.AccountID) || !configuration.ValidID(req.RootID) || !configuration.ValidRelative(req.RelativePath) || req.RelativePath == "" || req.RelativePath == "." || !strings.HasPrefix(req.RemotePath, "/") || path.Clean(req.RemotePath) != req.RemotePath || req.RemotePath == "/" || strings.ContainsAny(req.RemotePath, "\x00\r\n") || len(req.RemotePath) > 4096 || len(key) > 128) {
 		return r, fault.New(fault.Invalid, "INVALID_REQUEST", "单文件传输输入无效")
 	}
 	if key != "" {
@@ -153,6 +179,12 @@ func (s *Service) Submit(ctx context.Context, p auth.Principal, req transfer.Req
 		r.EffectiveOptions = plan.Options
 	} else if err = resolveOptions(&r); err != nil {
 		return r, err
+	}
+	if planner, ok := s.engine.(ports.TransferPlanner); ok && (req.Kind == "upload" || req.Kind == "download") {
+		r.Plan, err = planner.Plan(ctx, r, a.Credentials)
+		if err != nil {
+			return r, err
+		}
 	}
 	if preparer, ok := s.engine.(ports.TransferPreparer); ok {
 		r.TargetKey, err = preparer.Prepare(ctx, r, a.Credentials)
@@ -351,6 +383,9 @@ func (s *Service) schedule(r transfer.Record) {
 			case readErr == nil && current.State == "cancelling":
 				state = "cancelled"
 				code = ""
+			case readErr == nil && current.State == "pausing":
+				state = "paused"
+				code = ""
 			case s.ctx.Err() != nil:
 				state = "interrupted"
 				code = ""
@@ -432,8 +467,8 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 		if _, active := s.running[id]; active {
 			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务仍在排空")
 		}
-		if r.State != "interrupted" {
-			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "仅可恢复中断任务")
+		if r.State != "interrupted" && r.State != "paused" {
+			return r, fault.New(fault.Conflict, "STATE_CONFLICT", "仅可恢复已暂停或中断任务")
 		}
 		if _, err := s.accounts.CredentialVersion(ctx, r.Request.AccountID, r.CredentialRevision); err != nil {
 			return r, err
@@ -455,7 +490,7 @@ func (s *Service) control(ctx context.Context, p auth.Principal, id string, resu
 			return r, fault.New(fault.Conflict, "RECONCILIATION_REQUIRED", "提交结果尚未核对，请恢复任务以核验结果")
 		}
 		state = "cancelling"
-		if r.State == "queued" || r.State == "interrupted" {
+		if r.State == "queued" || r.State == "interrupted" || r.State == "paused" {
 			state = "cancelled"
 		}
 	}
@@ -539,4 +574,43 @@ func initialReceipt(r transfer.Record) transfer.Record {
 	r.FailureCode = ""
 	r.ScanResult = nil
 	return r
+}
+
+// Pause stops this job's network context, then publishes paused only after its
+// executor has drained and flushed the checkpoint. Resume gets a new context.
+func (s *Service) Pause(ctx context.Context, p auth.Principal, id string, input Control) (transfer.Record, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	r, err := s.Get(ctx, p, id)
+	if err != nil {
+		return r, err
+	}
+	if r.Request.Kind != "upload" && r.Request.Kind != "download" {
+		return r, fault.New(fault.Unsupported, "UNSUPPORTED_JOB_ACTION", "此任务不支持暂停")
+	}
+	m := operation.New(p.ID, "JOB07/"+id, input.Key, input.Reason)
+	if replay, err := s.repo.ReplayControl(ctx, m); err != nil {
+		return r, err
+	} else if replay != nil {
+		return *replay, nil
+	}
+	if r.State == "paused" || r.State == "pausing" {
+		return s.repo.ControlTransfer(ctx, id, []string{r.State}, "", m)
+	}
+	if r.State != "queued" && r.State != "running" {
+		return r, fault.New(fault.Conflict, "STATE_CONFLICT", "任务当前不能暂停")
+	}
+	to := "pausing"
+	if r.State == "queued" {
+		to = "paused"
+	}
+	result, err := s.repo.ControlTransfer(ctx, id, []string{r.State}, to, m)
+	if err != nil {
+		return r, err
+	}
+	if cancel := s.running[id]; cancel != nil {
+		cancel()
+	}
+	s.notify()
+	return result, nil
 }

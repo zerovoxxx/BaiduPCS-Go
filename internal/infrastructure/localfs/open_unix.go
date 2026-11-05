@@ -22,7 +22,7 @@ func (r *Registry) OpenFile(ctx context.Context, id, relative string, flags int,
 		return nil, err
 	}
 	defer unix.Close(fd)
-	leaf, err := unix.Openat(fd, leafName, flags|unix.O_CLOEXEC|unix.O_NOFOLLOW, uint32(mode.Perm()))
+	leaf, err := unix.Openat(fd, leafName, flags|unix.O_CLOEXEC|unix.O_NOFOLLOW|unix.O_NONBLOCK, uint32(mode.Perm()))
 	if err != nil {
 		return nil, err
 	}

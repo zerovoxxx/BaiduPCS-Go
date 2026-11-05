@@ -1,6 +1,6 @@
 # HTTP API 契约与验证
 
-日期：2026-11-05。版本：`0.3.0-p3`。状态：40 implemented、3 partial、62 planned；[P3指南](../../docs/http-api-p3-guide.md)和[逐项验收](../../docs/http-api-p3-verification.md)记录完整账号、文件读取/扫描、任务/事件及结果文件。UPL01/DWN01/JOB08保留P2子集，完整传输在P4。P2真实百度证据保留其原账号/时间/范围；本轮实测另列。原业务基线 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1历史清单保留在baselines/。
+日期：2026-11-05。版本：`0.4.0-p4`。状态：51 implemented、0 partial、54 planned；[P3指南](../../docs/http-api-p3-guide.md)和[逐项验收](../../docs/http-api-p3-verification.md)记录完整账号、文件读取/扫描、任务/事件及结果文件。P4完整传输及DWN05独立扩展已交付，见[P4指南](../../docs/http-api-p4-guide.md)和[验收](../../docs/http-api-p4-verification.md)。P2真实百度证据保留其原账号/时间/范围；本轮实测另列。原业务基线 `1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`，P0/P1历史清单保留在baselines/。
 
 [openapi.yaml](openapi.yaml) 是 HTTP 字段、类型、约束和 operationId 的唯一契约源。共 105 个 operation、89 个 path、190 个 schema。operationId 固定使用设计中的 SYS01、ACC01 等 ID。`/api/v1/openapi.json` 已在 P1 原样提供由 YAML 生成的内嵌 JSON。
 
@@ -139,11 +139,12 @@ BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
 BAIDUPCS_P2_CONTRACT_RESPONSES=/tmp/baidupcs-p2-responses.json \
 BAIDUPCS_P3_ACCOUNT_RESPONSES=/tmp/baidupcs-p3-accounts.json \
 BAIDUPCS_P3_CONTRACT_RESPONSES=/tmp/baidupcs-p3-responses.json \
+BAIDUPCS_P4_CONTRACT_RESPONSES=/tmp/baidupcs-p4-responses.json \
 GOTOOLCHAIN=go1.23.12 go test -race -count=1 -timeout=180s \
   ./internal/domain/... ./internal/application/... \
   ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap .
 /tmp/baidupcs-http-p0-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json
+  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json
 python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p2-builds.json
 ```
 
@@ -161,3 +162,5 @@ P3已收尾：40 implemented、3 partial、62 planned，完整范围与限制见
 planned/partial/implemented贯穿Capability、Catalog、路由和checker；supported_option_values表达规范字符串值，limits只放数值上限。credential_alternatives表达至少满足一组凭据，token-only不得据此取得Cookie能力。实际响应检查覆盖所有开放操作的成功路径和partial拒绝路径，并核对运行能力、SSE帧、HEAD/204与目标契约。
 
 查询快照默认10000项/600秒、128个活跃快照/128MiB；扫描逐项改用不可变条目高水位游标，支持更大任务。事件每job10000个/86400秒、心跳15秒、128帧/连接及全局64连接。Artifact完成后TTL86400秒、单文件256MiB、总量1GiB/128文件；活动任务/响应引用阻止物理清理，过期读取410。详情及schema v4回滚说明见P3文档。
+
+P4证据补充：[39阶段真实百度报告](../../docs/http-api-p4-upstream-verification.json)，[P4逐项验收](../../docs/http-api-p4-verification.md)。YAML版本0.4.0-p4，源码映射620条；51 implemented包括十个核心P4操作及独立DWN05扩展。

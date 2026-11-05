@@ -96,6 +96,28 @@ func (s *Store) CreateTransfer(ctx context.Context, r transfer.Record) (bool, er
 	if err != nil || n != 1 {
 		return false, err
 	}
+	if len(r.Plan) > 0 {
+		var plan transfer.Plan
+		if err = json.Unmarshal(r.Plan, &plan); err != nil {
+			return false, err
+		}
+		for _, unit := range plan.Units {
+			if unit.StagedFileID == "" {
+				continue
+			}
+			f, e := s.stage(ctx, tx, unit.StagedFileID)
+			if e != nil {
+				return false, e
+			}
+			expiry, _ := time.Parse(time.RFC3339Nano, f.ExpiresAt)
+			if f.Owner != r.Owner || f.State != "ready" && f.State != "in_use" || f.References == 0 && !time.Now().Before(expiry) {
+				return false, fault.New(fault.Gone, "RESOURCE_EXPIRED", "暂存源已失效")
+			}
+			if _, err = tx.ExecContext(ctx, "INSERT OR IGNORE INTO staging_references VALUES(?,?)", f.ID, r.ID); err != nil {
+				return false, err
+			}
+		}
+	}
 	if err = s.appendEvent(ctx, tx, r.ID, "job.created", nil); err != nil {
 		return false, err
 	}
@@ -176,6 +198,9 @@ func (s *Store) TransitionTransfer(ctx context.Context, id string, from []string
 		return false, err
 	}
 	if transfer.Terminal(to) {
+		if err = s.releaseStaging(ctx, tx, id); err != nil {
+			return false, err
+		}
 		if err = s.appendEvent(ctx, tx, id, "job.finished", nil); err != nil {
 			return false, err
 		}
@@ -193,7 +218,7 @@ func (s *Store) SaveTransferCheckpoint(ctx context.Context, id string, checkpoin
 	if err != nil {
 		return err
 	}
-	if r.State != "running" && r.State != "cancelling" {
+	if r.State != "running" && r.State != "cancelling" && r.State != "pausing" {
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
 	}
 	r.Checkpoint = append(json.RawMessage(nil), checkpoint...)
@@ -253,7 +278,7 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 			return err
 		}
 	}
-	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state='running'")
+	rows, err = s.db.QueryContext(ctx, "SELECT job_id FROM jobs WHERE kind IN ('upload','download','file_scan') AND state IN ('running','pausing')")
 	if err != nil {
 		return err
 	}
@@ -272,7 +297,7 @@ func (s *Store) InterruptTransfers(ctx context.Context) error {
 		return err
 	}
 	for _, id := range ids {
-		if _, err = s.TransitionTransfer(ctx, id, []string{"running"}, "interrupted"); err != nil {
+		if _, err = s.TransitionTransfer(ctx, id, []string{"running", "pausing"}, "interrupted"); err != nil {
 			return err
 		}
 	}
@@ -289,11 +314,11 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 	if err != nil {
 		return err
 	}
-	if r.State != "running" && r.State != "cancelling" && !(code == "CREDENTIAL_REVOKED" && (r.State == "queued" || r.State == "interrupted")) {
+	if r.State != "running" && r.State != "cancelling" && r.State != "pausing" && !(code == "CREDENTIAL_REVOKED" && (r.State == "queued" || r.State == "interrupted")) {
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "任务已停止")
 	}
 	r.FailureCode = code
-	if r.Request.Kind == "file_scan" && r.ScanResult != nil && state == "succeeded" && r.ScanResult.Counts.Failed > 0 {
+	if r.ScanResult != nil && state == "succeeded" && r.ScanResult.Counts.Failed > 0 {
 		state = "failed"
 		if r.ScanResult.Counts.Succeeded > 0 {
 			state = "partially_succeeded"
@@ -319,7 +344,10 @@ func (s *Store) FinishTransfer(ctx context.Context, id, state, code string) erro
 		return err
 	}
 	if transfer.Terminal(state) {
-		if r.Request.Kind != "file_scan" {
+		if err = s.releaseStaging(ctx, tx, id); err != nil {
+			return err
+		}
+		if r.Request.Kind != "file_scan" && len(r.Plan) == 0 {
 			if err = s.appendEvent(ctx, tx, id, "item.completed", nil); err != nil {
 				return err
 			}
@@ -416,6 +444,9 @@ func (s *Store) ControlTransfer(ctx context.Context, id string, from []string, t
 			return r, err
 		}
 		if transfer.Terminal(to) {
+			if err = s.releaseStaging(ctx, tx, id); err != nil {
+				return r, err
+			}
 			if err = s.appendEvent(ctx, tx, id, "job.finished", nil); err != nil {
 				return r, err
 			}

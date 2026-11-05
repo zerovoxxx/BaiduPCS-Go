@@ -82,3 +82,7 @@ func configureP3Capabilities(operations []system.Operation) {
 		}
 	}
 }
+
+func (e p3Engine) Plan(ctx context.Context, r transfer.Record, c account.Credentials) (json.RawMessage, error) {
+	return e.transfer.Plan(ctx, r, c)
+}

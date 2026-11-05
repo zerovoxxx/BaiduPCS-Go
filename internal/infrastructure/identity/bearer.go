@@ -99,3 +99,17 @@ func ValidToken(value string) bool {
 	}
 	return value[0] != '='
 }
+
+// Principal rechecks a ticket owner's current static permissions. Ticket claims
+// never grant their stored scopes and never restore a removed identity.
+func (b *Bearer) Principal(ctx context.Context, id string) (auth.Principal, error) {
+	if err := ctx.Err(); err != nil {
+		return auth.Principal{}, err
+	}
+	for _, entry := range b.tokens {
+		if entry.principal.ID == id {
+			return entry.principal.Clone(), nil
+		}
+	}
+	return auth.Principal{}, fault.New(fault.Unauthorized, "API_UNAUTHORIZED", "票据原调用方已不可用")
+}

@@ -226,7 +226,7 @@ func TestHTTPRejectsMalformedInputsAndHeadBodies(t *testing.T) {
 	runtime.Handler.ServeHTTP(rec, req)
 	wantStatus(t, rec, 401)
 	head := request(t, runtime.Handler, "HEAD", "/api/v1/accounts/account_a/content", testToken, "", "", "")
-	wantStatus(t, head, 501)
+	wantStatus(t, head, 400)
 	if head.Body.Len() != 0 {
 		t.Fatal("HEAD error has body")
 	}

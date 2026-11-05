@@ -28,9 +28,11 @@ import (
 	appartifacts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/artifacts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
+	appcontent "github.com/qjfoidnh/BaiduPCS-Go/internal/application/content"
 	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
 	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
+	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
@@ -260,7 +262,14 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 			}
 		}
 	}
-	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{transfer: baidu.NewSingleFileEngine(runtime.Clients, roots), scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
+	stageFiles, err := localfs.NewStaging(directory, runtime.store)
+	if err != nil {
+		return nil, err
+	}
+	transferEngine := baidu.NewSingleFileEngine(runtime.Clients, roots)
+	transferEngine.SetRepository(runtime.store)
+	transferEngine.SetStaging(stageFiles)
+	runtime.Transfers, err = apptransfers.New(lifetime, runtime.store, runtime.store, runtime.store, p3Engine{transfer: transferEngine, scanner: appfiles.NewScanner(runtime.Clients, runtime.store, artifactFiles)})
 	if err != nil {
 		return nil, err
 	}
@@ -273,12 +282,16 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 		runtime.Clients.RevokeCredentials(id, before)
 		return runtime.Transfers.RevokeAccount(ctx, id)
 	})
+	if err = stageFiles.Cleanup(ctx); err != nil {
+		return nil, err
+	}
 	if err = artifactFiles.Cleanup(ctx); err != nil {
 		return nil, err
 	}
 	configureP2Capabilities(operations)
 	configureP3Capabilities(operations)
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: appfiles.New(runtime.store, runtime.store, runtime.Clients, queries), Queries: queries, Local: applocal.New(roots), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
+	configureP4Capabilities(operations)
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(authenticator), Configuration: cfgService, Accounts: accountService, Transfers: runtime.Transfers, Files: appfiles.New(runtime.store, runtime.store, runtime.Clients, queries), Queries: queries, Local: applocal.New(roots), Content: appcontent.New(runtime.store, runtime.store, runtime.Clients, runtime.store), Staging: appstaging.New(stageFiles), Artifacts: appartifacts.New(artifactFiles, runtime.Transfers), System: appsystem.New(options.Version, baseline, time.Now(), operations), Operations: operations, Contract: contract.JSON(), Draining: runtime.draining.Load, Logger: options.Logger, Ready: func(ctx context.Context) error {
 		if err := runtime.Transfers.Ready(ctx); err != nil {
 			return err
 		}
@@ -309,7 +322,7 @@ func New(ctx context.Context, options Options) (*Runtime, error) {
 				return
 			case <-ticker.C:
 				clean, done := context.WithTimeout(lifetime, 10*time.Second)
-				err := errors.Join(artifactFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean))
+				err := errors.Join(artifactFiles.Cleanup(clean), stageFiles.Cleanup(clean), runtime.store.CleanupEvents(clean), runtime.store.CleanupReplays(clean))
 				done()
 				if err != nil && lifetime.Err() == nil && options.Logger != nil {
 					options.Logger.Error("service retention cleanup failed")

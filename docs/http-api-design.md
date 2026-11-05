@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 5 日。状态：P0—P3已交付；40个操作implemented、3个传输操作partial、62个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；完整传输在P4。
+日期：2026 年 11 月 5 日。状态：P0—P4已交付；51个操作implemented、0个partial、54个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；P4完整传输及票据扩展见[P4记录](http-api-p4-verification.md)。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -246,7 +246,7 @@ docs/http-api-*.md                      # 设计、覆盖和实施资料
 
 ## 6 HTTP 接口目录
 
-当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径已在P2以partial开放；完整验收仍在原阶段。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P3交付后40个操作implemented、3个传输操作partial；其余planned授权后501，逐项状态以OpenAPI中的x-capability为准。
+当前目标目录共 105 个 operation、89 个 path，operationId 固定为表中 ID；方法、路径和阶段由 P0 校验器逐项核对。完整字段和限制以 [OpenAPI](../api/openapi/openapi.yaml) 为准。表中阶段表示完整操作的验收阶段；UPL01、DWN01、JOB02/04/06/08的最小路径已在P2以partial开放；完整验收仍在原阶段。阶段编号对应调整后的实施计划。`条件` 表示必须通过能力检查；`扩展` 表示当前主项目没有现成的完整服务流程。表中列出完整目标契约。P4交付后51个操作implemented（含独立DWN05扩展）、0个partial；54个planned授权后501，逐项状态以OpenAPI中的x-capability为准。
 
 ### 6.1 系统和诊断
 
@@ -689,3 +689,5 @@ context 的账号变更必须重新检查 allowlist。缓存、artifact、暂存
 SQLite从v3增量到v4；状态/检查点/逐项与持久事件同事务提交，事件序号独立于保留行。SSE最多64连接/128帧/15秒心跳，慢消费者断开后按持久游标重连。artifact使用受保护目录、流式写入、完成后24小时TTL、256MiB单文件/1GiB总配额，任务/读取引用保护物理清理。文件Range/HEAD沿统一协议，删除不移除任务摘要。
 
 legacy_accounts_file在启动时显式选定，导入规范凭据和未验证显示名，不读取全局当前账号、不修改源配置；旧客户端字段及CLI默认值管理仍在P6。P3触及的CLI读取继续共享核心分页解析，保留聚合和输出，重复页及中途错误明确报告不完整。P2 checkpoint绑定/幂等ID保持兼容，回滚schema v4需要恢复一致备份。
+
+P4实现补充：传输计划在入库前冻结至多10000单位，执行器分离准备、实例执行和逐项收集。CLI TaskUnit显式注入客户端、限速、调用控制，signal归main；旧下载worker cache按实例分配。JOB07排空后paused，JOB08新网络上下文核验原检查点。暂存使用v5加法表和任务事务引用；DWN03/04的Range与流独立期限，DWN05作为独立扩展。实现限制与上游范围见[P4指南](http-api-p4-guide.md)和[验收](http-api-p4-verification.md)。

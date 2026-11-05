@@ -69,12 +69,12 @@ func TestP2RuntimeAccountsCapabilitiesAndPersistence(t *testing.T) {
 					values[limit.Name] = *limit.Value
 				}
 			}
-			if values["max_file_size"] != "33554432" || values["max_files_per_request"] != "1" || values["parallel_per_file"] != "1" || len(op.SupportedValues["skip_rapid_check"]) != 1 || op.SupportedValues["skip_rapid_check"][0] != "true" {
+			if values["max_file_size"] != "137438953472" || values["max_files_per_request"] != "100" || values["parallel_per_file_max"] != "32" || len(op.SupportedValues["no_split_file"]) != 1 || op.SupportedValues["no_split_file"][0] != "false" {
 				t.Fatal("missing fixed value constraints")
 			}
 		}
 	}
-	if counts["implemented"] != 40 || counts["partial"] != 3 || counts["planned"] != 62 {
+	if counts["implemented"] != 51 || counts["partial"] != 0 || counts["planned"] != 54 {
 		t.Fatalf("wrong implementation counts: %v", counts)
 	}
 	if err = runtime.Close(); err != nil {

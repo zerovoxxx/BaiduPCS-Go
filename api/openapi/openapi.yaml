@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://spec.openapis.org/oas/3.1/dialect/base
 info:
   title: BaiduPCS-Go HTTP API
-  version: 0.3.0-p3
+  version: 0.4.0-p4
   description: P3账号、文件读取、扫描、任务、事件和结果文件契约，2026-11-05。40个操作implemented、3个partial，其余62个planned。源码基线1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73。所有业务JSON成功使用data/meta；OpenAPI、HTML、指标、SSE和二进制流原样返回。
 servers:
 - url: http://127.0.0.1:5299
@@ -301,7 +301,7 @@ paths:
                       limits: []
                       verified_at: null
                     - id: UPL01
-                      implementation: partial
+                      implementation: implemented
                       availability: unverified
                       enabled: true
                       reason: P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证
@@ -4076,8 +4076,7 @@ paths:
       tags:
       - uploads
       summary: 本地根目录内路径或 staged_file_id、target_dir、上传选项；返回上传 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
-      x-early-validation: P2
+      description: "P4完整上传：local/staged、文件/目录/空文件、策略、重试、秒传及目录计划；NoSplitFile非默认值明确422。源固定指纹，最多10000个计划条目；128GiB上传文件上限，最多16文件/32线程，总线程256。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -4089,8 +4088,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL01
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4233,10 +4234,6 @@ paths:
                     no_split_file: false
                     max_rate_bytes_per_second: '0'
       x-job-kind: upload
-      x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
       x-p2-limits:
         scope: single_file_p2
         upstream_verification: unverified
@@ -4261,7 +4258,7 @@ paths:
       tags:
       - uploads
       summary: multipart 文件接收，返回 staged_file_id、大小和文件名
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 只接收单个 file part；filename 可覆盖展示名，不作为磁盘路径。生成 staged_file_id 后独立于到百度的上传。
+      description: "P4已实现；输入限制与权限在调用上游前校验。 只接收单个 file part；filename 可覆盖展示名，不作为磁盘路径。生成 staged_file_id 后独立于到百度的上传。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -4271,8 +4268,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4378,7 +4377,7 @@ paths:
       tags:
       - uploads
       summary: 调用方自己的暂存文件状态和过期时间
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 已过期返回410，不把state=expired当成可用暂存资源。
+      description: "P4已实现；输入限制与权限在调用上游前校验。 已过期返回410，不把state=expired当成可用暂存资源。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -4388,8 +4387,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -4460,7 +4461,7 @@ paths:
       tags:
       - uploads
       summary: 删除未被任务占用的暂存文件；占用返回 409
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: "P4已实现；输入限制与权限在调用上游前校验。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -4470,8 +4471,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: UPL04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4970,8 +4973,7 @@ paths:
       tags:
       - downloads
       summary: selector、本地 root_id、目标目录和下载选项；返回下载 job
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
-      x-early-validation: P2
+      description: "P4完整下载：paths/fs_ids/patterns，三种模式、目录层级、并发、限速及显式false/0；最多10000个计划条目，单文件128GiB，16文件/32线程，总线程256。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -4983,8 +4985,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: DWN01
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -5137,10 +5141,6 @@ paths:
                     report_workers: false
                     max_rate_bytes_per_second: '0'
       x-job-kind: download
-      x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
       x-p2-limits:
         scope: single_file_p2
         upstream_verification: unverified
@@ -5170,7 +5170,7 @@ paths:
       tags:
       - downloads
       summary: paths 或 fs_ids、source=pcs|pan|direct、https、link_index；逐项返回链接、link_ref 及所需 UA 信息
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。
+      description: "P4已实现；输入限制与权限在调用上游前校验。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -5180,8 +5180,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: DWN02
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5281,8 +5283,7 @@ paths:
       tags:
       - downloads
       summary: path、Range、If-Range；经授权的文件代理内容
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。
-        base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
+      description: "P4已实现；输入限制与权限在调用上游前校验。 Bearer 或短期 query ticket 二选一即可；ticket 只能用于绑定账号和绝对 path，忽略相对上下文会导致不匹配422；过期410、错误绑定403。URL与日志须脱敏。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -5292,8 +5293,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: DWN03
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5400,8 +5403,7 @@ paths:
       tags:
       - downloads
       summary: 与 GET 一致的元信息和授权，无响应体
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code 头表达。 base_path
-        与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。
+      description: "P4已实现；输入限制与权限在调用上游前校验。 与 DWN03 相同的身份与 Range 规则。包括错误响应在内绝不写 body；错误 code 由状态和 X-Error-Code 头表达。 base_path 与 context_id 同时出现400；相对路径且两者皆无400；context账号不匹配409。 使用ticket时path必须为绑定的绝对路径且不接受base_path/context_id；Bearer和ticket同时存在时须代表相同principal，否则403。"
       x-phase: P4
       x-authorization:
         scopes:
@@ -5411,8 +5413,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: DWN04
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5648,8 +5652,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: DWN05
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6416,7 +6422,7 @@ paths:
       tags:
       - jobs
       summary: 按 kind 和阶段开放；上传在分片边界停止并保存断点
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 仅 available_actions 支持时接受，未支持的 kind/阶段422；重复pausing/paused返回当前job。
+      description: "P4已实现；输入限制与权限在调用上游前校验。 仅 available_actions 支持时接受，未支持的 kind/阶段422；重复pausing/paused返回当前job。"
       x-phase: P4
       x-authorization:
         scopes: []
@@ -6426,8 +6432,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB07
-        implementation: planned
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6554,8 +6562,7 @@ paths:
       tags:
       - jobs
       summary: 从已确认检查点恢复；重验源文件和凭据版本
-      description: 目标契约；本分支尚未实现。输入限制与权限在调用上游前校验。 仅暂停或可安全恢复的中断任务；检查点失效409，旧凭据撤销422。恢复延续同一job；重复queued/running请求返回当前job。 P2已开放受限HTTP子集，限制见x-p2-limits及P2指南；partial不代表完整契约已验收，实际百度范围见P2验证记录。
-      x-early-validation: P2
+      description: "延续paused/interrupted传输任务，重新核验账号、凭据版本、目标及源指纹；提交未知先核验，不能自动重放。"
       x-phase: P4
       x-authorization:
         scopes: []
@@ -6565,8 +6572,10 @@ paths:
         admin_satisfies_scopes: true
       x-capability:
         id: JOB08
-        implementation: partial
+        implementation: implemented
         conditional_upstream_capability: false
+      x-offline-evidence:
+      - docs/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6687,10 +6696,6 @@ paths:
               default:
                 summary: 合成请求；凭据均为占位示例
                 value: {}
-      x-offline-evidence:
-      - docs/http-api-p2-verification.md
-      - internal/bootstrap/p2_test.go
-      - internal/infrastructure/baidu/http_test.go
       x-p2-limits:
         scope: single_file_p2
         upstream_verification: unverified

@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"encoding/json"
 	"net/http"
 	"path"
 	"strings"
@@ -9,7 +8,6 @@ import (
 
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/account"
-	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/configuration"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/fault"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/transfer"
 )
@@ -172,94 +170,7 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 		a.success(w, r, map[string]any{"account": publicAccount(result.Account), "valid": result.Valid, "checked_at": result.CheckedAt, "problem": publicProblem(result.Problem, RequestID(ctx))})
 		return nil
 	case "UPL01", "DWN01":
-		request := transfer.Request{AccountID: r.PathValue("account_id"), Public: true}
-		if id == "UPL01" {
-			var input uploadInput
-			if err := decodeRequest(w, r, &input); err != nil {
-				return err
-			}
-			if len(input.Sources) == 0 || len(input.Sources) > 100 || input.Target == nil {
-				return invalid("缺少上传源或target_dir")
-			}
-			if input.BasePath != nil && input.ContextID != nil {
-				return invalid("base_path与context_id不能同时出现")
-			}
-			if len(input.Sources) != 1 || input.DryRun || input.BasePath != nil || input.ContextID != nil {
-				return unsupportedP2()
-			}
-			source := input.Sources[0]
-			if source.Type != "local" && source.Type != "staged" {
-				return invalid("上传源type无效")
-			}
-			if source.Type == "staged" {
-				if source.StagedFileID == nil || !configuration.ValidID(*source.StagedFileID) || source.RootID != nil || source.RelativePath != nil {
-					return invalid("staged源格式无效")
-				}
-				return unsupportedP2()
-			}
-			if source.RootID == nil || source.RelativePath == nil || source.StagedFileID != nil {
-				return invalid("本地源字段无效")
-			}
-			if !configuration.ValidRelative(*source.RelativePath) {
-				return invalid("本地文件路径无效")
-			}
-			if *source.RelativePath == "" || *source.RelativePath == "." {
-				return unsupportedP2()
-			}
-			if !absoluteRemote(*input.Target) {
-				if !strings.HasPrefix(*input.Target, "/") {
-					return unsupportedP2()
-				}
-				return invalid("target_dir格式无效")
-			}
-			request.Kind, request.RootID, request.RelativePath, request.RemotePath = "upload", *source.RootID, *source.RelativePath, path.Join(*input.Target, path.Base(*source.RelativePath))
-			options, _ := json.Marshal(input.Options)
-			request.Options = string(options)
-		} else {
-			var input downloadInput
-			if err := decodeRequest(w, r, &input); err != nil {
-				return err
-			}
-			if input.Selector == nil || input.Destination == nil || input.Destination.RootID == nil || input.Destination.Directory == nil {
-				return invalid("缺少selector或destination字段")
-			}
-			if len(input.Selector.Values) == 0 || len(input.Selector.Values) > 100 {
-				return invalid("选择器数量无效")
-			}
-			if input.BasePath != nil && input.ContextID != nil {
-				return invalid("base_path与context_id不能同时出现")
-			}
-			if input.Selector.Kind != "paths" && input.Selector.Kind != "fs_ids" && input.Selector.Kind != "patterns" {
-				return invalid("selector.kind无效")
-			}
-			if len(input.Selector.Values) != 1 || input.Selector.Kind != "paths" || input.DryRun || input.BasePath != nil || input.ContextID != nil {
-				return unsupportedP2()
-			}
-			remote := input.Selector.Values[0]
-			if !absoluteRemote(remote) || remote == "/" {
-				if !strings.HasPrefix(remote, "/") {
-					return unsupportedP2()
-				}
-				return invalid("单文件网盘路径无效")
-			}
-			if !configuration.ValidRelative(*input.Destination.Directory) {
-				return invalid("destination.directory无效")
-			}
-			request.Kind, request.RootID, request.RelativePath, request.RemotePath = "download", *input.Destination.RootID, path.Join(*input.Destination.Directory, path.Base(remote)), remote
-			options, _ := json.Marshal(input.Options)
-			request.Options = string(options)
-		}
-		key, err := idempotencyKey(r)
-		if err != nil {
-			return err
-		}
-		job, err := a.deps.Transfers.Submit(ctx, p, request, key)
-		if err != nil {
-			return err
-		}
-		w.Header().Set("Location", "/api/v1/jobs/"+job.ID)
-		a.respond(w, r, 202, publicJob(job, RequestID(ctx)))
-		return nil
+		return a.submitTransfer(id, w, r)
 	case "JOB02", "JOB04":
 		job, err := a.deps.Transfers.Get(ctx, p, r.PathValue("job_id"))
 		if err != nil {
@@ -274,7 +185,7 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 		}
 		a.success(w, r, publicJob(job, RequestID(ctx)))
 		return nil
-	case "JOB06", "JOB08":
+	case "JOB06", "JOB07", "JOB08":
 		var input struct {
 			Reason string `json:"reason,omitempty"`
 		}
@@ -292,6 +203,8 @@ func (a *API) serveP2(id string, w http.ResponseWriter, r *http.Request) error {
 		var job transfer.Record
 		if id == "JOB06" {
 			job, err = a.deps.Transfers.Cancel(ctx, p, r.PathValue("job_id"), control)
+		} else if id == "JOB07" {
+			job, err = a.deps.Transfers.Pause(ctx, p, r.PathValue("job_id"), control)
 		} else {
 			job, err = a.deps.Transfers.Resume(ctx, p, r.PathValue("job_id"), control)
 		}

@@ -5,8 +5,8 @@
   "status": {
     "source_mapping": "complete",
     "http_implementation": "partial",
-    "implemented_operations": 40,
-    "partial_operations": 3,
+    "implemented_operations": 51,
+    "partial_operations": 0,
     "offline_contract": "checked_separately",
     "upstream_verification": "scoped_p2_report",
     "upstream_evidence": "docs/http-api-p2-upstream-verification.json",
@@ -19,7 +19,7 @@
     "command_group": 5,
     "configuration_field": 24,
     "flag": 90,
-    "function": 404,
+    "function": 408,
     "global_flag": 1,
     "option_field": 45
   },
@@ -44,7 +44,7 @@
     "internal/pcscommand/cd.go": "865241c618d5d888d74d27ddd8319c25eef370dff6ef7e94b8553500667e70c3",
     "internal/pcscommand/cloud_dl.go": "6ca32234bfb9a1f476232e5efbf6beaf8fb655c6ae78564e95b30dce2dd8b838",
     "internal/pcscommand/cp_mv.go": "70ed537da83cb5c5df1827ce6e63a9bb18e131bb7eef0f55fa38ba14a6f31312",
-    "internal/pcscommand/download.go": "ce8e322a4c82439518e01deeffeef4d9b867836006117c53043afe6484a4cbdb",
+    "internal/pcscommand/download.go": "f0aecd32d9e6ec6decf09385c5cf5c9e1e0237fcad5f2f0a0f290bb9c13c6092",
     "internal/pcscommand/export.go": "81fa33033f732ffc442a1bc0abb2cb729ea96d56945af3806638dded25f3f02f",
     "internal/pcscommand/fixmd5.go": "e6ec68b396f0cd845e9fc10675992097e4cf418e95fbae8dbf19296159a2e3dc",
     "internal/pcscommand/locatedonwload.go": "b23a91bce3a9e00c675e98a31cd8efb07220bce48d1e6a47e88386fc8b5a346d",
@@ -59,7 +59,7 @@
     "internal/pcscommand/share.go": "28fb980d28be5bc087e24461460a705ddc6209f109a50a316198f5de1f4569b0",
     "internal/pcscommand/transfer.go": "ac7ce068255f4ccb21c465aac4118099c080d36b2756839371eb8321b8ac6d06",
     "internal/pcscommand/tree.go": "a82453897a6a0be37e4f029bceeddf7a8b5e6cbe790330984356f4cf9f1217d6",
-    "internal/pcscommand/upload.go": "0c5e5c039741834ddac92b4aacefa2314c851ba29997a45ec06cfa3da2492a5c",
+    "internal/pcscommand/upload.go": "fadf83f97aa93e57a4bbcf2a0b199bffdf62a8e6cfca028fac09113d8b6661a2",
     "internal/pcscommand/util.go": "196535220da6f5d210267865a6a55767e0cff00139b09af0591483e03c5ae0c1",
     "internal/pcsconfig/baidu.go": "e607f22d1a711f25c842e0ee4e39e429a7c69a3c99aa8f2932dcd1329589324f",
     "internal/pcsconfig/errors.go": "afe39627be68d4ba9330a1e966797fa0024f57f4229d748dbaa697639741ca76",
@@ -69,26 +69,26 @@
     "internal/pcsconfig/util.go": "4b554e399e1d0abcdd39ee815dff74a9971ff08af927272b56559dca27d0b65a",
     "internal/pcsfunctions/pcsdownload/download_link.go": "017b3d99a32cb50f11662df3336d3510815bc38ac28a4e5870d4297feb08fd7e",
     "internal/pcsfunctions/pcsdownload/download_statistic.go": "595cf92ecb339ea14e7bda50e7de3300a8ad4d7f8b8d154501af798c4199e3c5",
-    "internal/pcsfunctions/pcsdownload/download_task_unit.go": "976f489c6f4661ff4899dc400af11fd7227a62ae7f2a8ed3ae5a9eda2e57d293",
+    "internal/pcsfunctions/pcsdownload/download_task_unit.go": "3c7dd0bd86c5e3c51ce193677c5c6c06fe11c5bd5fe1d2ab43a2338a906d1c88",
     "internal/pcsfunctions/pcsdownload/errors.go": "41414f90822f3115468ccd1eea459077d894dea6eda9881bf0168467d543e215",
     "internal/pcsfunctions/pcsdownload/pcsdownload.go": "77f80d38d318d6e2806faa8735d6faf19fcf20e83af85b7e449da714df11c6f0",
     "internal/pcsfunctions/pcsdownload/utils.go": "f5a79ddb2b5d43a7f2e15ff99b5c7fd0aa6bcffc2702c3f7e4259d346af0b879",
-    "internal/pcsfunctions/pcsupload/active.go": "150b22cea5205c4635584f3dda7e83b37a4e7413616dafe1f5c1d64b1825e1aa",
+    "internal/pcsfunctions/pcsupload/active.go": "99cec219bb6cadfb7c2d55023044d1606cbe9adc1ca4c57d98cd21b4e3b34ae4",
     "internal/pcsfunctions/pcsupload/pcsupload.go": "028a43c94fd326d2cf0823b5a9286bac1f2757900d61ebaf4bf021c98f827c02",
-    "internal/pcsfunctions/pcsupload/upload.go": "bffc5e4da339ccf69ef39e4f2b43bf6da9bc92c4abfccbaa0dcdbace2c6eec05",
+    "internal/pcsfunctions/pcsupload/upload.go": "71f53111066a543a5f60d6d6b451519cd7313e04a48889915f19b95a6d8e0a26",
     "internal/pcsfunctions/pcsupload/upload2.go": "8aa48022c12fc3a36c823c65a9c0f88b4b17e29f0c9fefe3cc848fa34048aa7a",
     "internal/pcsfunctions/pcsupload/upload_database.go": "2261312ad007972679510a58c4c3cf8084a7d22634f482032fd6990b273ce306",
     "internal/pcsfunctions/pcsupload/upload_statistic.go": "ac90e3f2679609f3770c4053fb95fbcc0da62b1b75ef5cf43010f3d6256d1b26",
-    "internal/pcsfunctions/pcsupload/upload_task_unit.go": "18ba390ca474128d0cad2427568c9e5f9db6715de1e7e764bc3f2fa2d1fa1dc4",
+    "internal/pcsfunctions/pcsupload/upload_task_unit.go": "43d53478f4ccca8f2c8d37a615f695792f00af9d89ecbb3f9190e647ae92bb0c",
     "internal/pcsfunctions/pcsupload/utils.go": "dce2b5dbac1f1859cddbc8d762f2eab1041985ccddbc0b461be5d3ec6c8b81ce",
-    "main.go": "4e616ac916fe5c263f4fe0bc141bf98aedb3ec30c336984f0c04cde3df59efc9",
+    "main.go": "7b54d3d51a42dead94caac720bd8db26f9d083b4cd408096af290ac152c8adfa",
     "pcsutil/taskframework/executor.go": "1f023a4e2a36fc8062a3b9a3cfaef41442adaae256388b84e5046282038054a2",
     "pcsutil/taskframework/task_unit.go": "a0de40629e1c30b5f74b5cdc4f9db9db8afda153acc1742b800da3e4d286a1cf",
     "pcsutil/taskframework/taskinfo.go": "31fa2971ffd04f8338a62b0c3a75514f17414448cef130fd7e86f86d37b9b9a5",
     "requester/downloader/config.go": "3040e68378651efc700a9c0fadf41ef8e5329b65f9fbf7e4182c69f04bf9a339",
-    "requester/downloader/context.go": "c4c37fe7f2768fcb8e0875c9694410fea0f80935ff6d2e22f41c90c1efa8f4eb",
+    "requester/downloader/context.go": "fd9a5000588901d291162527e4700bfb3761e12070d89ff38e7ba520ea698f25",
     "requester/downloader/download_firstinfo.go": "3d5eee0a104cec9f0f26cb657b44bc53477680e5dbe09473475808c3a7e8147a",
-    "requester/downloader/downloader.go": "82382075f088a0e3dcbdc1a5f5e0ebf6addc623e7397d05a4996e90f26bde120",
+    "requester/downloader/downloader.go": "4196d446feb5d82e6193380f900bb60111115d563cc489fd5ebae6a584ebc8dc",
     "requester/downloader/example.go": "4d5ebab688a3ce740742da5059f15e2af0d365e330e314240721e28ce81e91e8",
     "requester/downloader/instance_state.go": "7c32bfaa89f73c34d17a108f589212bcfdb518e69395343c18cfe97593fa6d14",
     "requester/downloader/loadbalance.go": "32a3d7173e47ac952125548e07e5d36cd0b55bf155233f3fad222c6d4e4bd792",
@@ -97,7 +97,7 @@
     "requester/downloader/sort.go": "ed877eff68b8aa7915055eca4d0f20f91049ba40b6ccadce4b6b18bf750237c0",
     "requester/downloader/status.go": "2e0cf9e2c746544b16e7d1fa4aa160a4b6490c3cac2eefe6c1ec5ff36a6e34e8",
     "requester/downloader/utils.go": "157786be6c1e6d9c084f99537c829384eb9a18340e5495cf4db111953fd3fc4c",
-    "requester/downloader/worker.go": "04080fcdf36dd04200a1aafe3d14a336cb6851e70bc7eb976534d5f443ec265d",
+    "requester/downloader/worker.go": "ef7a322acf69bfc01943a4cebb50f32771ead76f12720610a6766a5ccccd65d5",
     "requester/downloader/writer.go": "86e81bbed07a6347809723adadb73b0ad5618676b627b616a4667531caa1c751",
     "requester/uploader/block.go": "3a0f41b2deef9295ecd621c587d7fa60659892ebc3d37a8317cf68f2fcfd0c45",
     "requester/uploader/error.go": "4d2b8c57d244a93082a12d17005ca3b03059f4dff18f5a6f4ca7df3a0c9268a9",
@@ -130,7 +130,7 @@
       "kind": "command",
       "name": "clear",
       "file": "main.go",
-      "line": 2180,
+      "line": 2182,
       "aliases": [
         "cls"
       ],
@@ -146,7 +146,7 @@
       "kind": "command",
       "name": "config reset",
       "file": "main.go",
-      "line": 2019,
+      "line": 2021,
       "coverage": {
         "mapping": "CFG05",
         "notes": "仅重置客户端字段，保留凭据和任务",
@@ -161,7 +161,7 @@
       "kind": "command",
       "name": "config set",
       "file": "main.go",
-      "line": 1813,
+      "line": 1815,
       "coverage": {
         "mapping": "CFG02、CFG04",
         "notes": "类型化部分更新和预先校验",
@@ -237,7 +237,7 @@
       "kind": "command",
       "name": "export",
       "file": "main.go",
-      "line": 1503,
+      "line": 1505,
       "aliases": [
         "ep"
       ],
@@ -256,7 +256,7 @@
       "kind": "command",
       "name": "locate",
       "file": "main.go",
-      "line": 1288,
+      "line": 1290,
       "aliases": [
         "lt"
       ],
@@ -345,7 +345,7 @@
       "kind": "command",
       "name": "match",
       "file": "main.go",
-      "line": 2038,
+      "line": 2040,
       "coverage": {
         "mapping": "FIL06",
         "notes": "显式通配符解析",
@@ -407,7 +407,7 @@
       "kind": "command",
       "name": "offlinedl add",
       "file": "main.go",
-      "line": 1601,
+      "line": 1603,
       "aliases": [
         "a"
       ],
@@ -425,7 +425,7 @@
       "kind": "command",
       "name": "offlinedl cancel",
       "file": "main.go",
-      "line": 1654,
+      "line": 1656,
       "aliases": [
         "c"
       ],
@@ -443,7 +443,7 @@
       "kind": "command",
       "name": "offlinedl delete",
       "file": "main.go",
-      "line": 1676,
+      "line": 1678,
       "aliases": [
         "del",
         "d"
@@ -463,7 +463,7 @@
       "kind": "command",
       "name": "offlinedl list",
       "file": "main.go",
-      "line": 1644,
+      "line": 1646,
       "aliases": [
         "ls",
         "l"
@@ -482,7 +482,7 @@
       "kind": "command",
       "name": "offlinedl query",
       "file": "main.go",
-      "line": 1622,
+      "line": 1624,
       "aliases": [
         "q"
       ],
@@ -516,7 +516,7 @@
       "kind": "command",
       "name": "quit",
       "file": "main.go",
-      "line": 2192,
+      "line": 2194,
       "aliases": [
         "exit"
       ],
@@ -547,7 +547,7 @@
       "kind": "command",
       "name": "recycle delete",
       "file": "main.go",
-      "line": 1771,
+      "line": 1773,
       "aliases": [
         "d"
       ],
@@ -566,7 +566,7 @@
       "kind": "command",
       "name": "recycle list",
       "file": "main.go",
-      "line": 1739,
+      "line": 1741,
       "aliases": [
         "ls",
         "l"
@@ -585,7 +585,7 @@
       "kind": "command",
       "name": "recycle restore",
       "file": "main.go",
-      "line": 1756,
+      "line": 1758,
       "aliases": [
         "r"
       ],
@@ -690,7 +690,7 @@
       "kind": "command",
       "name": "share cancel",
       "file": "main.go",
-      "line": 1486,
+      "line": 1488,
       "aliases": [
         "c"
       ],
@@ -708,7 +708,7 @@
       "kind": "command",
       "name": "share list",
       "file": "main.go",
-      "line": 1469,
+      "line": 1471,
       "aliases": [
         "l"
       ],
@@ -727,7 +727,7 @@
       "kind": "command",
       "name": "share set",
       "file": "main.go",
-      "line": 1433,
+      "line": 1435,
       "aliases": [
         "s"
       ],
@@ -761,7 +761,7 @@
       "kind": "command",
       "name": "sumfile",
       "file": "main.go",
-      "line": 1321,
+      "line": 1323,
       "aliases": [
         "sf"
       ],
@@ -779,7 +779,7 @@
       "kind": "command",
       "name": "tool dec",
       "file": "main.go",
-      "line": 2138,
+      "line": 2140,
       "coverage": {
         "mapping": "LOC03",
         "notes": "兼容解密 job；默认保留源文件",
@@ -794,7 +794,7 @@
       "kind": "command",
       "name": "tool enc",
       "file": "main.go",
-      "line": 2098,
+      "line": 2100,
       "coverage": {
         "mapping": "LOC02",
         "notes": "兼容加密 job；默认保留源文件",
@@ -809,7 +809,7 @@
       "kind": "command",
       "name": "tool getip",
       "file": "main.go",
-      "line": 2078,
+      "line": 2080,
       "coverage": {
         "mapping": "SYS05",
         "notes": "受权的内外网诊断",
@@ -824,7 +824,7 @@
       "kind": "command",
       "name": "tool showtime",
       "file": "main.go",
-      "line": 2070,
+      "line": 2072,
       "coverage": {
         "mapping": "SYS03",
         "notes": "UTC 时间；调用方可转换北京时间",
@@ -839,7 +839,7 @@
       "kind": "command",
       "name": "transfer",
       "file": "main.go",
-      "line": 1372,
+      "line": 1374,
       "coverage": {
         "mapping": "TRF01、TRF02",
         "notes": "解析、选择 fs_id、归档和下载子任务",
@@ -933,7 +933,7 @@
       "kind": "command_group",
       "name": "config",
       "file": "main.go",
-      "line": 1800,
+      "line": 1802,
       "coverage": {
         "mapping": "CFG01、CFG03、CFG07",
         "notes": "完整有效配置、schema 和默认值",
@@ -950,7 +950,7 @@
       "kind": "command_group",
       "name": "offlinedl",
       "file": "main.go",
-      "line": 1574,
+      "line": 1576,
       "aliases": [
         "clouddl",
         "od"
@@ -975,7 +975,7 @@
       "kind": "command_group",
       "name": "recycle",
       "file": "main.go",
-      "line": 1713,
+      "line": 1715,
       "coverage": {
         "mapping": "REC01 至 REC04",
         "notes": "回收站命令组",
@@ -993,7 +993,7 @@
       "kind": "command_group",
       "name": "share",
       "file": "main.go",
-      "line": 1422,
+      "line": 1424,
       "coverage": {
         "mapping": "SHR01 至 SHR04",
         "notes": "命令组；各子命令如下",
@@ -1011,7 +1011,7 @@
       "kind": "command_group",
       "name": "tool",
       "file": "main.go",
-      "line": 2062,
+      "line": 2064,
       "coverage": {
         "mapping": "SYS03、SYS05、LOC02、LOC03",
         "notes": "工具命令组，业务逐项映射",
@@ -1463,7 +1463,7 @@
       "kind": "flag",
       "name": "config set --appid",
       "file": "main.go",
-      "line": 1928,
+      "line": 1930,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "CFG02 appid；有 presence、范围和生效方式校验",
@@ -1478,7 +1478,7 @@
       "kind": "flag",
       "name": "config set --cache_size",
       "file": "main.go",
-      "line": 1932,
+      "line": 1934,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 cache_size；有 presence、范围和生效方式校验",
@@ -1493,7 +1493,7 @@
       "kind": "flag",
       "name": "config set --enable_https",
       "file": "main.go",
-      "line": 1964,
+      "line": 1966,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "CFG02 enable_https；有 presence、范围和生效方式校验",
@@ -1508,7 +1508,7 @@
       "kind": "flag",
       "name": "config set --fix_pcs_addr",
       "file": "main.go",
-      "line": 1996,
+      "line": 1998,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "CFG02 fix_pcs_addr；有 presence、范围和生效方式校验",
@@ -1523,7 +1523,7 @@
       "kind": "flag",
       "name": "config set --force_login_username",
       "file": "main.go",
-      "line": 1972,
+      "line": 1974,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 force_login_username；有 presence、范围和生效方式校验",
@@ -1538,7 +1538,7 @@
       "kind": "flag",
       "name": "config set --ignore_illegal",
       "file": "main.go",
-      "line": 1968,
+      "line": 1970,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "CFG02 ignore_illegal；有 presence、范围和生效方式校验",
@@ -1553,7 +1553,7 @@
       "kind": "flag",
       "name": "config set --local_addrs",
       "file": "main.go",
-      "line": 2012,
+      "line": 2014,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 local_addrs；有 presence、范围和生效方式校验",
@@ -1568,7 +1568,7 @@
       "kind": "flag",
       "name": "config set --max_download_load",
       "file": "main.go",
-      "line": 1944,
+      "line": 1946,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "CFG02 max_download_load；有 presence、范围和生效方式校验",
@@ -1583,7 +1583,7 @@
       "kind": "flag",
       "name": "config set --max_download_rate",
       "file": "main.go",
-      "line": 1952,
+      "line": 1954,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 max_download_rate；有 presence、范围和生效方式校验",
@@ -1598,7 +1598,7 @@
       "kind": "flag",
       "name": "config set --max_parallel",
       "file": "main.go",
-      "line": 1936,
+      "line": 1938,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "CFG02 max_parallel；有 presence、范围和生效方式校验",
@@ -1613,7 +1613,7 @@
       "kind": "flag",
       "name": "config set --max_upload_load",
       "file": "main.go",
-      "line": 1948,
+      "line": 1950,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "CFG02 max_upload_load；有 presence、范围和生效方式校验",
@@ -1628,7 +1628,7 @@
       "kind": "flag",
       "name": "config set --max_upload_parallel",
       "file": "main.go",
-      "line": 1940,
+      "line": 1942,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "CFG02 max_upload_parallel；有 presence、范围和生效方式校验",
@@ -1643,7 +1643,7 @@
       "kind": "flag",
       "name": "config set --max_upload_rate",
       "file": "main.go",
-      "line": 1956,
+      "line": 1958,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 max_upload_rate；有 presence、范围和生效方式校验",
@@ -1658,7 +1658,7 @@
       "kind": "flag",
       "name": "config set --no_check",
       "file": "main.go",
-      "line": 1976,
+      "line": 1978,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "CFG02 no_check；有 presence、范围和生效方式校验",
@@ -1673,7 +1673,7 @@
       "kind": "flag",
       "name": "config set --pan_ua",
       "file": "main.go",
-      "line": 2000,
+      "line": 2002,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 pan_ua；有 presence、范围和生效方式校验",
@@ -1688,7 +1688,7 @@
       "kind": "flag",
       "name": "config set --pcs_addr",
       "file": "main.go",
-      "line": 1992,
+      "line": 1994,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 pcs_addr；有 presence、范围和生效方式校验",
@@ -1703,7 +1703,7 @@
       "kind": "flag",
       "name": "config set --pcs_ua",
       "file": "main.go",
-      "line": 1988,
+      "line": 1990,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 pcs_ua；有 presence、范围和生效方式校验",
@@ -1718,7 +1718,7 @@
       "kind": "flag",
       "name": "config set --proxy",
       "file": "main.go",
-      "line": 2004,
+      "line": 2006,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 proxy；有 presence、范围和生效方式校验",
@@ -1733,7 +1733,7 @@
       "kind": "flag",
       "name": "config set --proxy_hostnames",
       "file": "main.go",
-      "line": 2008,
+      "line": 2010,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 proxy_hostnames；有 presence、范围和生效方式校验",
@@ -1748,7 +1748,7 @@
       "kind": "flag",
       "name": "config set --savedir",
       "file": "main.go",
-      "line": 1960,
+      "line": 1962,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 savedir；有 presence、范围和生效方式校验",
@@ -1763,7 +1763,7 @@
       "kind": "flag",
       "name": "config set --upload_policy",
       "file": "main.go",
-      "line": 1980,
+      "line": 1982,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 upload_policy；有 presence、范围和生效方式校验",
@@ -1778,7 +1778,7 @@
       "kind": "flag",
       "name": "config set --user_agent",
       "file": "main.go",
-      "line": 1984,
+      "line": 1986,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "CFG02 user_agent；有 presence、范围和生效方式校验",
@@ -2005,7 +2005,7 @@
       "kind": "flag",
       "name": "export --link",
       "file": "main.go",
-      "line": 1563,
+      "line": 1565,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "EXP01 options.format=legacy_link；明确丢失目录信息",
@@ -2020,7 +2020,7 @@
       "kind": "flag",
       "name": "export --out",
       "file": "main.go",
-      "line": 1550,
+      "line": 1552,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "EXP01 结果 artifact；可选 options.destination 替代任意输出文件路径",
@@ -2035,7 +2035,7 @@
       "kind": "flag",
       "name": "export --r",
       "file": "main.go",
-      "line": 1559,
+      "line": 1561,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "EXP01 options.recursive",
@@ -2050,7 +2050,7 @@
       "kind": "flag",
       "name": "export --retry",
       "file": "main.go",
-      "line": 1554,
+      "line": 1556,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "EXP01 options.max_retries",
@@ -2065,7 +2065,7 @@
       "kind": "flag",
       "name": "export --root",
       "file": "main.go",
-      "line": 1546,
+      "line": 1548,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "EXP01 options.root_path，导出路径改写",
@@ -2080,7 +2080,7 @@
       "kind": "flag",
       "name": "export --stdout",
       "file": "main.go",
-      "line": 1567,
+      "line": 1569,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "EXP01 结果内容通过 ART02 返回，不抓取终端输出",
@@ -2096,7 +2096,7 @@
       "kind": "flag",
       "name": "locate --pan",
       "file": "main.go",
-      "line": 1314,
+      "line": 1316,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "DWN02 source=pan；默认 source=pcs",
@@ -2307,7 +2307,7 @@
       "kind": "flag",
       "name": "offlinedl add --path",
       "file": "main.go",
-      "line": 1615,
+      "line": 1617,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "OFF01 save_path，明确网盘绝对路径",
@@ -2322,7 +2322,7 @@
       "kind": "flag",
       "name": "offlinedl delete --all",
       "file": "main.go",
-      "line": 1704,
+      "line": 1706,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "OFF06 清空操作；不通过空 ID 列表隐式清空",
@@ -2337,7 +2337,7 @@
       "kind": "flag",
       "name": "recycle delete --all",
       "file": "main.go",
-      "line": 1791,
+      "line": 1793,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "REC04 清空操作；不通过空 ID 列表隐式清空",
@@ -2352,7 +2352,7 @@
       "kind": "flag",
       "name": "recycle list --page",
       "file": "main.go",
-      "line": 1748,
+      "line": 1750,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "REC01 page，从 1 开始",
@@ -2466,7 +2466,7 @@
       "kind": "flag",
       "name": "share list --page",
       "file": "main.go",
-      "line": 1478,
+      "line": 1480,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "SHR02 page，从 1 开始",
@@ -2481,7 +2481,7 @@
       "kind": "flag",
       "name": "share set --f",
       "file": "main.go",
-      "line": 1462,
+      "line": 1464,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "SHR01 combined_link；仅控制带码链接表达",
@@ -2496,7 +2496,7 @@
       "kind": "flag",
       "name": "share set --p",
       "file": "main.go",
-      "line": 1452,
+      "line": 1454,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "SHR01 password；缺省按核心规则生成",
@@ -2511,7 +2511,7 @@
       "kind": "flag",
       "name": "share set --period",
       "file": "main.go",
-      "line": 1457,
+      "line": 1459,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "SHR01 period_days；0 永久",
@@ -2526,7 +2526,7 @@
       "kind": "flag",
       "name": "tool dec --disable-gzip",
       "file": "main.go",
-      "line": 2171,
+      "line": 2173,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "LOC03 options.gzip 的反向映射，默认启用",
@@ -2541,7 +2541,7 @@
       "kind": "flag",
       "name": "tool dec --key",
       "file": "main.go",
-      "line": 2166,
+      "line": 2168,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "LOC03 写入临时秘密；API 要求显式提供，不沿用 CLI 默认密钥",
@@ -2556,7 +2556,7 @@
       "kind": "flag",
       "name": "tool dec --method",
       "file": "main.go",
-      "line": 2161,
+      "line": 2163,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "LOC03 options.method，覆盖九种现有算法",
@@ -2571,7 +2571,7 @@
       "kind": "flag",
       "name": "tool enc --disable-gzip",
       "file": "main.go",
-      "line": 2131,
+      "line": 2133,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "LOC02 options.gzip 的反向映射，默认启用",
@@ -2586,7 +2586,7 @@
       "kind": "flag",
       "name": "tool enc --key",
       "file": "main.go",
-      "line": 2126,
+      "line": 2128,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "LOC02 写入临时秘密；API 要求显式提供，不沿用 CLI 默认密钥",
@@ -2601,7 +2601,7 @@
       "kind": "flag",
       "name": "tool enc --method",
       "file": "main.go",
-      "line": 2121,
+      "line": 2123,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "LOC02 options.method，覆盖九种现有算法",
@@ -2616,7 +2616,7 @@
       "kind": "flag",
       "name": "transfer --collect",
       "file": "main.go",
-      "line": 1407,
+      "line": 1409,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "TRF02 options.collect；归档到同名目录",
@@ -2631,7 +2631,7 @@
       "kind": "flag",
       "name": "transfer --download",
       "file": "main.go",
-      "line": 1403,
+      "line": 1405,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "TRF02 options.download_after；生成有依赖的下载子 job",
@@ -2646,7 +2646,7 @@
       "kind": "flag",
       "name": "transfer --fs_id",
       "file": "main.go",
-      "line": 1415,
+      "line": 1417,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "TRF02 fs_ids 字符串数组，兼容主项目指定单个或多个 ID 的目的",
@@ -2661,7 +2661,7 @@
       "kind": "flag",
       "name": "transfer --rname",
       "file": "main.go",
-      "line": 1411,
+      "line": 1413,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "TRF02 options.randomize_name；当前实际调用已注释，true 返回 422",
@@ -2719,7 +2719,7 @@
       "kind": "flag",
       "name": "upload --l",
       "file": "main.go",
-      "line": 1273,
+      "line": 1275,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "UPL01 options.file_concurrency",
@@ -2734,7 +2734,7 @@
       "kind": "flag",
       "name": "upload --norapid",
       "file": "main.go",
-      "line": 1277,
+      "line": 1279,
       "type": "cli.BoolFlag",
       "coverage": {
         "mapping": "UPL01 options.skip_rapid_check；保留无完整摘要的恢复路径",
@@ -2749,7 +2749,7 @@
       "kind": "flag",
       "name": "upload --p",
       "file": "main.go",
-      "line": 1264,
+      "line": 1266,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "UPL01 options.parallel_per_file",
@@ -2764,7 +2764,7 @@
       "kind": "flag",
       "name": "upload --policy",
       "file": "main.go",
-      "line": 1281,
+      "line": 1283,
       "type": "cli.StringFlag",
       "coverage": {
         "mapping": "UPL01 options.policy=skip|overwrite|rsync，rsync 按当前大小比较语义",
@@ -2779,7 +2779,7 @@
       "kind": "flag",
       "name": "upload --retry",
       "file": "main.go",
-      "line": 1268,
+      "line": 1270,
       "type": "cli.IntFlag",
       "coverage": {
         "mapping": "UPL01 options.max_retries；0 不重试",
@@ -5336,7 +5336,7 @@
       "kind": "function",
       "name": "RunUpload",
       "file": "internal/pcscommand/upload.go",
-      "line": 54,
+      "line": 53,
       "coverage": {
         "mapping": "UPL01",
         "notes": "抽出业务结果，CLI 保留打印；登录输入和上传信号归入口",
@@ -5346,6 +5346,22 @@
         "UPL01"
       ],
       "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "RunUploadContext",
+      "file": "internal/pcscommand/upload.go",
+      "line": 56,
+      "coverage": {
+        "mapping": "UPL01、JOB06",
+        "notes": "内部按调用上下文执行，信号归main，CLI格式化保留",
+        "coverage_line": 608
+      },
+      "route_ids": [
+        "JOB06",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
     },
     {
       "kind": "function",
@@ -5370,7 +5386,7 @@
       "coverage": {
         "mapping": "ClientFactory",
         "notes": "按显式账号和不可变快照构造；保留 CLI 兼容适配",
-        "coverage_line": 612
+        "coverage_line": 614
       },
       "route_ids": [],
       "classification": "internal_adapter"
@@ -5383,7 +5399,7 @@
       "coverage": {
         "mapping": "DWN01",
         "notes": "默认保存路径等价映射到允许根目录，保留账号目录及相对层级",
-        "coverage_line": 613
+        "coverage_line": 615
       },
       "route_ids": [
         "DWN01"
@@ -5398,7 +5414,7 @@
       "coverage": {
         "mapping": "FIL 系列、CTX 系列",
         "notes": "使用显式 base_path 或拥有者 context，不读取进程 cwd",
-        "coverage_line": 614
+        "coverage_line": 616
       },
       "route_ids": [
         "CTX01",
@@ -5428,7 +5444,7 @@
       "coverage": {
         "mapping": "CLI；ACC02、CFG01",
         "notes": "显示函数保留 CLI，HTTP 输出具体 DTO",
-        "coverage_line": 617
+        "coverage_line": 619
       },
       "route_ids": [
         "ACC02",
@@ -5444,7 +5460,7 @@
       "coverage": {
         "mapping": "ACC01、ACC06、ACC07、LOG05",
         "notes": "凭据和账号仓库适配；后备身份不得按固定 UID 覆盖其他账号",
-        "coverage_line": 615
+        "coverage_line": 617
       },
       "route_ids": [
         "ACC01",
@@ -5462,7 +5478,7 @@
       "coverage": {
         "mapping": "ACC01、ACC06、ACC07、LOG05",
         "notes": "凭据和账号仓库适配；后备身份不得按固定 UID 覆盖其他账号",
-        "coverage_line": 616
+        "coverage_line": 618
       },
       "route_ids": [
         "ACC01",
@@ -5480,7 +5496,7 @@
       "coverage": {
         "mapping": "CTX02、CTX03、CFG09；CLI",
         "notes": "HTTP 使用调用方 context，修改 CLI 默认值与运行任务分开",
-        "coverage_line": 618
+        "coverage_line": 620
       },
       "route_ids": [
         "CFG09",
@@ -5497,7 +5513,7 @@
       "coverage": {
         "mapping": "ClientFactory",
         "notes": "按显式账号和不可变快照构造；保留 CLI 兼容适配",
-        "coverage_line": 619
+        "coverage_line": 621
       },
       "route_ids": [],
       "classification": "internal_adapter"
@@ -5510,7 +5526,7 @@
       "coverage": {
         "mapping": "DWN01",
         "notes": "下载总并发预算分配；内部策略",
-        "coverage_line": 624
+        "coverage_line": 626
       },
       "route_ids": [
         "DWN01"
@@ -5525,7 +5541,7 @@
       "coverage": {
         "mapping": "ClientFactory",
         "notes": "按显式账号和不可变快照构造；保留 CLI 兼容适配",
-        "coverage_line": 620
+        "coverage_line": 622
       },
       "route_ids": [],
       "classification": "internal_adapter"
@@ -5538,7 +5554,7 @@
       "coverage": {
         "mapping": "ACC02、ACC03、ACC05",
         "notes": "AccountRepository 按本地 account_id 管理，限制调用方可见账号",
-        "coverage_line": 623
+        "coverage_line": 625
       },
       "route_ids": [
         "ACC02",
@@ -5555,7 +5571,7 @@
       "coverage": {
         "mapping": "ClientFactory",
         "notes": "按显式账号和不可变快照构造；保留 CLI 兼容适配",
-        "coverage_line": 621
+        "coverage_line": 623
       },
       "route_ids": [],
       "classification": "internal_adapter"
@@ -5568,7 +5584,7 @@
       "coverage": {
         "mapping": "ClientFactory",
         "notes": "按显式账号和不可变快照构造；保留 CLI 兼容适配",
-        "coverage_line": 622
+        "coverage_line": 624
       },
       "route_ids": [],
       "classification": "internal_adapter"
@@ -5581,7 +5597,7 @@
       "coverage": {
         "mapping": "CLI；ACC02、CFG01",
         "notes": "显示函数保留 CLI，HTTP 输出具体 DTO",
-        "coverage_line": 625
+        "coverage_line": 627
       },
       "route_ids": [
         "ACC02",
@@ -5597,7 +5613,7 @@
       "coverage": {
         "mapping": "ACC02、ACC03、ACC05",
         "notes": "AccountRepository 按本地 account_id 管理，限制调用方可见账号",
-        "coverage_line": 629
+        "coverage_line": 631
       },
       "route_ids": [
         "ACC02",
@@ -5614,7 +5630,7 @@
       "coverage": {
         "mapping": "ACC02、ACC03、ACC05",
         "notes": "AccountRepository 按本地 account_id 管理，限制调用方可见账号",
-        "coverage_line": 627
+        "coverage_line": 629
       },
       "route_ids": [
         "ACC02",
@@ -5631,7 +5647,7 @@
       "coverage": {
         "mapping": "ACC02、ACC03、ACC05",
         "notes": "AccountRepository 按本地 account_id 管理，限制调用方可见账号",
-        "coverage_line": 628
+        "coverage_line": 630
       },
       "route_ids": [
         "ACC02",
@@ -5648,7 +5664,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 638
+        "coverage_line": 640
       },
       "route_ids": [
         "CFG01",
@@ -5665,7 +5681,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 631
+        "coverage_line": 633
       },
       "route_ids": [
         "CFG01",
@@ -5682,7 +5698,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 632
+        "coverage_line": 634
       },
       "route_ids": [
         "CFG01",
@@ -5699,7 +5715,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 640
+        "coverage_line": 642
       },
       "route_ids": [
         "CFG01",
@@ -5716,7 +5732,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 647
+        "coverage_line": 649
       },
       "route_ids": [
         "CFG01",
@@ -5733,7 +5749,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 646
+        "coverage_line": 648
       },
       "route_ids": [
         "CFG01",
@@ -5750,7 +5766,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 645
+        "coverage_line": 647
       },
       "route_ids": [
         "CFG01",
@@ -5767,7 +5783,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 633
+        "coverage_line": 635
       },
       "route_ids": [
         "CFG01",
@@ -5784,7 +5800,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 634
+        "coverage_line": 636
       },
       "route_ids": [
         "CFG01",
@@ -5801,7 +5817,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 641
+        "coverage_line": 643
       },
       "route_ids": [
         "CFG01",
@@ -5818,7 +5834,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 636
+        "coverage_line": 638
       },
       "route_ids": [
         "CFG01",
@@ -5835,7 +5851,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 637
+        "coverage_line": 639
       },
       "route_ids": [
         "CFG01",
@@ -5852,7 +5868,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 643
+        "coverage_line": 645
       },
       "route_ids": [
         "CFG01",
@@ -5869,7 +5885,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 644
+        "coverage_line": 646
       },
       "route_ids": [
         "CFG01",
@@ -5886,7 +5902,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 639
+        "coverage_line": 641
       },
       "route_ids": [
         "CFG01",
@@ -5903,7 +5919,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 642
+        "coverage_line": 644
       },
       "route_ids": [
         "CFG01",
@@ -5920,7 +5936,7 @@
       "coverage": {
         "mapping": "CFG01、CFG02、CFG04；配置适配",
         "notes": "应用服务先校验再提交，不在 handler 中原地修改全局 Config",
-        "coverage_line": 635
+        "coverage_line": 637
       },
       "route_ids": [
         "CFG01",
@@ -5937,7 +5953,7 @@
       "coverage": {
         "mapping": "ACC01、ACC06、ACC07、LOG05",
         "notes": "凭据和账号仓库适配；后备身份不得按固定 UID 覆盖其他账号",
-        "coverage_line": 630
+        "coverage_line": 632
       },
       "route_ids": [
         "ACC01",
@@ -5955,7 +5971,7 @@
       "coverage": {
         "mapping": "CTX02、CTX03、CFG09；CLI",
         "notes": "HTTP 使用调用方 context，修改 CLI 默认值与运行任务分开",
-        "coverage_line": 626
+        "coverage_line": 628
       },
       "route_ids": [
         "CFG09",
@@ -5972,7 +5988,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 651
+        "coverage_line": 653
       },
       "route_ids": [
         "CFG05",
@@ -5989,7 +6005,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 649
+        "coverage_line": 651
       },
       "route_ids": [
         "CFG05",
@@ -6006,7 +6022,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 653
+        "coverage_line": 655
       },
       "route_ids": [
         "CFG05",
@@ -6023,7 +6039,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 650
+        "coverage_line": 652
       },
       "route_ids": [
         "CFG05",
@@ -6040,7 +6056,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 652
+        "coverage_line": 654
       },
       "route_ids": [
         "CFG05",
@@ -6057,7 +6073,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 654
+        "coverage_line": 656
       },
       "route_ids": [
         "CFG05",
@@ -6074,7 +6090,7 @@
       "coverage": {
         "mapping": "Bootstrap、CFG05、CFG06、CFG07",
         "notes": "生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写",
-        "coverage_line": 648
+        "coverage_line": 650
       },
       "route_ids": [
         "CFG05",
@@ -6091,7 +6107,7 @@
       "coverage": {
         "mapping": "DWN01",
         "notes": "下载总并发预算分配；内部策略",
-        "coverage_line": 655
+        "coverage_line": 657
       },
       "route_ids": [
         "DWN01"
@@ -6106,7 +6122,7 @@
       "coverage": {
         "mapping": "DWN01、DWN02",
         "notes": "当前主项目链接逻辑和备选顺序",
-        "coverage_line": 691
+        "coverage_line": 693
       },
       "route_ids": [
         "DWN01",
@@ -6118,11 +6134,11 @@
       "kind": "function",
       "name": "*DownloadTaskUnit.OnComplete",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 446,
+      "line": 438,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 696
+        "coverage_line": 698
       },
       "route_ids": [
         "DWN01",
@@ -6144,7 +6160,33 @@
       "kind": "function",
       "name": "*DownloadTaskUnit.OnFailed",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 436,
+      "line": 428,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
+        "coverage_line": 697
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "*DownloadTaskUnit.OnRetry",
+      "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
+      "line": 415,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
@@ -6168,39 +6210,13 @@
     },
     {
       "kind": "function",
-      "name": "*DownloadTaskUnit.OnRetry",
-      "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 423,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 693
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
       "name": "*DownloadTaskUnit.OnSuccess",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 433,
+      "line": 425,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 694
+        "coverage_line": 696
       },
       "route_ids": [
         "DWN01",
@@ -6222,11 +6238,11 @@
       "kind": "function",
       "name": "*DownloadTaskUnit.RetryWait",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 449,
+      "line": 441,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 697
+        "coverage_line": 699
       },
       "route_ids": [
         "DWN01",
@@ -6248,11 +6264,11 @@
       "kind": "function",
       "name": "*DownloadTaskUnit.Run",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 453,
+      "line": 445,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 698
+        "coverage_line": 700
       },
       "route_ids": [
         "DWN01",
@@ -6274,11 +6290,11 @@
       "kind": "function",
       "name": "*DownloadTaskUnit.SetTaskInfo",
       "file": "internal/pcsfunctions/pcsdownload/download_task_unit.go",
-      "line": 90,
+      "line": 88,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 692
+        "coverage_line": 694
       },
       "route_ids": [
         "DWN01",
@@ -6304,7 +6320,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "下载节点和 Cookie 处理；重定向和域名授权需要服务边界校验",
-        "coverage_line": 700
+        "coverage_line": 702
       },
       "route_ids": [
         "DWN01",
@@ -6330,7 +6346,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 699
+        "coverage_line": 701
       },
       "route_ids": [
         "DWN01",
@@ -6356,7 +6372,7 @@
       "coverage": {
         "mapping": "DWN01、INT04",
         "notes": "校验长度和摘要，明确忽略校验的有效选项",
-        "coverage_line": 701
+        "coverage_line": 703
       },
       "route_ids": [
         "DWN01",
@@ -6372,7 +6388,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "下载节点和 Cookie 处理；重定向和域名授权需要服务边界校验",
-        "coverage_line": 704
+        "coverage_line": 706
       },
       "route_ids": [
         "DWN01",
@@ -6398,7 +6414,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 702
+        "coverage_line": 704
       },
       "route_ids": [
         "DWN01",
@@ -6424,7 +6440,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "下载节点和 Cookie 处理；重定向和域名授权需要服务边界校验",
-        "coverage_line": 703
+        "coverage_line": 705
       },
       "route_ids": [
         "DWN01",
@@ -6444,13 +6460,61 @@
     },
     {
       "kind": "function",
+      "name": "*UploadGroup.Register",
+      "file": "internal/pcsfunctions/pcsupload/active.go",
+      "line": 24,
+      "coverage": {
+        "mapping": "UPL01、JOB06",
+        "notes": "内部按单次CLI调用注册执行器，后注册遵循该实例停止状态",
+        "coverage_line": 890
+      },
+      "route_ids": [
+        "JOB06",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*UploadGroup.Stop",
+      "file": "internal/pcsfunctions/pcsupload/active.go",
+      "line": 16,
+      "coverage": {
+        "mapping": "UPL01、JOB06",
+        "notes": "内部仅停止本组，不污染后续调用",
+        "coverage_line": 891
+      },
+      "route_ids": [
+        "JOB06",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*UploadGroup.Unregister",
+      "file": "internal/pcsfunctions/pcsupload/active.go",
+      "line": 35,
+      "coverage": {
+        "mapping": "UPL01、JOB06",
+        "notes": "内部释放实例引用",
+        "coverage_line": 892
+      },
+      "route_ids": [
+        "JOB06",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
       "name": "GracefulStopActiveUploaders",
       "file": "internal/pcsfunctions/pcsupload/active.go",
-      "line": 18,
+      "line": 44,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
-        "notes": "只供服务关闭；单 job 取消禁止使用此全局停止入口",
-        "coverage_line": 663
+        "notes": "兼容旧调用保留；当前CLI/HTTP均使用按实例控制，单job禁止调用全局入口",
+        "coverage_line": 665
       },
       "route_ids": [
         "JOB01",
@@ -6472,11 +6536,11 @@
       "kind": "function",
       "name": "RegisterActiveUploader",
       "file": "internal/pcsfunctions/pcsupload/active.go",
-      "line": 28,
+      "line": 45,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
-        "notes": "服务模式改为按 job 持有执行句柄，避免全局停止污染",
-        "coverage_line": 664
+        "notes": "兼容旧调用保留；TaskUnit注入UploadGroup，不再依赖全局停止",
+        "coverage_line": 666
       },
       "route_ids": [
         "JOB01",
@@ -6498,11 +6562,11 @@
       "kind": "function",
       "name": "UnregisterActiveUploader",
       "file": "internal/pcsfunctions/pcsupload/active.go",
-      "line": 36,
+      "line": 46,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
-        "notes": "服务模式改为按 job 持有执行句柄，避免全局停止污染",
-        "coverage_line": 665
+        "notes": "兼容旧调用保留；TaskUnit注入UploadGroup，不再依赖全局停止",
+        "coverage_line": 667
       },
       "route_ids": [
         "JOB01",
@@ -6524,7 +6588,33 @@
       "kind": "function",
       "name": "*PCSUpload.CreateSuperFile",
       "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 126,
+      "line": 98,
+      "coverage": {
+        "mapping": "UPL01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 673
+      },
+      "route_ids": [
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*PCSUpload.Precreate",
+      "file": "internal/pcsfunctions/pcsupload/upload.go",
+      "line": 55,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -6548,9 +6638,35 @@
     },
     {
       "kind": "function",
-      "name": "*PCSUpload.Precreate",
+      "name": "*PCSUpload.TmpFile",
       "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 66,
+      "line": 62,
+      "coverage": {
+        "mapping": "UPL01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 672
+      },
+      "route_ids": [
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11",
+        "UPL01"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "EmptyReaderLen64.Len",
+      "file": "internal/pcsfunctions/pcsupload/upload.go",
+      "line": 33,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -6574,65 +6690,13 @@
     },
     {
       "kind": "function",
-      "name": "*PCSUpload.TmpFile",
-      "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 73,
-      "coverage": {
-        "mapping": "UPL01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 670
-      },
-      "route_ids": [
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11",
-        "UPL01"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "EmptyReaderLen64.Len",
-      "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 48,
-      "coverage": {
-        "mapping": "UPL01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 667
-      },
-      "route_ids": [
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11",
-        "UPL01"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
       "name": "EmptyReaderLen64.Read",
       "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 44,
+      "line": 29,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 666
+        "coverage_line": 668
       },
       "route_ids": [
         "JOB01",
@@ -6654,11 +6718,11 @@
       "kind": "function",
       "name": "NewPCSUpload",
       "file": "internal/pcsfunctions/pcsupload/upload.go",
-      "line": 52,
+      "line": 37,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 668
+        "coverage_line": 670
       },
       "route_ids": [
         "JOB01",
@@ -6684,7 +6748,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 678
+        "coverage_line": 680
       },
       "route_ids": [
         "JOB01",
@@ -6710,7 +6774,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 676
+        "coverage_line": 678
       },
       "route_ids": [
         "JOB01",
@@ -6736,7 +6800,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 673
+        "coverage_line": 675
       },
       "route_ids": [
         "JOB01",
@@ -6762,7 +6826,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 677
+        "coverage_line": 679
       },
       "route_ids": [
         "JOB01",
@@ -6788,7 +6852,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 675
+        "coverage_line": 677
       },
       "route_ids": [
         "JOB01",
@@ -6814,7 +6878,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 674
+        "coverage_line": 676
       },
       "route_ids": [
         "JOB01",
@@ -6840,7 +6904,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "服务增加账号、目标和指纹命名空间及统一管理；不并发各开旧全局文件",
-        "coverage_line": 672
+        "coverage_line": 674
       },
       "route_ids": [
         "JOB01",
@@ -6862,11 +6926,11 @@
       "kind": "function",
       "name": "*UploadTaskUnit.OnComplete",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 457,
+      "line": 462,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 683
+        "coverage_line": 685
       },
       "route_ids": [
         "JOB01",
@@ -6888,7 +6952,33 @@
       "kind": "function",
       "name": "*UploadTaskUnit.OnFailed",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 447,
+      "line": 452,
+      "coverage": {
+        "mapping": "UPL01、JOB 系列",
+        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
+        "coverage_line": 684
+      },
+      "route_ids": [
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11",
+        "UPL01"
+      ],
+      "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "*UploadTaskUnit.OnRetry",
+      "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
+      "line": 439,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
@@ -6912,39 +7002,13 @@
     },
     {
       "kind": "function",
-      "name": "*UploadTaskUnit.OnRetry",
-      "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 434,
-      "coverage": {
-        "mapping": "UPL01、JOB 系列",
-        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 680
-      },
-      "route_ids": [
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11",
-        "UPL01"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
       "name": "*UploadTaskUnit.OnSuccess",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 444,
+      "line": 449,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 681
+        "coverage_line": 683
       },
       "route_ids": [
         "JOB01",
@@ -6966,11 +7030,11 @@
       "kind": "function",
       "name": "*UploadTaskUnit.RetryWait",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 460,
+      "line": 465,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 684
+        "coverage_line": 686
       },
       "route_ids": [
         "JOB01",
@@ -6992,11 +7056,11 @@
       "kind": "function",
       "name": "*UploadTaskUnit.Run",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 474,
+      "line": 479,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 685
+        "coverage_line": 687
       },
       "route_ids": [
         "JOB01",
@@ -7018,11 +7082,11 @@
       "kind": "function",
       "name": "*UploadTaskUnit.SetTaskInfo",
       "file": "internal/pcsfunctions/pcsupload/upload_task_unit.go",
-      "line": 69,
+      "line": 72,
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 679
+        "coverage_line": 681
       },
       "route_ids": [
         "JOB01",
@@ -7048,7 +7112,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 712
+        "coverage_line": 714
       },
       "route_ids": [
         "JOB01",
@@ -7073,7 +7137,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 713
+        "coverage_line": 715
       },
       "route_ids": [
         "JOB01",
@@ -7098,7 +7162,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 714
+        "coverage_line": 716
       },
       "route_ids": [
         "JOB01",
@@ -7123,7 +7187,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 715
+        "coverage_line": 717
       },
       "route_ids": [
         "JOB01",
@@ -7148,7 +7212,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 716
+        "coverage_line": 718
       },
       "route_ids": [
         "JOB01",
@@ -7173,7 +7237,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "当前方法为空；不得当作已实现暂停恢复",
-        "coverage_line": 719
+        "coverage_line": 721
       },
       "route_ids": [
         "JOB01",
@@ -7198,7 +7262,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "当前方法为空；不得当作已实现暂停恢复",
-        "coverage_line": 720
+        "coverage_line": 722
       },
       "route_ids": [
         "JOB01",
@@ -7223,7 +7287,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 711
+        "coverage_line": 713
       },
       "route_ids": [
         "JOB01",
@@ -7248,7 +7312,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 717
+        "coverage_line": 719
       },
       "route_ids": [
         "JOB01",
@@ -7273,7 +7337,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 718
+        "coverage_line": 720
       },
       "route_ids": [
         "JOB01",
@@ -7298,7 +7362,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 710
+        "coverage_line": 712
       },
       "route_ids": [
         "JOB01",
@@ -7323,7 +7387,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 722
+        "coverage_line": 724
       },
       "route_ids": [
         "JOB01",
@@ -7348,7 +7412,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 721
+        "coverage_line": 723
       },
       "route_ids": [
         "JOB01",
@@ -7373,7 +7437,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 723
+        "coverage_line": 725
       },
       "route_ids": [
         "JOB01",
@@ -7398,7 +7462,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 725
+        "coverage_line": 727
       },
       "route_ids": [
         "JOB01",
@@ -7423,7 +7487,7 @@
       "coverage": {
         "mapping": "JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 724
+        "coverage_line": 726
       },
       "route_ids": [
         "JOB01",
@@ -7448,7 +7512,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 779
+        "coverage_line": 781
       },
       "route_ids": [
         "DWN01",
@@ -7474,7 +7538,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 778
+        "coverage_line": 780
       },
       "route_ids": [
         "DWN01",
@@ -7500,7 +7564,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 777
+        "coverage_line": 779
       },
       "route_ids": [
         "DWN01",
@@ -7522,11 +7586,11 @@
       "kind": "function",
       "name": "*Downloader.ExecuteContext",
       "file": "requester/downloader/context.go",
-      "line": 16,
+      "line": 17,
       "coverage": {
         "mapping": "DWN01、JOB06、JOB08",
-        "notes": "P2内部单连接执行：实例客户端、context取消、严格Range和调用方确认检查点；旧Execute不变",
-        "coverage_line": 776
+        "notes": "P4内部实例并行执行：context取消、严格Range、连续持久偏移及worker观察；旧Execute缓存改为每实例",
+        "coverage_line": 778
       },
       "route_ids": [
         "DWN01",
@@ -7543,7 +7607,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 781
+        "coverage_line": 783
       },
       "route_ids": [
         "DWN01",
@@ -7569,7 +7633,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 782
+        "coverage_line": 784
       },
       "route_ids": [
         "DWN01",
@@ -7595,7 +7659,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 783
+        "coverage_line": 785
       },
       "route_ids": [
         "DWN01",
@@ -7621,7 +7685,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 780
+        "coverage_line": 782
       },
       "route_ids": [
         "DWN01",
@@ -7643,11 +7707,11 @@
       "kind": "function",
       "name": "*Downloader.Cancel",
       "file": "requester/downloader/downloader.go",
-      "line": 516,
+      "line": 519,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 798
+        "coverage_line": 800
       },
       "route_ids": [
         "DWN01",
@@ -7673,7 +7737,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 795
+        "coverage_line": 797
       },
       "route_ids": [
         "DWN01",
@@ -7695,11 +7759,11 @@
       "kind": "function",
       "name": "*Downloader.OnCancel",
       "file": "requester/downloader/downloader.go",
-      "line": 550,
+      "line": 553,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 804
+        "coverage_line": 806
       },
       "route_ids": [
         "DWN01",
@@ -7721,11 +7785,11 @@
       "kind": "function",
       "name": "*Downloader.OnDownloadStatusEvent",
       "file": "requester/downloader/downloader.go",
-      "line": 555,
+      "line": 558,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 805
+        "coverage_line": 807
       },
       "route_ids": [
         "DWN01",
@@ -7747,33 +7811,7 @@
       "kind": "function",
       "name": "*Downloader.OnExecute",
       "file": "requester/downloader/downloader.go",
-      "line": 525,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 799
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
-      "name": "*Downloader.OnFinish",
-      "file": "requester/downloader/downloader.go",
-      "line": 535,
+      "line": 528,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
@@ -7797,35 +7835,9 @@
     },
     {
       "kind": "function",
-      "name": "*Downloader.OnPause",
+      "name": "*Downloader.OnFinish",
       "file": "requester/downloader/downloader.go",
-      "line": 540,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 802
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
-      "name": "*Downloader.OnResume",
-      "file": "requester/downloader/downloader.go",
-      "line": 545,
+      "line": 538,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
@@ -7849,13 +7861,65 @@
     },
     {
       "kind": "function",
-      "name": "*Downloader.OnSuccess",
+      "name": "*Downloader.OnPause",
       "file": "requester/downloader/downloader.go",
-      "line": 530,
+      "line": 543,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 800
+        "coverage_line": 804
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "*Downloader.OnResume",
+      "file": "requester/downloader/downloader.go",
+      "line": 548,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
+        "coverage_line": 805
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "*Downloader.OnSuccess",
+      "file": "requester/downloader/downloader.go",
+      "line": 533,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
+        "coverage_line": 802
       },
       "route_ids": [
         "DWN01",
@@ -7877,11 +7941,11 @@
       "kind": "function",
       "name": "*Downloader.Pause",
       "file": "requester/downloader/downloader.go",
-      "line": 498,
+      "line": 501,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 796
+        "coverage_line": 798
       },
       "route_ids": [
         "DWN01",
@@ -7903,11 +7967,11 @@
       "kind": "function",
       "name": "*Downloader.Resume",
       "file": "requester/downloader/downloader.go",
-      "line": 507,
+      "line": 510,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 797
+        "coverage_line": 799
       },
       "route_ids": [
         "DWN01",
@@ -7933,7 +7997,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 792
+        "coverage_line": 794
       },
       "route_ids": [
         "DWN01",
@@ -7959,7 +8023,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 793
+        "coverage_line": 795
       },
       "route_ids": [
         "DWN01",
@@ -7985,7 +8049,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 791
+        "coverage_line": 793
       },
       "route_ids": [
         "DWN01",
@@ -8011,7 +8075,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 786
+        "coverage_line": 788
       },
       "route_ids": [
         "DWN01",
@@ -8037,7 +8101,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 787
+        "coverage_line": 789
       },
       "route_ids": [
         "DWN01",
@@ -8063,7 +8127,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 788
+        "coverage_line": 790
       },
       "route_ids": [
         "DWN01",
@@ -8089,7 +8153,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 785
+        "coverage_line": 787
       },
       "route_ids": [
         "DWN01",
@@ -8115,7 +8179,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 789
+        "coverage_line": 791
       },
       "route_ids": [
         "DWN01",
@@ -8141,7 +8205,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 790
+        "coverage_line": 792
       },
       "route_ids": [
         "DWN01",
@@ -8167,7 +8231,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 794
+        "coverage_line": 796
       },
       "route_ids": [
         "DWN01",
@@ -8193,7 +8257,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 784
+        "coverage_line": 786
       },
       "route_ids": [
         "DWN01",
@@ -8219,7 +8283,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "示例/便捷执行器；服务复用底层执行能力，不引入任意 URL 下载入口",
-        "coverage_line": 806
+        "coverage_line": 808
       },
       "route_ids": [
         "DWN01",
@@ -8245,7 +8309,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 810
+        "coverage_line": 812
       },
       "route_ids": [
         "DWN01",
@@ -8271,7 +8335,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 808
+        "coverage_line": 810
       },
       "route_ids": [
         "DWN01",
@@ -8297,7 +8361,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 809
+        "coverage_line": 811
       },
       "route_ids": [
         "DWN01",
@@ -8323,7 +8387,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 807
+        "coverage_line": 809
       },
       "route_ids": [
         "DWN01",
@@ -8349,7 +8413,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 814
+        "coverage_line": 816
       },
       "route_ids": [
         "DWN01",
@@ -8375,7 +8439,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 813
+        "coverage_line": 815
       },
       "route_ids": [
         "DWN01",
@@ -8401,7 +8465,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 812
+        "coverage_line": 814
       },
       "route_ids": [
         "DWN01",
@@ -8427,7 +8491,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 815
+        "coverage_line": 817
       },
       "route_ids": [
         "DWN01",
@@ -8453,7 +8517,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 811
+        "coverage_line": 813
       },
       "route_ids": [
         "DWN01",
@@ -8479,7 +8543,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 818
+        "coverage_line": 820
       },
       "route_ids": [
         "DWN01",
@@ -8505,7 +8569,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 824
+        "coverage_line": 826
       },
       "route_ids": [
         "DWN01",
@@ -8531,7 +8595,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 835
+        "coverage_line": 837
       },
       "route_ids": [
         "DWN01",
@@ -8557,7 +8621,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 823
+        "coverage_line": 825
       },
       "route_ids": [
         "DWN01",
@@ -8583,7 +8647,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 837
+        "coverage_line": 839
       },
       "route_ids": [
         "DWN01",
@@ -8609,7 +8673,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 826
+        "coverage_line": 828
       },
       "route_ids": [
         "DWN01",
@@ -8635,7 +8699,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 825
+        "coverage_line": 827
       },
       "route_ids": [
         "DWN01",
@@ -8661,7 +8725,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 817
+        "coverage_line": 819
       },
       "route_ids": [
         "DWN01",
@@ -8687,7 +8751,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 829
+        "coverage_line": 831
       },
       "route_ids": [
         "DWN01",
@@ -8713,7 +8777,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 827
+        "coverage_line": 829
       },
       "route_ids": [
         "DWN01",
@@ -8739,7 +8803,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 832
+        "coverage_line": 834
       },
       "route_ids": [
         "DWN01",
@@ -8765,7 +8829,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 831
+        "coverage_line": 833
       },
       "route_ids": [
         "DWN01",
@@ -8791,7 +8855,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 830
+        "coverage_line": 832
       },
       "route_ids": [
         "DWN01",
@@ -8817,7 +8881,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 836
+        "coverage_line": 838
       },
       "route_ids": [
         "DWN01",
@@ -8843,7 +8907,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 833
+        "coverage_line": 835
       },
       "route_ids": [
         "DWN01",
@@ -8869,7 +8933,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 821
+        "coverage_line": 823
       },
       "route_ids": [
         "DWN01",
@@ -8895,7 +8959,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 828
+        "coverage_line": 830
       },
       "route_ids": [
         "DWN01",
@@ -8921,7 +8985,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 820
+        "coverage_line": 822
       },
       "route_ids": [
         "DWN01",
@@ -8947,7 +9011,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 819
+        "coverage_line": 821
       },
       "route_ids": [
         "DWN01",
@@ -8973,7 +9037,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 822
+        "coverage_line": 824
       },
       "route_ids": [
         "DWN01",
@@ -8999,7 +9063,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 834
+        "coverage_line": 836
       },
       "route_ids": [
         "DWN01",
@@ -9025,7 +9089,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 816
+        "coverage_line": 818
       },
       "route_ids": [
         "DWN01",
@@ -9051,7 +9115,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 839
+        "coverage_line": 841
       },
       "route_ids": [
         "DWN01",
@@ -9077,7 +9141,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 840
+        "coverage_line": 842
       },
       "route_ids": [
         "DWN01",
@@ -9103,7 +9167,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 838
+        "coverage_line": 840
       },
       "route_ids": [
         "DWN01",
@@ -9129,7 +9193,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 843
+        "coverage_line": 845
       },
       "route_ids": [
         "DWN01",
@@ -9155,7 +9219,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 841
+        "coverage_line": 843
       },
       "route_ids": [
         "DWN01",
@@ -9181,7 +9245,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 842
+        "coverage_line": 844
       },
       "route_ids": [
         "DWN01",
@@ -9207,7 +9271,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 846
+        "coverage_line": 848
       },
       "route_ids": [
         "DWN01",
@@ -9233,7 +9297,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 847
+        "coverage_line": 849
       },
       "route_ids": [
         "DWN01",
@@ -9259,7 +9323,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 848
+        "coverage_line": 850
       },
       "route_ids": [
         "DWN01",
@@ -9285,7 +9349,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 844
+        "coverage_line": 846
       },
       "route_ids": [
         "DWN01",
@@ -9311,7 +9375,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 845
+        "coverage_line": 847
       },
       "route_ids": [
         "DWN01",
@@ -9337,7 +9401,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 850
+        "coverage_line": 852
       },
       "route_ids": [
         "DWN01",
@@ -9363,7 +9427,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 851
+        "coverage_line": 853
       },
       "route_ids": [
         "DWN01",
@@ -9389,7 +9453,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 849
+        "coverage_line": 851
       },
       "route_ids": [
         "DWN01",
@@ -9411,11 +9475,11 @@
       "kind": "function",
       "name": "*Worker.Cancel",
       "file": "requester/downloader/worker.go",
-      "line": 167,
+      "line": 171,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 867
+        "coverage_line": 869
       },
       "route_ids": [
         "DWN01",
@@ -9437,137 +9501,7 @@
       "kind": "function",
       "name": "*Worker.Canceled",
       "file": "requester/downloader/worker.go",
-      "line": 193,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 869
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.ClearStatus",
-      "file": "requester/downloader/worker.go",
-      "line": 218,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 872
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Completed",
-      "file": "requester/downloader/worker.go",
-      "line": 198,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 870
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Err",
-      "file": "requester/downloader/worker.go",
-      "line": 223,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 873
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Execute",
-      "file": "requester/downloader/worker.go",
-      "line": 228,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 874
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Failed",
-      "file": "requester/downloader/worker.go",
-      "line": 208,
+      "line": 197,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -9591,13 +9525,143 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.GetRange",
+      "name": "*Worker.ClearStatus",
       "file": "requester/downloader/worker.go",
-      "line": 134,
+      "line": 222,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 863
+        "coverage_line": 874
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.Completed",
+      "file": "requester/downloader/worker.go",
+      "line": 202,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 872
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.Err",
+      "file": "requester/downloader/worker.go",
+      "line": 227,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 875
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.Execute",
+      "file": "requester/downloader/worker.go",
+      "line": 232,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 876
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.Failed",
+      "file": "requester/downloader/worker.go",
+      "line": 212,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 873
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.GetRange",
+      "file": "requester/downloader/worker.go",
+      "line": 138,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 865
       },
       "route_ids": [
         "DWN01",
@@ -9619,7 +9683,33 @@
       "kind": "function",
       "name": "*Worker.GetSpeedsPerSecond",
       "file": "requester/downloader/worker.go",
-      "line": 139,
+      "line": 143,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 866
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.GetStatus",
+      "file": "requester/downloader/worker.go",
+      "line": 132,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -9643,165 +9733,9 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.GetStatus",
-      "file": "requester/downloader/worker.go",
-      "line": 128,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 862
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
       "name": "*Worker.ID",
       "file": "requester/downloader/worker.go",
-      "line": 63,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 854
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Pause",
-      "file": "requester/downloader/worker.go",
-      "line": 144,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 865
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Reset",
-      "file": "requester/downloader/worker.go",
-      "line": 179,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 868
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.Resume",
-      "file": "requester/downloader/worker.go",
-      "line": 159,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 866
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "http_business"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.SetAcceptRange",
-      "file": "requester/downloader/worker.go",
-      "line": 98,
-      "coverage": {
-        "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 857
-      },
-      "route_ids": [
-        "DWN01",
-        "JOB01",
-        "JOB02",
-        "JOB03",
-        "JOB04",
-        "JOB05",
-        "JOB06",
-        "JOB07",
-        "JOB08",
-        "JOB09",
-        "JOB10",
-        "JOB11"
-      ],
-      "classification": "internal_adapter"
-    },
-    {
-      "kind": "function",
-      "name": "*Worker.SetClient",
-      "file": "requester/downloader/worker.go",
-      "line": 93,
+      "line": 64,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -9825,13 +9759,39 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.SetDownloadStatus",
+      "name": "*Worker.Pause",
       "file": "requester/downloader/worker.go",
-      "line": 123,
+      "line": 148,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
+        "coverage_line": 867
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "http_business"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.Reset",
+      "file": "requester/downloader/worker.go",
+      "line": 183,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 861
+        "coverage_line": 870
       },
       "route_ids": [
         "DWN01",
@@ -9851,13 +9811,13 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.SetRange",
+      "name": "*Worker.Resume",
       "file": "requester/downloader/worker.go",
-      "line": 103,
+      "line": 163,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
-        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 858
+        "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
+        "coverage_line": 868
       },
       "route_ids": [
         "DWN01",
@@ -9873,13 +9833,13 @@
         "JOB10",
         "JOB11"
       ],
-      "classification": "internal_adapter"
+      "classification": "http_business"
     },
     {
       "kind": "function",
-      "name": "*Worker.SetReferer",
+      "name": "*Worker.SetAcceptRange",
       "file": "requester/downloader/worker.go",
-      "line": 113,
+      "line": 102,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -9903,13 +9863,13 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.SetTotalSize",
+      "name": "*Worker.SetClient",
       "file": "requester/downloader/worker.go",
-      "line": 88,
+      "line": 97,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 855
+        "coverage_line": 858
       },
       "route_ids": [
         "DWN01",
@@ -9929,9 +9889,35 @@
     },
     {
       "kind": "function",
-      "name": "*Worker.SetWriteMutex",
+      "name": "*Worker.SetDownloadStatus",
       "file": "requester/downloader/worker.go",
-      "line": 118,
+      "line": 127,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 863
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.SetRange",
+      "file": "requester/downloader/worker.go",
+      "line": 107,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
@@ -9955,13 +9941,91 @@
     },
     {
       "kind": "function",
-      "name": "NewWorker",
+      "name": "*Worker.SetReferer",
       "file": "requester/downloader/worker.go",
-      "line": 54,
+      "line": 117,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 853
+        "coverage_line": 861
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.SetTotalSize",
+      "file": "requester/downloader/worker.go",
+      "line": 92,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 857
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "*Worker.SetWriteMutex",
+      "file": "requester/downloader/worker.go",
+      "line": 122,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 862
+      },
+      "route_ids": [
+        "DWN01",
+        "JOB01",
+        "JOB02",
+        "JOB03",
+        "JOB04",
+        "JOB05",
+        "JOB06",
+        "JOB07",
+        "JOB08",
+        "JOB09",
+        "JOB10",
+        "JOB11"
+      ],
+      "classification": "internal_adapter"
+    },
+    {
+      "kind": "function",
+      "name": "NewWorker",
+      "file": "requester/downloader/worker.go",
+      "line": 55,
+      "coverage": {
+        "mapping": "DWN01、JOB 系列",
+        "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
+        "coverage_line": 855
       },
       "route_ids": [
         "DWN01",
@@ -9983,11 +10047,11 @@
       "kind": "function",
       "name": "WorkerList.Duplicate",
       "file": "requester/downloader/worker.go",
-      "line": 47,
+      "line": 48,
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 852
+        "coverage_line": 854
       },
       "route_ids": [
         "DWN01",
@@ -10013,7 +10077,7 @@
       "coverage": {
         "mapping": "DWN01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 875
+        "coverage_line": 877
       },
       "route_ids": [
         "DWN01",
@@ -10039,7 +10103,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 733
+        "coverage_line": 735
       },
       "route_ids": [
         "JOB01",
@@ -10065,7 +10129,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 737
+        "coverage_line": 739
       },
       "route_ids": [
         "JOB01",
@@ -10091,7 +10155,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 736
+        "coverage_line": 738
       },
       "route_ids": [
         "JOB01",
@@ -10117,7 +10181,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 738
+        "coverage_line": 740
       },
       "route_ids": [
         "JOB01",
@@ -10143,7 +10207,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 734
+        "coverage_line": 736
       },
       "route_ids": [
         "JOB01",
@@ -10169,7 +10233,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 739
+        "coverage_line": 741
       },
       "route_ids": [
         "JOB01",
@@ -10195,7 +10259,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 735
+        "coverage_line": 737
       },
       "route_ids": [
         "JOB01",
@@ -10221,7 +10285,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 732
+        "coverage_line": 734
       },
       "route_ids": [
         "JOB01",
@@ -10247,7 +10311,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 731
+        "coverage_line": 733
       },
       "route_ids": [
         "JOB01",
@@ -10273,7 +10337,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 740
+        "coverage_line": 742
       },
       "route_ids": [
         "JOB01",
@@ -10299,7 +10363,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "示例/便捷执行器；服务复用底层执行能力，不引入任意 URL 下载入口",
-        "coverage_line": 741
+        "coverage_line": 743
       },
       "route_ids": [
         "JOB01",
@@ -10325,7 +10389,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 746
+        "coverage_line": 748
       },
       "route_ids": [
         "JOB01",
@@ -10351,7 +10415,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 744
+        "coverage_line": 746
       },
       "route_ids": [
         "JOB01",
@@ -10377,7 +10441,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接 JOB06 至 JOB08；支持情况按具体执行器及运行阶段声明",
-        "coverage_line": 747
+        "coverage_line": 749
       },
       "route_ids": [
         "JOB01",
@@ -10403,7 +10467,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 745
+        "coverage_line": 747
       },
       "route_ids": [
         "JOB01",
@@ -10429,7 +10493,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 751
+        "coverage_line": 753
       },
       "route_ids": [
         "JOB01",
@@ -10455,7 +10519,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 752
+        "coverage_line": 754
       },
       "route_ids": [
         "JOB01",
@@ -10481,7 +10545,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 748
+        "coverage_line": 750
       },
       "route_ids": [
         "JOB01",
@@ -10507,7 +10571,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 750
+        "coverage_line": 752
       },
       "route_ids": [
         "JOB01",
@@ -10533,7 +10597,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 749
+        "coverage_line": 751
       },
       "route_ids": [
         "JOB01",
@@ -10559,7 +10623,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 753
+        "coverage_line": 755
       },
       "route_ids": [
         "JOB01",
@@ -10585,7 +10649,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "由 checkpoint store 管理；恢复先验证来源、目标和文件指纹",
-        "coverage_line": 743
+        "coverage_line": 745
       },
       "route_ids": [
         "JOB01",
@@ -10611,7 +10675,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 742
+        "coverage_line": 744
       },
       "route_ids": [
         "JOB01",
@@ -10637,7 +10701,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 754
+        "coverage_line": 756
       },
       "route_ids": [
         "JOB01",
@@ -10663,7 +10727,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 755
+        "coverage_line": 757
       },
       "route_ids": [
         "JOB01",
@@ -10689,7 +10753,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 757
+        "coverage_line": 759
       },
       "route_ids": [
         "JOB01",
@@ -10715,7 +10779,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 758
+        "coverage_line": 760
       },
       "route_ids": [
         "JOB01",
@@ -10741,7 +10805,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 756
+        "coverage_line": 758
       },
       "route_ids": [
         "JOB01",
@@ -10767,7 +10831,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 761
+        "coverage_line": 763
       },
       "route_ids": [
         "JOB01",
@@ -10793,7 +10857,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 762
+        "coverage_line": 764
       },
       "route_ids": [
         "JOB01",
@@ -10819,7 +10883,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 759
+        "coverage_line": 761
       },
       "route_ids": [
         "JOB01",
@@ -10845,7 +10909,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 760
+        "coverage_line": 762
       },
       "route_ids": [
         "JOB01",
@@ -10871,7 +10935,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 763
+        "coverage_line": 765
       },
       "route_ids": [
         "JOB01",
@@ -10897,7 +10961,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 768
+        "coverage_line": 770
       },
       "route_ids": [
         "JOB01",
@@ -10923,7 +10987,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 769
+        "coverage_line": 771
       },
       "route_ids": [
         "JOB01",
@@ -10949,7 +11013,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "接观察者和持久化 job 事件；替代通过终端输出来判断结果",
-        "coverage_line": 770
+        "coverage_line": 772
       },
       "route_ids": [
         "JOB01",
@@ -10975,7 +11039,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 767
+        "coverage_line": 769
       },
       "route_ids": [
         "JOB01",
@@ -11001,7 +11065,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 765
+        "coverage_line": 767
       },
       "route_ids": [
         "JOB01",
@@ -11027,7 +11091,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 766
+        "coverage_line": 768
       },
       "route_ids": [
         "JOB01",
@@ -11053,7 +11117,7 @@
       "coverage": {
         "mapping": "UPL01、JOB 系列",
         "notes": "内部执行和状态适配，不为 Go 方法建立独立公网路由",
-        "coverage_line": 764
+        "coverage_line": 766
       },
       "route_ids": [
         "JOB01",
@@ -11637,7 +11701,7 @@
       "kind": "option_field",
       "name": "UploadOptions.Load",
       "file": "internal/pcscommand/upload.go",
-      "line": 31,
+      "line": 30,
       "type": "int",
       "coverage": {
         "mapping": "UPL01 options.file_concurrency",
@@ -11652,7 +11716,7 @@
       "kind": "option_field",
       "name": "UploadOptions.MaxRetry",
       "file": "internal/pcscommand/upload.go",
-      "line": 30,
+      "line": 29,
       "type": "int",
       "coverage": {
         "mapping": "UPL01 options.max_retries",
@@ -11667,7 +11731,7 @@
       "kind": "option_field",
       "name": "UploadOptions.NoFilenameCheck",
       "file": "internal/pcscommand/upload.go",
-      "line": 35,
+      "line": 34,
       "type": "bool",
       "coverage": {
         "mapping": "UPL01 options.check_filename 的反向映射，覆盖当前全局 IgnoreIllegal 的来源",
@@ -11682,7 +11746,7 @@
       "kind": "option_field",
       "name": "UploadOptions.NoRapidUpload",
       "file": "internal/pcscommand/upload.go",
-      "line": 32,
+      "line": 31,
       "type": "bool",
       "coverage": {
         "mapping": "UPL01 options.skip_rapid_check",
@@ -11697,7 +11761,7 @@
       "kind": "option_field",
       "name": "UploadOptions.NoSplitFile",
       "file": "internal/pcscommand/upload.go",
-      "line": 33,
+      "line": 32,
       "type": "bool",
       "coverage": {
         "mapping": "UPL01 options.no_split_file；当前未生效，请求 true 返回 422，待独立策略实现",
@@ -11712,7 +11776,7 @@
       "kind": "option_field",
       "name": "UploadOptions.Parallel",
       "file": "internal/pcscommand/upload.go",
-      "line": 29,
+      "line": 28,
       "type": "int",
       "coverage": {
         "mapping": "UPL01 options.parallel_per_file",
@@ -11727,7 +11791,7 @@
       "kind": "option_field",
       "name": "UploadOptions.Policy",
       "file": "internal/pcscommand/upload.go",
-      "line": 34,
+      "line": 33,
       "type": "string",
       "coverage": {
         "mapping": "UPL01 options.policy",

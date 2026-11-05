@@ -19,9 +19,11 @@ import (
 	appartifacts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/artifacts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
+	appcontent "github.com/qjfoidnh/BaiduPCS-Go/internal/application/content"
 	appfiles "github.com/qjfoidnh/BaiduPCS-Go/internal/application/files"
 	applocal "github.com/qjfoidnh/BaiduPCS-Go/internal/application/local"
 	appquery "github.com/qjfoidnh/BaiduPCS-Go/internal/application/query"
+	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	apptransfers "github.com/qjfoidnh/BaiduPCS-Go/internal/application/transfers"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/domain/auth"
@@ -40,6 +42,8 @@ type Dependencies struct {
 	Files         *appfiles.Service
 	Queries       *appquery.Service
 	Artifacts     *appartifacts.Service
+	Staging       *appstaging.Service
+	Content       *appcontent.Service
 	Local         *applocal.Service
 	Operations    []system.Operation
 	Contract      []byte
@@ -68,7 +72,7 @@ func principal(ctx context.Context) auth.Principal {
 
 func Implemented(id string) bool {
 	switch id {
-	case "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
+	case "UPL01", "UPL02", "UPL03", "UPL04", "DWN01", "DWN02", "DWN03", "DWN04", "DWN05", "JOB07", "JOB08", "SYS01", "SYS02", "SYS03", "SYS04", "SYS08", "SYS09", "CFG01", "CFG02", "CFG03", "CFG04", "CFG05", "CFG07", "ACC01", "ACC02", "ACC03", "ACC04", "ACC05", "ACC06", "ACC07", "ACC08", "ACC09", "FIL01", "FIL02", "FIL03", "FIL04", "FIL05", "FIL06", "JOB01", "JOB02", "JOB03", "JOB04", "JOB05", "JOB06", "JOB09", "JOB11", "ART01", "ART02", "ART03", "ART04", "LOC01":
 		return true
 	}
 	return false
@@ -78,8 +82,7 @@ func Implementation(id string) string {
 		return "implemented"
 	}
 	switch id {
-	case "UPL01", "DWN01", "JOB08":
-		return "partial"
+
 	}
 	return "planned"
 }
@@ -139,7 +142,17 @@ func New(deps Dependencies) (http.Handler, error) {
 						token = parts[1]
 					}
 				}
-				p, err := api.deps.Auth.Authenticate(r.Context(), token)
+				var p auth.Principal
+				var err error
+				if (op.ID == "DWN03" || op.ID == "DWN04") && r.URL.Query().Has("ticket") {
+					if len(values) > 0 {
+						api.problem(w, r, invalid("票据与Authorization不能同时提供"))
+						return
+					}
+					p, err = api.authenticateTicket(r)
+				} else {
+					p, err = api.deps.Auth.Authenticate(r.Context(), token)
+				}
 				if err != nil {
 					api.problem(w, r, err)
 					return
@@ -220,7 +233,11 @@ func (a *API) middleware(next http.Handler) http.Handler {
 		}
 		id := "req_" + hex.EncodeToString(random)
 		r = r.WithContext(context.WithValue(r.Context(), requestKey, id))
-		r.Body = http.MaxBytesReader(record, r.Body, MaxJSONBodyBytes)
+		limit := int64(MaxJSONBodyBytes)
+		if r.URL.Path == "/api/v1/staging-files" {
+			limit = (256 << 20) + (64 << 10)
+		}
+		r.Body = http.MaxBytesReader(record, r.Body, limit)
 		record.Header().Set("X-Request-ID", id)
 		record.Header().Set("Cache-Control", "no-store")
 		record.Header().Set("X-Content-Type-Options", "nosniff")
@@ -240,7 +257,7 @@ func (a *API) middleware(next http.Handler) http.Handler {
 		}()
 		// Stream operations acquire their own idle policy in P3/P4. No global
 		// http.Server.WriteTimeout is imposed on SSE or content streams.
-		streaming := strings.HasSuffix(r.URL.Path, "/events") || strings.HasSuffix(r.URL.Path, "/content")
+		streaming := strings.HasSuffix(r.URL.Path, "/events") || strings.HasSuffix(r.URL.Path, "/content") || r.URL.Path == "/api/v1/staging-files"
 		if !streaming {
 			ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 			defer cancel()
@@ -387,6 +404,12 @@ func (a *API) serve(id string, w http.ResponseWriter, r *http.Request) error {
 			Configured bool      `json:"effective_root_configured"`
 		}{publicClient(defaults), runtime.GOOS + "/" + runtime.GOARCH, origin, template, defaults.SaveDir != nil})
 		return nil
+	}
+	if id == "DWN02" || id == "DWN03" || id == "DWN04" || id == "DWN05" {
+		return a.serveContent(id, w, r)
+	}
+	if id == "UPL02" || id == "UPL03" || id == "UPL04" {
+		return a.serveStaging(id, w, r)
 	}
 	if p3Operation(id) {
 		return a.serveP3(id, w, r)

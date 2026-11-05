@@ -71,7 +71,7 @@ func checkpoint(r transfer.Record) publicCheckpoint {
 	return cp
 }
 func counters(r transfer.Record) map[string]string {
-	if r.Request.Kind == "file_scan" {
+	if r.Request.Kind == "file_scan" || len(r.Plan) > 0 {
 		if r.ScanResult != nil {
 			return publicCounts(r.ScanResult.Counts)
 		}
@@ -96,6 +96,10 @@ func counters(r transfer.Record) map[string]string {
 	return values
 }
 func bytesConfirmed(r transfer.Record) (string, string) {
+	if len(r.Plan) > 0 && r.ScanResult != nil {
+		return strconv.FormatInt(r.ScanResult.Transferred, 10), strconv.FormatInt(r.ScanResult.Written, 10)
+	}
+
 	cp := checkpoint(r)
 	transferred := cp.Offset
 	if r.Request.Kind == "upload" {
@@ -152,6 +156,11 @@ func publicJob(r transfer.Record, requestID string) any {
 			}
 		case "running":
 			actions = append(actions, "cancel")
+			if r.Request.Kind == "upload" || r.Request.Kind == "download" {
+				actions = append(actions, "pause")
+			}
+		case "paused":
+			actions = append(actions, "resume", "cancel")
 		case "interrupted":
 			if cp.Phase != "committing" && cp.Phase != "done" {
 				actions = append(actions, "cancel")
@@ -176,11 +185,48 @@ func publicJob(r transfer.Record, requestID string) any {
 	result := map[string]any{
 		"job_id": r.ID, "owner": r.Owner, "account_id": r.Request.AccountID, "kind": r.Request.Kind, "state": r.State, "phase": phase, "created_at": r.CreatedAt, "dry_run": false, "started_at": nullable(r.StartedAt), "finished_at": nullable(r.FinishedAt), "config_revision": uintString(r.ConfigRevision), "credential_revision": uintString(r.CredentialRevision), "parent_job_id": nil, "child_job_ids": []string{}, "retry_of_job_id": nullable(r.Request.RetryOf),
 		"resolved_paths": []string{r.Request.RemotePath}, "resolved_sources": []any{}, "local_files": []any{}, "destination": nil, "target_path": nil,
-		"progress":          map[string]any{"total_items": "1", "processed_items": counts["processed"], "succeeded_items": counts["succeeded"], "failed_items": counts["failed"], "skipped_items": counts["skipped"], "cancelled_items": counts["cancelled"], "total_bytes": totalBytes, "transferred_bytes": transferred, "written_bytes": written, "bytes_per_second": rate, "eta_seconds": eta},
+		"progress":          map[string]any{"total_items": counts["total"], "processed_items": counts["processed"], "succeeded_items": counts["succeeded"], "failed_items": counts["failed"], "skipped_items": counts["skipped"], "cancelled_items": counts["cancelled"], "total_bytes": totalBytes, "transferred_bytes": transferred, "written_bytes": written, "bytes_per_second": rate, "eta_seconds": eta},
 		"available_actions": actions, "problem": problem, "links": map[string]string{"self": "/api/v1/jobs/" + r.ID, "events": "/api/v1/jobs/" + r.ID + "/events", "result": "/api/v1/jobs/" + r.ID + "/result"}, "effective_options": r.EffectiveOptions,
 	}
 	if r.Terminal() && (counts["failed"] != "0" || counts["cancelled"] != "0" || r.State == "failed" && r.FailureCode != "") {
 		result["available_actions"] = []string{"retry"}
+	}
+	if len(r.Plan) > 0 {
+		var plan transfer.Plan
+		_ = json.Unmarshal(r.Plan, &plan)
+		result["dry_run"] = plan.DryRun
+		paths := []string{}
+		sources := []any{}
+		locals := []any{}
+		var size int64
+		for _, u := range plan.Units {
+			paths = append(paths, u.RemotePath)
+			if !u.Directory {
+				size += u.Size
+			}
+			if r.Request.Kind == "download" {
+				locals = append(locals, map[string]string{"root_id": u.RootID, "relative_path": u.RelativePath})
+			}
+		}
+		if r.Request.Batch != "" {
+			var batch transfer.Batch
+			_ = json.Unmarshal([]byte(r.Request.Batch), &batch)
+			for _, s := range batch.Sources {
+				sources = append(sources, s)
+			}
+		}
+		result["resolved_paths"] = paths
+		result["resolved_sources"] = sources
+		result["local_files"] = locals
+		progress := result["progress"].(map[string]any)
+		progress["total_items"] = uintString(uint64(len(plan.Units)))
+		progress["total_bytes"] = strconv.FormatInt(size, 10)
+		if r.Request.Kind == "download" {
+			result["destination"] = map[string]string{"root_id": r.Request.RootID, "directory": path.Dir(r.Request.RelativePath)}
+		} else {
+			result["target_path"] = r.Request.RemotePath
+		}
+		return result
 	}
 	if r.Request.Kind == "file_scan" {
 		var plan file.ScanPlan
@@ -239,5 +285,5 @@ func publicResult(r transfer.Record) any {
 		return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": publicCounts(v.Counts), "complete": v.Complete, "truncation_reason": nullable(v.Truncation), "files": uintString(v.Files), "directories": uintString(v.Directories), "size_bytes": uintString(v.Bytes), "artifact_ids": append([]string{}, v.ArtifactIDs...)}}
 	}
 	transferred, written := bytesConfirmed(r)
-	return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": counters(r), "complete": true, "artifact_ids": []string{}, "transferred_bytes": transferred, "written_bytes": written, "child_job_ids": []string{}}}
+	return map[string]any{"job_id": r.ID, "kind": r.Request.Kind, "result": map[string]any{"summary": counters(r), "complete": r.Terminal() && (len(r.Plan) == 0 || r.ScanResult != nil && r.ScanResult.Counts.Processed == r.ScanResult.Counts.Total), "artifact_ids": []string{}, "transferred_bytes": transferred, "written_bytes": written, "child_job_ids": []string{}}}
 }

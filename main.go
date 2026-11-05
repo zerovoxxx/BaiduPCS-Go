@@ -1248,7 +1248,9 @@ func main() {
 				}
 
 				subArgs := c.Args()
-				err := pcscommand.RunUpload(subArgs[:c.NArg()-1], subArgs[c.NArg()-1], &pcscommand.UploadOptions{
+				uploadContext, stopUpload := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer stopUpload()
+				err := pcscommand.RunUploadContext(uploadContext, subArgs[:c.NArg()-1], subArgs[c.NArg()-1], &pcscommand.UploadOptions{
 					Parallel:      c.Int("p"),
 					MaxRetry:      c.Int("retry"),
 					Load:          c.Int("l"),

@@ -108,7 +108,7 @@ func (s *Store) SaveScanItem(ctx context.Context, id string, item transfer.Item,
 	if err != nil {
 		return err
 	}
-	if r.State != "running" && r.State != "cancelling" {
+	if r.State != "running" && r.State != "cancelling" && r.State != "pausing" {
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "扫描任务已停止")
 	}
 	payload, err := s.sealValue(fmt.Sprintf("item/%s/%d", id, item.Index), item)
@@ -151,7 +151,7 @@ func (s *Store) SaveScanResult(ctx context.Context, id string, result transfer.S
 	if err != nil {
 		return err
 	}
-	if r.State != "running" && r.State != "cancelling" {
+	if r.State != "running" && r.State != "cancelling" && r.State != "pausing" {
 		return fault.New(fault.Conflict, "STATE_CONFLICT", "扫描任务已停止")
 	}
 	r.ScanResult = &result

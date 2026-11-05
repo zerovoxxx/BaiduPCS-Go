@@ -97,10 +97,20 @@ func (s *Store) migrate(ctx context.Context) error {
 	if err := s.db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
 		return err
 	}
-	if version > 4 {
+	if version > 5 {
 		return errors.New("database schema is newer than this server")
 	}
+	if version == 5 {
+		return nil
+	}
 	if version == 4 {
+		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;
+ CREATE TABLE staging_files(file_id TEXT PRIMARY KEY,owner TEXT NOT NULL,record BLOB NOT NULL,state TEXT NOT NULL,size INTEGER NOT NULL DEFAULT 0,expires_at INTEGER NOT NULL);
+ CREATE TABLE staging_references(file_id TEXT NOT NULL REFERENCES staging_files(file_id),job_id TEXT NOT NULL REFERENCES jobs(job_id),PRIMARY KEY(file_id,job_id));
+ PRAGMA user_version=5; COMMIT;`)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	if version == 3 {
@@ -115,7 +125,10 @@ func (s *Store) migrate(ctx context.Context) error {
  CREATE INDEX artifacts_job ON artifacts(job_id);
  PRAGMA user_version=4;
  COMMIT;`)
-		return err
+		if err != nil {
+			return err
+		}
+		return s.migrate(ctx)
 	}
 	if version == 2 {
 		_, err := s.db.ExecContext(ctx, `BEGIN IMMEDIATE;

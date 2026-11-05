@@ -19,6 +19,8 @@ import (
 	appaccounts "github.com/qjfoidnh/BaiduPCS-Go/internal/application/accounts"
 	appauth "github.com/qjfoidnh/BaiduPCS-Go/internal/application/auth"
 	appconfig "github.com/qjfoidnh/BaiduPCS-Go/internal/application/configuration"
+	appcontent "github.com/qjfoidnh/BaiduPCS-Go/internal/application/content"
+	appstaging "github.com/qjfoidnh/BaiduPCS-Go/internal/application/staging"
 	appsystem "github.com/qjfoidnh/BaiduPCS-Go/internal/application/system"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/httpapi"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/infrastructure/identity"
@@ -54,7 +56,11 @@ func testHTTPAPI(t *testing.T, f *transferFixture) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(auth), Configuration: appconfig.New(f.store, DefaultConfiguration(), roots, network.Environment{}), Accounts: appaccounts.NewValidated(f.store, f.store, f.clients), Transfers: f.service, System: appsystem.New("test", baseline, time.Now(), ops), Operations: ops, Contract: contract.JSON()})
+	stage, err := localfs.NewStaging(f.directory, f.store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, err := httpapi.New(httpapi.Dependencies{Auth: appauth.New(auth), Configuration: appconfig.New(f.store, DefaultConfiguration(), roots, network.Environment{}), Accounts: appaccounts.NewValidated(f.store, f.store, f.clients), Transfers: f.service, Staging: appstaging.New(stage), Content: appcontent.New(f.store, f.store, f.clients, f.store), System: appsystem.New("test", baseline, time.Now(), ops), Operations: ops, Contract: contract.JSON()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +162,7 @@ func TestP2LiveHTTPTransfersAndRecovery(t *testing.T) {
 	}
 	wire(t, handler, "JOB02", "GET", "/api/v1/jobs/not-found", "", "", 404, &rows)
 	wire(t, handler, "JOB04", "GET", "/api/v1/jobs/not-found/result", "", "", 404, &rows)
-	wire(t, handler, "UPL01", "POST", accountURL+"/uploads", "", strings.Replace(uploadBody, `"parallel_per_file":1`, `"parallel_per_file":2`, 1), 422, &rows)
+	wire(t, handler, "UPL01", "POST", accountURL+"/uploads", "", strings.Replace(uploadBody, `"no_split_file":false`, `"no_split_file":true`, 1), 422, &rows)
 	// A new skip submission succeeds without changing the existing remote bytes.
 	skipped := wire(t, handler, "UPL01", "POST", accountURL+"/uploads", "skip-once", uploadBody, 202, nil)
 	skippedID := resourceID(t, skipped, "job_id")
@@ -176,7 +182,7 @@ func TestP2LiveHTTPTransfersAndRecovery(t *testing.T) {
 	if err != nil || !bytes.Equal(got, content) {
 		t.Fatal("HTTP transfer changed bytes", err)
 	}
-	wire(t, handler, "DWN01", "POST", accountURL+"/downloads", "", strings.Replace(downloadBody, `"overwrite":false`, `"overwrite":true`, 1), 422, &rows)
+	wire(t, handler, "DWN01", "POST", accountURL+"/downloads", "", strings.Replace(downloadBody, `"parallel":1`, `"parallel":33`, 1), 422, &rows)
 	cancelBody := strings.Replace(uploadBody, `"target_dir":"/http"`, `"target_dir":"/cancel-http"`, 1)
 	cancelled := wire(t, handler, "UPL01", "POST", accountURL+"/uploads", "cancel", cancelBody, 202, nil)
 	cancelID := resourceID(t, cancelled, "job_id")
@@ -258,9 +264,9 @@ func TestP2HTTPRejectsUnsupportedAndMalformedRequests(t *testing.T) {
 		body   string
 		status int
 	}{
-		{`{"sources":[{"type":"staged","staged_file_id":"staged_1"}],"target_dir":"/"}`, 422},
+		{`{"sources":[{"type":"staged","staged_file_id":"staged_1"}],"target_dir":"/"}`, 404},
 		{`{"sources":[{"type":"local","root_id":"test","relative_path":"../outside"}],"target_dir":"/"}`, 400},
-		{`{"sources":[{"type":"local","root_id":"test","relative_path":"test.bin"}],"target_dir":"/","dry_run":true}`, 422},
+		{`{"sources":[{"type":"local","root_id":"test","relative_path":"test.bin"}],"target_dir":"/","dry_run":true}`, 404},
 		{`{"sources":[{"type":"local","root_id":"test","relative_path":"test.bin"}],"target_dir":"/",` + uploadOptions + `}`, 404},
 	}
 	for _, tc := range cases {

@@ -605,6 +605,8 @@
 | RunUpload | UPL01 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/upload.go:54](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/upload.go#L54) |
 | RunTestShellPattern | FIL06 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/util.go:32](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/util.go#L32) |
 
+| RunUploadContext | UPL01、JOB06 | 内部按调用上下文执行，信号归main，CLI格式化保留 | [internal/pcscommand/upload.go:56](../internal/pcscommand/upload.go:56) |
+
 ## 8 pcsconfig 全部导出函数和方法
 
 | 方法 | 归属 | 要求 | 源码 |
@@ -660,9 +662,9 @@
 
 | 方法 | 所属 HTTP 能力 | 内部处理 | 源码 |
 | --- | --- | --- | --- |
-| GracefulStopActiveUploaders | UPL01、JOB 系列 | 只供服务关闭；单 job 取消禁止使用此全局停止入口 | [internal/pcsfunctions/pcsupload/active.go:18](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L18) |
-| RegisterActiveUploader | UPL01、JOB 系列 | 服务模式改为按 job 持有执行句柄，避免全局停止污染 | [internal/pcsfunctions/pcsupload/active.go:28](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L28) |
-| UnregisterActiveUploader | UPL01、JOB 系列 | 服务模式改为按 job 持有执行句柄，避免全局停止污染 | [internal/pcsfunctions/pcsupload/active.go:36](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L36) |
+| GracefulStopActiveUploaders | UPL01、JOB 系列 | 兼容旧调用保留；当前CLI/HTTP均使用按实例控制，单job禁止调用全局入口 | [internal/pcsfunctions/pcsupload/active.go:18](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L18) |
+| RegisterActiveUploader | UPL01、JOB 系列 | 兼容旧调用保留；TaskUnit注入UploadGroup，不再依赖全局停止 | [internal/pcsfunctions/pcsupload/active.go:28](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L28) |
+| UnregisterActiveUploader | UPL01、JOB 系列 | 兼容旧调用保留；TaskUnit注入UploadGroup，不再依赖全局停止 | [internal/pcsfunctions/pcsupload/active.go:36](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/active.go#L36) |
 | EmptyReaderLen64.Read | UPL01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [internal/pcsfunctions/pcsupload/upload.go:44](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/upload.go#L44) |
 | EmptyReaderLen64.Len | UPL01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [internal/pcsfunctions/pcsupload/upload.go:48](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/upload.go#L48) |
 | NewPCSUpload | UPL01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [internal/pcsfunctions/pcsupload/upload.go:52](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsfunctions/pcsupload/upload.go#L52) |
@@ -773,7 +775,7 @@
 
 | 方法 | 所属 HTTP 能力 | 内部处理 | 源码 |
 | --- | --- | --- | --- |
-| *Downloader.ExecuteContext | DWN01、JOB06、JOB08 | P2内部单连接执行：实例客户端、context取消、严格Range和调用方确认检查点；旧Execute不变 | [requester/downloader/context.go:16](../requester/downloader/context.go:16) |
+| *Downloader.ExecuteContext | DWN01、JOB06、JOB08 | P4内部实例并行执行：context取消、严格Range、连续持久偏移及worker观察；旧Execute缓存改为每实例 | [requester/downloader/context.go:16](../requester/downloader/context.go:16) |
 | NewConfig | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:32](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L32) |
 | *Config.Fix | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:41](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L41) |
 | *Config.Copy | DWN01、JOB 系列 | 内部执行和状态适配，不为 Go 方法建立独立公网路由 | [requester/downloader/config.go:49](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/requester/downloader/config.go#L49) |
@@ -884,6 +886,10 @@
 | uploader.MultiUploaderConfig | Parallel、MaxRate、Policy 映射有效任务选项；BlockSize 依主项目分片阈值和文件大小策略，不接受客户端无界数值 |
 | DownloadFunc、UploadFunc、HandleFileDirectoryFunc | 作为适配器回调，不序列化为 HTTP 参数；对应内容、传输和扫描业务 |
 | FileDirectory、Shared、ShareSURLInfo、CloudDlTaskInfo、RecycleFDInfo | 映射各领域 DTO；Go unsafe 解析对象、原始 remote error 和内部共享指针不直接输出 |
+
+| *UploadGroup.Register | UPL01、JOB06 | 内部按单次CLI调用注册执行器，后注册遵循该实例停止状态 | [internal/pcsfunctions/pcsupload/active.go:24](../internal/pcsfunctions/pcsupload/active.go:24) |
+| *UploadGroup.Stop | UPL01、JOB06 | 内部仅停止本组，不污染后续调用 | [internal/pcsfunctions/pcsupload/active.go:16](../internal/pcsfunctions/pcsupload/active.go:16) |
+| *UploadGroup.Unregister | UPL01、JOB06 | 内部释放实例引用 | [internal/pcsfunctions/pcsupload/active.go:35](../internal/pcsfunctions/pcsupload/active.go:35) |
 
 ## 10 工具和公共基础设施归属
 
@@ -997,3 +1003,9 @@ P2补充归属：domain/operation表达逻辑变更摘要；httpapi/p2.go、jobs
 P3只将有完整实现与离线证据的28个操作核销，包含此前4个P2账号partial。UPL01、DWN01、JOB08继续partial，完整传输仍属P4；上游可用性按账号、参数和时间单独认定。P0/P1历史清单不重写，P2真实账号报告不扩写成P3实测。
 
 本轮新扫码会话的单账号小目录实测见[P3脱敏报告](http-api-p3-upstream-verification.json)，33个检查阶段通过；规模分页、故障、TTL、慢消费者与多账号行为仍由各自离线测试核销。
+
+## 17 P4 传输实现归属
+
+application/transfers沿用P2派发和P3事务能力；baidu/transfer_plan冻结选择、按实例执行与收集逐项结果；localfs/staging和persistence/staging管理暂存及事务引用；application/content与baidu/content提供直链及代理。票据为独立扩展，persistence/tickets加密签发，兑换复核原身份和账号版本。CLI TaskUnit显式注入客户端/限速/控制，旧下载cache按实例持有。内部新协作者不产生额外路由。P4逐项证据见[P4验收](http-api-p4-verification.md)。
+
+P4当前清单620条；51 implemented、0 partial、54 planned。计数含DWN05独立扩展；十个P4核心与该扩展分别验收。
