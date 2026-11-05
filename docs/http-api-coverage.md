@@ -2,7 +2,7 @@
 
 日期：2026 年 11 月 5 日。基线提交：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。原有业务源码链接固定到该提交；P1新增server入口使用本地源码链接。机器清单随实现更新，P0冻结版本保存在api/openapi/baselines/p0-source-inventory.json。
 
-本文中的路由 ID 对应[HTTP API 设计方案](http-api-design.md)，阶段和验收对应[实施计划](http-api-implementation-plan.md)。此表记录目标映射，尚不代表相关接口已经实现或完成上游验证。实施顺序已调整为P2先验证账号/实际上传下载/取消/重启恢复，context和CLI默认值等管理能力后置；目标映射不要求提前实现所有管理资源。P0 已保存 [机器清单](../api/openapi/source-inventory.json)、[OpenAPI 与示例](../api/openapi/README.md) 和 [核对报告](http-api-p0-baseline.md)；校验器同时检查 AST→本表→路由 ID，发现新增遗漏或过时行会失败。
+本文中的路由 ID 对应[HTTP API 设计方案](http-api-design.md)，阶段和验收对应[实施计划](http-api-implementation-plan.md)。此表记录源码映射；映射本身不代表接口实现或上游验证。当前105项实现及受控/真实范围见第20节与P7报告。实施顺序已调整为P2先验证账号/实际上传下载/取消/重启恢复，context和CLI默认值等管理能力后置；目标映射不要求提前实现所有管理资源。P0 已保存 [机器清单](../api/openapi/source-inventory.json)、[OpenAPI 与示例](../api/openapi/README.md) 和 [核对报告](http-api-p0-baseline.md)；校验器同时检查 AST→本表→路由 ID，发现新增遗漏或过时行会失败。
 
 ## 1 盘点范围
 
@@ -1021,10 +1021,21 @@ application/writes与domain/write提供写计划、执行、逐项结果及只�
 核心CopyMovePolicy复用PCS解析及缓存失效；ParseShareInput为CLI/HTTP共用整段文本解析；ExtractShareInfo修复CLI首批截断；CloudDlQueryTask超过100明确错误。新协作者按业务分组映射，不增加HTTP端点计数。当前622条AST映射、74 implemented、0 partial、31 planned，P4十个核心与DWN05扩展、P5全部23项的离线/真实上游范围分别见[P4验收](http-api-p4-verification.md)、[P5验收](http-api-p5-verification.md)。
 
 
-## 15 P6实现与条件能力核销
+## 19 P6实现与条件能力核销
 
 30项均有生产handler和受控验收：INT01—INT06、EXP01、FIL12、LOC02/03、LOG01—LOG06、CTX01—CTX04、CFG06/08/09、SYS05/06、UPL05—UPL09。全契约104 implemented、0 partial、1 planned（SYS07）。当前622条原CLI/配置/选项/核心AST记录保持逐项映射，没有将新增HTTP应用服务混入原业务分母。
 
 密码协议保留原机器状态、RSA和验证码分支，隔离HTTP客户端并去除终端打印；QR作为独立服务会话实现，未混入主检出。加解密保持原AES/IV字节格式，受限I/O、原子提交和临时秘密处理在基础设施与应用边界实现。摘要修复复用当前核心NoCheckDir协议；独立INT06保持长期不可用。CLI默认值只写固定授权快照，不共享全局对象。
 
 逐项离线/真实状态与限制见[P6验收](http-api-p6-verification.md)、[P6指南](http-api-p6-guide.md)和[真实范围](http-api-p6-upstream-verification.json)。P3—P5报告保持当时范围，不扩大为新参数或多账号真实验证。
+
+
+## 20 P7 完整核销与发布归属
+
+当前105项全部implemented，partial/planned为0；622条AST条目完整映射（47叶子命令、5命令组、90命令参数、1全局参数、24配置字段、45业务选项字段、410函数/方法）。第2—10节的CLI/配置/选项映射逐项复核保留；CLI专属和内部适配不因此变成HTTP业务成功。全量[逐操作报告](http-api-p7-operations.md)分别列实现、受控HTTP和真实上游。
+
+SYS07由domain/metrics固定标签注册表、transfers执行事件与原子队列快照、HTTP认证/中间件/响应组合。抓取不查历史或阻塞执行锁；没有账户/job/owner/路径/URL/Cookie或任意上游字符串标签。P7还修正test=true下载的written_bytes统计，传输确认字节与最终写入字节分别验收。
+
+资源tombstone保留一天后按512条批次清理；原staging/job引用独立保护。v6到v7迁移及v1—v5链路保留旧数据，停机备份、含WAL的恢复、真实v6旧二进制拒绝高schema和完整旧快照回滚见[P7指南](http-api-p7-guide.md)与[恢复报告](http-api-p7-recovery-verification.json)。新备份工具不作为新增CLI业务映射项。
+
+25条行为规格均关联已执行离线测试；14组实际HTTP导出覆盖全部105项，INT06以类型化503不可用语义核销。P2—P6上游报告范围各自保留，P6修复摘要真实被拒绝、P5同账号转存被拒绝不计成功；交互登录/增量/离线/回收站仍受控。13目标构建与唯一Linux/amd64实际运行分别报告，不虚增目标机运行率。

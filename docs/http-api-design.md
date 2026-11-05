@@ -1,6 +1,6 @@
 # BaiduPCS Go HTTP API 设计方案
 
-日期：2026 年 11 月 5 日。状态：P0—P5已交付；74个操作implemented、0个partial、31个planned。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；P4完整传输及票据扩展见[P4记录](http-api-p4-verification.md)。
+日期：2026 年 11 月 5 日。状态：P0—P7已交付；105个操作implemented、0个partial、0个planned，契约0.7.0-p7、SQLite v7。全量见[P7验收](http-api-p7-verification.md)和[逐操作报告](http-api-p7-operations.md)。P3账号、读取/扫描、持久事件、任务查询/逐项/重试及artifact验收见[P3记录](http-api-p3-verification.md)。P2传输、取消和重启恢复证据保留；P4完整传输及票据扩展见[P4记录](http-api-p4-verification.md)。
 
 以主项目 `github.com/qjfoidnh/BaiduPCS-Go` 为唯一代码基线，在同一 Go module 内增加按业务领域拆分的 HTTP 服务。采用模块化单体：HTTP 负责协议转换，应用服务负责业务流程，底层适配器复用当前网盘和传输实现。CLI 与 HTTP 逐步共享业务服务。
 
@@ -8,7 +8,7 @@
 
 配套文档：
 
-- [P4/P5完成后的工程交接清单](http-api-handoff.md)
+- [全部交付后的工程交接清单](http-api-handoff.md)
 - [分阶段实施计划](http-api-implementation-plan.md)
 - [源码接口和参数覆盖矩阵](http-api-coverage.md)
 - [OpenAPI 3.1.1 契约与全部示例](../api/openapi/README.md)
@@ -701,3 +701,14 @@ P5全部23项沿原有任务和分层接入，当前契约0.5.0-p5、SQLite v6�
 离线source URL只提交百度，API不抓取；OFF03超过100拒绝，OFF02提供显式1000项上游窗口说明，不伪造全量或远端分页。回收站返回原始LeftTime字符串和实际恢复ID；授权范围内write接口可显式全局清空，真实验收不触发账号级破坏操作。
 
 写入前持久化committing，未知保持interrupted。JOB10使用当前凭据，只读核验后落本地结果，不重发百度写请求；换凭据要求百度UK与原计划相同。证据不足保持未知。取消只影响本地执行意图，已提交百度事务不承诺回滚。SHR01同步创建使用单独加密意图/回执，避免响应丢失后用同Key重复分享。v6只增量添加两张业务表，旧任务/检查点/控制回执和暂存引用兼容；回滚必须恢复升级前一致备份。
+
+
+## 17 P6/P7 实现状态与恢复边界
+
+P6 的全部30项和P7的SYS07已完成，详情见[P6指南](http-api-p6-guide.md)、[P7指南](http-api-p7-guide.md)。HTTP password/qrcode/challenge/complete独立装配，未借用主检出的QR登录工作；服务签发link_ref按owner/account/凭据版本/TTL绑定。本地AES/gzip沿历史流格式，密钥只写且仅进程内存，原子提交后才能按明确选项删除源。context解析接入现有读/写/传输/分享/离线等入口，冻结路径与原始幂等输入；CLI默认值和固定来源reload不改全局对象。浏览器接收offset经文件fsync和DB提交后前移，SIGKILL恢复截断未提交尾部，与百度上传检查点独立。
+
+SYS07固定标签、进程内原子计数器及有界派发快照；抓取不扫描历史或取得执行锁。统计不包含ID、路径、URL或任意上游错误；暂停恢复按执行次数，字节为确认检查点增量，重启归零。P7补齐test=true下载的written_bytes=0，避免把丢弃的测试传输统计成落盘结果。
+
+v7仅在v6上增加加密resources表与索引，v1—v6迁移保留旧任务、检查点、回执和staging引用。停机备份工具复制整个私有数据单元，包括master.key、SQLite及存在的WAL/SHM/journal、身份、artifacts、staging与未完成接收；启动配置与外部token/TLS/legacy文件另行停机配套备份。恢复要求新目录，旧二进制拒绝高schema；回滚恢复升级前完整快照，不能改user_version绕过迁移。详见[恢复演练](http-api-p7-recovery-verification.json)。
+
+全部操作implemented只说明契约业务已实现：INT06仍为明确上游长期不可用，NoSplitFile/Rname/SuperTransfer非默认仍拒绝；P6 INT02真实样本被百度拒绝，旧errno误判结论已撤回；P5同账号TRF02真实成功仍未证实。交互登录、全局增量、离线和回收站仅受控验证，不扩展历史账号/参数范围。

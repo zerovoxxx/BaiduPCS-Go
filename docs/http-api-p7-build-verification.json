@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-05T14:35:01.567481+00:00",
+  "implementation_commit": "7607dfc",
+  "go_version": "go1.23.12",
+  "matrix_reused_from": "http-api-p6-build-verification.json",
+  "matrix_source_phase": "P6",
+  "matrix_targets": 13,
+  "results": [
+    {
+      "target": "darwin/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "darwin/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mipsle",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64le",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    }
+  ],
+  "why_not_repeat": "P7 adds standard-library atomic metrics, SQL retention, capability metadata and byte projection; build tags, target support, module dependencies and SQLite selection are unchanged. The authorized rule avoids repeating an unaffected full cross-compilation.",
+  "final_native_build": {
+    "status": "passed",
+    "runtime": "linux/amd64",
+    "evidence": "http-api-p7-recovery-verification.json",
+    "binary_sources": "current final code and real schema-v6 commit 83f6a83",
+    "cgo_enabled": true,
+    "settings_note": "Native recovery builds use the toolchain environment (CGO_ENABLED=1); the reused 13-target matrix separately verifies CGO_ENABLED=0."
+  },
+  "runtime_scope": "Only linux/amd64 executed. Other 12 build targets have compilation evidence, not target-device runtime evidence.",
+  "matrix_cgo_enabled": false
+}

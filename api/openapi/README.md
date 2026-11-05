@@ -1,12 +1,12 @@
 # HTTP API 契约与验证
 
-日期：2026-11-05。版本：`0.5.0-p5`。状态：74 implemented、0 partial、31 planned；SQLite schema v6。P4完整传输与DWN05独立扩展、P5全部23项写业务均已交付，见[P4指南](../../docs/http-api-p4-guide.md)、[P5指南](../../docs/http-api-p5-guide.md)及[P5逐项验收](../../docs/http-api-p5-verification.md)。各阶段真实百度报告保留其账号/时间/参数范围，受控协议测试不计作实测。原业务基线及P0/P1清单保留在baselines/。
+日期：2026-11-05。版本：`0.7.0-p7`。状态：105 implemented、0 partial、0 planned；SQLite schema v7。P6全部30项和P7 SYS07已交付，见[P6指南](../../docs/http-api-p6-guide.md)、[P7指南](../../docs/http-api-p7-guide.md)、[全量逐操作报告](../../docs/http-api-p7-operations.md)及[P7验收](../../docs/http-api-p7-verification.md)。各阶段真实百度证据保留账号/时间/参数范围，受控测试不计作真实上游成功。原业务基线及P0/P1清单保留在baselines/。
 
 [openapi.yaml](openapi.yaml) 是 HTTP 字段、类型、约束和 operationId 的唯一契约源。共 105 个 operation、89 个 path、191 个 schema。operationId 固定使用设计中的 SYS01、ACC01 等 ID。`/api/v1/openapi.json` 已在 P1 原样提供由 YAML 生成的内嵌 JSON。
 
 | 资料 | 用途 |
 | --- | --- |
-| [工程交接](../../docs/http-api-handoff.md) | P4/P5交付、从P6继续的代码落点、边界和完整阶段核销 |
+| [工程交接](../../docs/http-api-handoff.md) | P6/P7完整交付后的代码落点、边界和恢复核销 |
 | [P3真实百度报告](../../docs/http-api-p3-upstream-verification.json) | 新扫码单Cookie账号、批准目录内33个检查阶段通过；与离线规模/故障证据分开 |
 | [设计](../../docs/http-api-design.md) | 分层、领域、依赖和流程 |
 | [覆盖矩阵](../../docs/http-api-coverage.md) | 逐项人工映射和源码证据 |
@@ -130,9 +130,9 @@ OpenAPI 固定字段格式、字符串长度、集合上限及有界数值。应
 错误采用 `application/problem+json`；百度错误必须结合 operation、ErrType 和远端码适配，不按一个整数做全局映射。503 在适合稍后重试时带 Retry-After；INT06 等长期不可用能力 `retryable=false`，不应诱发循环重试。流开始后只能终止流并记录错误，不追加 JSON。/healthz、/readyz 可匿名且只返回最小状态；readyz 只检查当前启用的运行子系统，不要求百度在线，也不要求尚未开放的阶段能力准备完成。
 
 
-## P1—P5 实际响应与持续校验
+## P1—P7 实际响应与持续校验
 
-P1—P5测试运行生产handler并导出JSON、SSE、文件内容以及HEAD/204实际响应；P2保留HTTP子进程SIGKILL和专用账号opt-in测试。先安装上述校验依赖，再执行：
+P1—P7测试运行生产handler并导出JSON、SSE、文件内容以及HEAD/204实际响应；P2保留HTTP子进程SIGKILL和专用账号opt-in测试。先安装上述校验依赖，再执行：
 
 ```sh
 BAIDUPCS_P1_CONTRACT_RESPONSES=/tmp/baidupcs-p1-responses.json \
@@ -144,17 +144,23 @@ BAIDUPCS_P5_FILE_RESPONSES=/tmp/baidupcs-p5-files.json \
 BAIDUPCS_P5_SHARE_RESPONSES=/tmp/baidupcs-p5-shares.json \
 BAIDUPCS_P5_BUSINESS_RESPONSES=/tmp/baidupcs-p5-business.json \
 BAIDUPCS_P5_RECONCILE_RESPONSES=/tmp/baidupcs-p5-reconcile.json \
+BAIDUPCS_P6_TOOL_RESPONSES=/tmp/baidupcs-p6-tools.json \
+BAIDUPCS_P6_LOGIN_RESPONSES=/tmp/baidupcs-p6-login.json \
+BAIDUPCS_P6_MANAGEMENT_RESPONSES=/tmp/baidupcs-p6-management.json \
+BAIDUPCS_P6_RECEPTION_RESPONSES=/tmp/baidupcs-p6-receptions.json \
+BAIDUPCS_P7_METRICS_RESPONSES=/tmp/baidupcs-p7-metrics.json \
 GOTOOLCHAIN=go1.23.12 go test -p=1 -race -count=1 -timeout=600s \
   ./internal/domain/... ./internal/application/... \
   ./internal/infrastructure/... ./internal/httpapi ./internal/bootstrap . ./baidupcs
 /tmp/baidupcs-p2-venv/bin/python api/openapi/tools/check_contract.py \
-  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json
-python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p5-builds.json
+  --live-responses /tmp/baidupcs-p1-responses.json /tmp/baidupcs-p2-responses.json /tmp/baidupcs-p3-accounts.json /tmp/baidupcs-p3-responses.json /tmp/baidupcs-p4-responses.json /tmp/baidupcs-p5-files.json /tmp/baidupcs-p5-shares.json /tmp/baidupcs-p5-business.json /tmp/baidupcs-p5-reconcile.json /tmp/baidupcs-p6-tools.json /tmp/baidupcs-p6-login.json /tmp/baidupcs-p6-management.json /tmp/baidupcs-p6-receptions.json /tmp/baidupcs-p7-metrics.json
+python3 api/openapi/tools/check_recovery.py --report /tmp/baidupcs-p7-recovery.json
+python3 api/openapi/tools/check_builds.py --report /tmp/baidupcs-p7-builds.json
 ```
 
 修改YAML后运行 `python3 api/openapi/tools/export_contract.py` 或 `go generate ./api/openapi`，生成JSON再编译。持续校验工作流为 `.github/workflows/http-api.yml`；原构建工作流的目标矩阵保持。
 
-P0已有的25组完整行为规格仍供后续阶段逐项核销；P1的鉴权/配置和P2的受限账号/传输/任务由真实集成测试分别覆盖。P3已在v3上增量迁移到v4，完整读取、任务、事件与结果文件已开放；P4完整传输和P5写业务现已交付。普通401与百度账号失效的422保持独立含义。
+P0已有的25组完整行为规格现已全部关联离线测试；P1的鉴权/配置和P2的受限账号/传输/任务由真实集成测试分别覆盖。P3已在v3上增量迁移到v4，完整读取、任务、事件与结果文件已开放；P4完整传输和P5写业务现已交付。普通401与百度账号失效的422保持独立含义。
 
 幂等重放保持首次逻辑结果、HTTP状态与资源版本；每次HTTP请求仍生成自己的request_id，并与X-Request-ID一致。
 
@@ -172,6 +178,15 @@ P4证据补充：[39阶段真实百度报告](../../docs/http-api-p4-upstream-ve
 P5当前证据：[指南](../../docs/http-api-p5-guide.md)、[逐项验收](../../docs/http-api-p5-verification.md)、[脱敏真实范围](../../docs/http-api-p5-upstream-verification.json)。源码映射622条，74 implemented。新增OfflineCursorMeta描述1000项真实上游窗口，JobItem可选字段input/fs_id/offline_task_id/remote_effect供写项目的完整结果与事件使用。schema v6保留旧任务和检查点；升级前停机一致备份密钥、DB、artifacts和staging。未知写结果只读reconcile，证据不足不重放。
 
 
-## P6当前实现
+## P6阶段记录
 
-契约0.6.0-p6、schema v7，104 implemented/0 partial/1 planned。P6的30项与原CLI映射见[P6指南](../../docs/http-api-p6-guide.md)、[P6验收](../../docs/http-api-p6-verification.md)。实际响应增加BAIDUPCS_P6_TOOL_RESPONSES、BAIDUPCS_P6_LOGIN_RESPONSES、BAIDUPCS_P6_MANAGEMENT_RESPONSES、BAIDUPCS_P6_RECEPTION_RESPONSES四组；CI与check_contract.py覆盖全部开放操作，包括INT06合法输入的明确503语义。SYS07在P7收尾。源码矩阵仍为622条，映射/实现/受控/真实验证分别统计。
+P6交付时契约0.6.0-p6、schema v7，104 implemented/0 partial/1 planned；当前完整状态见上方与P7记录。P6的30项与原CLI映射见[P6指南](../../docs/http-api-p6-guide.md)、[P6验收](../../docs/http-api-p6-verification.md)。实际响应增加BAIDUPCS_P6_TOOL_RESPONSES、BAIDUPCS_P6_LOGIN_RESPONSES、BAIDUPCS_P6_MANAGEMENT_RESPONSES、BAIDUPCS_P6_RECEPTION_RESPONSES四组；CI与check_contract.py覆盖全部开放操作，包括INT06合法输入的明确503语义。SYS07随后在P7交付。源码矩阵仍为622条，映射/实现/受控/真实验证分别统计。
+
+
+## P7 全量交付
+
+当前105项全部implemented，622条AST映射、25条已关联行为规格、14组实际HTTP响应分别检查。SYS07为admin授权的固定标签Prometheus文本；计数器只覆盖本进程确认的执行，不读取历史或暴露动态ID/上游文本。源码清单的http_implementation=complete与upstream_verification=scoped_phase_reports分开。
+
+CI增加[恢复演练](tools/check_recovery.py)，从交接提交构建真实schema v6二进制，验证完整备份/含WAL恢复/接收续传、拒绝高schema及恢复旧快照回滚，checkout保留所需Git历史。[备份工具](tools/backup_service.py)要求停机锁与新目标，外部配置另行配套保存。复现与所有105项证据见[P7验收](../../docs/http-api-p7-verification.md)。
+
+P7补齐下载test=true的written_bytes=0；P6 INT02修复摘要严格errno解析后的真实拒绝、P5同账号TRF02拒绝均不计成功。INT06永久不可用503已实现，交互登录/账户级增量/离线/回收站的真实范围仍未扩大。

@@ -2,7 +2,7 @@
 
 日期：2026 年 11 月 5 日。基线：`1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73`。工作分支：`codex/http-api-design`。
 
-本计划以[设计](http-api-design.md)和[覆盖矩阵](http-api-coverage.md)为依据。接手开发先读[工程交接清单](http-api-handoff.md)：P2-01至P2-12已核销，P3接入点和后续边界已经更新，P3至P7列出全部操作归属及不可遗漏项。P0、P1、受限 P2、P3、P4 和 P5 已交付；保留 P1 的配置快照、隔离客户端、Bearer、SQLite 和 12 个系统/配置操作。此次调整保持五层边界，将账号、实际传输、取消和重启恢复的验证提前，避免先建设完整任务平台再发现传输器不适配。
+本计划以[设计](http-api-design.md)和[覆盖矩阵](http-api-coverage.md)为依据。接手开发先读[工程交接清单](http-api-handoff.md)：P2-01至P2-12已核销，P3接入点和后续边界已经更新，P3至P7列出全部操作归属及不可遗漏项。P0—P7 已交付，当前契约 0.7.0-p7、SQLite v7、105 implemented / 0 partial / 0 planned；完整证据见 [P7 验收](http-api-p7-verification.md)。P0、P1、受限 P2、P3、P4 和 P5 的历史验收保留；保留 P1 的配置快照、隔离客户端、Bearer、SQLite 和 12 个系统/配置操作。此次调整保持五层边界，将账号、实际传输、取消和重启恢复的验证提前，避免先建设完整任务平台再发现传输器不适配。
 
 ## 1 交付顺序与范围
 
@@ -75,7 +75,7 @@
 
 ## 4 P2 最小端到端验证
 
-当前进度：P2-01—P2-12已收尾，生产server已装配账号、受限单文件HTTP、持久派发、轮询/控制、恢复及关闭。12个P1操作保持implemented；10个新开放操作为partial；83个仍planned。离线/race、实际HTTP schema、四个SIGKILL窗口和用户授权专用目录的真实百度上传回读、取消、重启恢复通过，见[P2记录](http-api-p2-verification.md)及[指南](http-api-p2-guide.md)。可以继续P3；partial不计为完整契约实现。
+P2阶段记录（数量为当时状态）：P2-01—P2-12已收尾，生产server已装配账号、受限单文件HTTP、持久派发、轮询/控制、恢复及关闭。12个P1操作保持implemented；10个新开放操作为partial；83个仍planned。离线/race、实际HTTP schema、四个SIGKILL窗口和用户授权专用目录的真实百度上传回读、取消、重启恢复通过，见[P2记录](http-api-p2-verification.md)及[指南](http-api-p2-guide.md)。可以继续P3；partial不计为完整契约实现。
 
 ### 顺序和边界
 
@@ -105,7 +105,7 @@ P2交付、入库/派发故障窗口、HTTP映射、Cookie/HTTPS约束及生命�
 
 ## 5 P3 常用读取与任务完善
 
-已完成，具体逐项核销见[P3验收](http-api-p3-verification.md)，调用和限制见[P3指南](http-api-p3-guide.md)。40 implemented、3 partial、62 planned；P2提前切片中的4个账号操作已完整核销，UPL01/DWN01/JOB08仍按P4完整验收。以下工作条目保留作为验收基线。
+已完成，具体逐项核销见[P3验收](http-api-p3-verification.md)，调用和限制见[P3指南](http-api-p3-guide.md)。P3交付时40 implemented、3 partial、62 planned；P2提前切片中的4个账号操作已完整核销，UPL01/DWN01/JOB08仍按P4完整验收。以下工作条目保留作为验收基线。
 
 1. 补齐 ACC01—ACC09 的全部已约定行为、凭据更新/清除/吊销、token-only 能力和旧配置导入；复用 P2 账号仓库。
 2. 实现 FIL01—FIL04、FIL06、LOC01；复用当前列表解析做最小分页扩展，保留聚合行为。先使用显式 account_id 和绝对路径或 base_path；不依赖 context 服务。
@@ -129,7 +129,7 @@ P2交付、入库/派发故障窗口、HTTP映射、Cookie/HTTPS约束及生命�
 
 ## 7 P5 网盘写业务
 
-已交付：23项均implemented，受控及获准真实范围逐项见[P5验收](http-api-p5-verification.md)，使用、schema v6迁移和未知结果边界见[P5指南](http-api-p5-guide.md)。当前74 implemented、0 partial、31 planned。下列工作条目保留作验收基线。
+已交付：23项均implemented，受控及获准真实范围逐项见[P5验收](http-api-p5-verification.md)，使用、schema v6迁移和未知结果边界见[P5指南](http-api-p5-guide.md)。P5交付时74 implemented、0 partial、31 planned；当前完整状态见P7。下列工作条目保留作验收基线。
 
 实现 FIL07—FIL11、SHR01—SHR04、TRF01—TRF02、OFF01—OFF07、REC01—REC04 和 JOB10。复用既有任务与读取能力，覆盖部分成功、冲突、分享文本/提取码/fs_id、转存后下载、缓存失效和远端结果核对。
 
@@ -137,13 +137,17 @@ P2交付、入库/派发故障窗口、HTTP映射、Cookie/HTTPS约束及生命�
 
 ## 8 P6 剩余业务与后置管理
 
+已由 `0273055` 完整交付。以下原条目保留为验收要求。
+
 先实现 INT01—INT06、EXP01、FIL12 及主项目有效的本地加解密和登录能力；按实际上游验证报告历史能力。导出根改写、摘要可信度、默认保留加解密源文件等行为保持兼容。
 
 随后实施 CTX01—CTX04、CFG08—CFG09、CFG06、SYS05—SYS06 等管理能力。context 是可选便利层，不能重新引入全局当前账号或让无状态业务依赖它；CLI 默认值管理不得静默共享可写配置。
 
-浏览器分片接收 UPL05—UPL09、QR 完整会话扩展、DWN05、xpan 和参考项目旧路由独立排期、验收，不混入主项目原有能力的完成率。已有 QR 设计文件由其所属工作维护，不在本轮改写。
+P6 的 30 项已全部核销，见 [P6 验收](http-api-p6-verification.md)。浏览器分片接收 UPL05—UPL09 和完整 password/qrcode HTTP 登录也已交付，按接续指令纳入本轮全部开发范围。DWN05 保留独立验收；xpan/参考旧路由不作为新增操作数量。主检出的独立 QR 工作未混入本分支。
 
 ## 9 P7 全量验收与发布
+
+已交付 SYS07 和 [全量 105 项报告](http-api-p7-operations.md)、[P7 验收](http-api-p7-verification.md)、[可执行恢复指南](http-api-p7-guide.md)。以下条目保留为验收要求；本次不自动 push 或部署。
 
 逐项核销覆盖清单和契约；汇总从 P2 开始的真实上游证据，补齐目标账号类型、网络异常、重启、磁盘不足、大目录和多任务稳定性。完成 SYS07 指标及需要的部署/备份/迁移资料，验证 CLI 构建目标和行为。
 
@@ -166,7 +170,9 @@ P2交付、入库/派发故障窗口、HTTP映射、Cookie/HTTPS约束及生命�
 | P2b（已交付） | 最小持久任务与单文件上传下载 | 实际传输组件、同内容回读、断开提交请求不终止任务 |
 | P2c（已交付） | 取消、关闭、检查点核验和恢复 | A/B/C 隔离、重开及错误身份拒绝恢复 |
 | P3（已交付） | 完整账号、分页/搜索/扫描、逐项结果、retry、持久事件/SSE和artifact | [P3逐项验收](http-api-p3-verification.md)，保留P2恢复与CLI读取回归 |
-| P4 以后 | 完整传输及后续业务 | 每次依赖均来自已经验证的业务链路 |
+| P4/P5（已交付） | 完整传输、分享/写入/离线/回收站 | 各阶段逐项验收与真实范围分别保留 |
+| P6（已交付） | 30 项剩余业务、完整登录/上下文/续传接收 | [P6 验收](http-api-p6-verification.md)，提交 0273055 |
+| P7（已交付） | SYS07、全量核销、迁移/备份/恢复/回滚与发布资料 | [P7 验收](http-api-p7-verification.md)，全部105 implemented |
 
 ## 12 当前默认决策
 

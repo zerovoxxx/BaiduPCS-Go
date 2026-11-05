@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-05T14:35:01.567481+00:00",
+  "contract_version": "0.7.0-p7",
+  "sqlite_schema": 7,
+  "implementation": {
+    "implemented": 105,
+    "partial": 0,
+    "planned": 0
+  },
+  "commits": {
+    "handoff": "83f6a83",
+    "p6": "0273055",
+    "p7": "e3a00f6",
+    "p7_final_fix": "7607dfc"
+  },
+  "branch": "codex/http-api-design",
+  "p6_operations": 30,
+  "p7_operations": [
+    "SYS07"
+  ],
+  "operation_evidence": "http-api-p7-operations.json",
+  "source_mapping": {
+    "mapped": 622,
+    "total": 622,
+    "inventory": "../api/openapi/source-inventory.json",
+    "separate_from_http_and_upstream": true
+  },
+  "contract": {
+    "started_at": "2026-11-05T14:33:08.918259+00:00",
+    "finished_at": "2026-11-05T14:33:22.923035+00:00",
+    "command": [
+      "/tmp/baidupcs-p2-venv/bin/python",
+      "api/openapi/tools/check_contract.py",
+      "--live-responses",
+      "/tmp/baidupcs-p1-responses.json",
+      "/tmp/baidupcs-p2-responses.json",
+      "/tmp/baidupcs-p3-accounts.json",
+      "/tmp/baidupcs-p3-responses.json",
+      "/tmp/baidupcs-p4-responses.json",
+      "/tmp/baidupcs-p5-files.json",
+      "/tmp/baidupcs-p5-shares.json",
+      "/tmp/baidupcs-p5-business.json",
+      "/tmp/baidupcs-p5-reconcile.json",
+      "/tmp/baidupcs-p6-tools.json",
+      "/tmp/baidupcs-p6-login.json",
+      "/tmp/baidupcs-p6-management.json",
+      "/tmp/baidupcs-p6-receptions.json",
+      "/tmp/baidupcs-p7-metrics.json"
+    ],
+    "exit_code": 0,
+    "output": "PASS: 217 actual HTTP responses; 105 implemented and 0 partial operations match OpenAPI\nPASS: OpenAPI 3.1.1; 105 operations / 89 paths / 191 schemas\nPASS: 51 typed request examples; 89 JSON response examples; 105 HTTP exchanges; 2223 instance validations\nPASS: 67 schema boundary cases; 25 behavior specifications (25 linked to offline tests, 0 pending); 3 SSE frames\nPASS: 622 AST entries mapped, no source/matrix drift; counts={'command': 47, 'command_group': 5, 'configuration_field': 24, 'flag': 90, 'function': 410, 'global_flag': 1, 'option_field': 45}\n",
+    "response_groups": 14,
+    "operations": 105,
+    "paths": 89,
+    "schemas": 191,
+    "typed_request_examples": 51,
+    "json_response_examples": 89,
+    "http_exchanges": 105,
+    "actual_http_responses": 217,
+    "schema_boundaries": 67,
+    "behavior_specifications": 25,
+    "behavior_linked_to_executed_tests": 25,
+    "behavior_pending": 0,
+    "sse_frames": 3,
+    "instance_validations": 2223
+  },
+  "race": {
+    "command": [
+      "go",
+      "test",
+      "-p=1",
+      "-race",
+      "-count=1",
+      "-timeout=600s",
+      "./internal/domain/...",
+      "./internal/application/...",
+      "./internal/infrastructure/...",
+      "./internal/httpapi",
+      "./internal/bootstrap",
+      ".",
+      "./baidupcs"
+    ],
+    "implementation_commit": "e3a00f6",
+    "started_at": "2026-11-05T14:25:02.745904+00:00",
+    "finished_at": "2026-11-05T14:32:16.651477+00:00",
+    "duration_seconds": 433.91,
+    "exit_code": 0,
+    "response_groups": 14,
+    "actual_runtime": "linux/amd64",
+    "log": "/tmp/baidupcs-p7-race.log",
+    "superseded_runs": [
+      {
+        "issue": "post-terminal metrics read extended executor drain; JOB10 correctly returned409",
+        "fix": "snapshot before completion; test retries only explicit non-mutating draining conflict",
+        "affected_race_repetitions": 3
+      },
+      {
+        "issue": "legacy restart fixture 8s completion wait exhausted while confirmed offset advancing",
+        "fix": "30s bounded test wait; original state/range/byte assertions and production timeouts preserved",
+        "affected_race_repetitions": 3
+      }
+    ]
+  },
+  "final_affected_race": {
+    "status": "passed",
+    "source_commit": "7607dfc",
+    "command": [
+      "go",
+      "test",
+      "-p=1",
+      "-race",
+      "-count=1",
+      "-timeout=180s",
+      "./internal/bootstrap",
+      "-run",
+      "^TestP7|^TestP2RuntimeAccountsCapabilitiesAndPersistence$|^TestLiveContractResponses$"
+    ],
+    "duration_seconds": 9.401,
+    "purpose": "INT03 local-only required_credentials and availability; P7 metrics/permission tests and actual SYS04/SYS08 responses regenerated after final metadata correction"
+  },
+  "cli_offline": {
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=120s",
+      "./pcsliner/args",
+      "./pcsutil/cachepool",
+      "./pcsutil/converter",
+      "./pcsutil/escaper",
+      "./pcsutil/waitgroup",
+      "./pcsutil/taskframework",
+      "./baidupcs/netdisksign",
+      "./baidupcs/expires/cachemap",
+      "./requester",
+      "./requester/rio",
+      "./requester/rio/speeds",
+      "./requester/uploader",
+      "./internal/pcscommand",
+      "./internal/pcsfunctions/pcsupload"
+    ],
+    "started_at": "2026-11-05T14:16:43.998672+00:00",
+    "finished_at": "2026-11-05T14:17:14.989020+00:00",
+    "duration_seconds": 30.99,
+    "exit_code": 0,
+    "offline_packages": 14
+  },
+  "build_evidence": "http-api-p7-build-verification.json",
+  "recovery_evidence": "http-api-p7-recovery-verification.json",
+  "recovery_cases": 12,
+  "compatibility": {
+    "incremental_migrations_tested": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "current_schema": 7,
+    "preserved": [
+      "encrypted jobs and fixed plans",
+      "P2 empty-field serialization and admission identity",
+      "checkpoints and control receipts",
+      "credential versions/revocation",
+      "durable events/high-water cursors",
+      "artifact and staging references including paused/interrupted",
+      "SHR01 unknown intent without automatic replay"
+    ],
+    "old_binary_refusal": "actual commit 83f6a83 binary rejects v7 without database hash change",
+    "rollback": "whole pre-upgrade v6 snapshot restored and old binary actually started; no schema downgrade"
+  },
+  "upstream_evidence": [
+    "http-api-p2-upstream-verification.json",
+    "http-api-p3-upstream-verification.json",
+    "http-api-p4-upstream-verification.json",
+    "http-api-p5-upstream-verification.json",
+    "http-api-p6-upstream-verification.json"
+  ],
+  "upstream_scope": "Historical one-account/approved-directory samples only. P7 performed local fixture tests, no new Baidu login or remote writes.",
+  "explicit_upstream_outcomes": {
+    "INT02": "P6 strict errno parser observes real Baidu rejection; earlier success claim withdrawn",
+    "TRF02": "P5 same-account request rejected; successful transfer/download-child evidence controlled only",
+    "INT06": "implemented permanent upstream-unavailable 503, retryable=false",
+    "LOG01-LOG06": "complete HTTP implementation; interactive confirmation controlled only; no repeat scan requested",
+    "FIL12": "controlled only; no global delta success claimed",
+    "OFF01-OFF07/REC01-REC04": "controlled only; global lists/clear not performed"
+  },
+  "credential_handling": {
+    "exists": true,
+    "mode": "0o600",
+    "tracked": false,
+    "ignored": true
+  },
+  "unchanged_baseline_exclusions": "P0 downloader test compilation failures, developer-specific paths and network examples; explicit related scope and 14 CLI packages used instead of unfiltered go test ./...",
+  "not_claimed": [
+    "runtime on other OS/architectures",
+    "all Baidu account types or 128GiB production transfers",
+    "real password/SMS/email/QR confirmation",
+    "real global delta/offline/recycle success",
+    "hardware power-loss certification or every filesystem"
+  ],
+  "delivery": {
+    "pushed": false,
+    "deployed": false,
+    "main_checkout_or_independent_qr_work_modified": false
+  }
+}
