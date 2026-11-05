@@ -170,5 +170,6 @@
   "p4_evidence": "http-api-p4-verification.md",
   "upstream_evidence": "http-api-p5-upstream-verification.json",
   "unchanged_baseline_exclusions": "P0 legacy downloader compile failure, fixed developer paths and external-network examples; no unfiltered go test ./... claim",
-  "credential_handling": "ignored 0600 .env retained; no credentials in artifacts or commits"
+  "credential_handling": "ignored 0600 .env retained; no credentials in artifacts or commits",
+  "implementation_commit": "79ec471"
 }

@@ -90,8 +90,10 @@ P4十个核心操作和DWN05独立扩展已实现，详细限制、证据和迁�
 
 ## P5 收尾与下一步
 
-P4交付提交为f5976ad；P5首先以1cf0e91修复核心prepare错误和十进制app_id。P5写业务沿旧调度器增加14种写任务，应用层writes负责计划/执行/只读核验，Share/Offline/Recycle/File端口绑定独立客户端。v6仅新增inspection和同步分享提交意图表。普通凭据换版、null撤销、旧检查点绑定、retry新建、持久SSE与artifact语义保持。
+P4交付提交为f5976ad；P5首先以1cf0e91修复核心prepare错误和十进制app_id，完整实现提交为79ec471。P5写业务沿旧调度器增加14种写任务，应用层writes负责计划/执行/只读核验，Share/Offline/Recycle/File端口绑定独立客户端。v6仅新增inspection和同步分享提交意图表。普通凭据换版、null撤销、旧检查点绑定、retry新建、持久SSE与artifact语义保持。
 
 P5逐项状态及复现见[P5验收](http-api-p5-verification.md)，使用及v6一致备份/回滚见[P5指南](http-api-p5-guide.md)。JOB10不能证明结果时仍保留interrupted，不能盲目重发；取消不能回滚百度事务。SHR01同步未知回执保留待核对意图。OFF02仅当前1000项窗口，OFF03超过100拒绝；回收站LeftTime不猜单位，恢复记录实际ID。
 
 真实P5仅触及本轮目录和新创建分享，二者清理通过；未调用全局离线或回收站清空。TRF01真实通过，TRF02同账号转存被上游明确拒绝，成功转存/collect/下载子任务为受控证据。NoSplitFile、Rname和SuperTransfer保持明确不支持。后续P6的30项和P7的SYS07共31项仍planned；主检出独立QR工作保持隔离。
+
+实际开发目录为`/workspace/github/BaiduPCS-Go-worktrees/codex/http-api-design`，分支`codex/http-api-design`；主检出`/workspace/github/BaiduPCS-Go`中的独立QR工作保持隔离。P3的d1ae687/cd75eb4及后续P4/P5提交均保留在本地提交链中。验收代码、报告和复现入口已提交；`.env`保留0600、Git忽略且未跟踪。后续任务从本worktree的P6/P7范围接续。

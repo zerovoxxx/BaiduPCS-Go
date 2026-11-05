@@ -110,5 +110,6 @@
     }
   ],
   "scope": "CLI compile/dependency matrix; runtime verified only linux/amd64",
-  "final_change_note": "Matrix completed before final platform-independent UK>0 identity validation and confirmed-item selection for a reconciled download child. Neither changes target-specific code, imports or dependencies. Affected P5 native race checks are recorded separately; cross-build conclusions are unchanged."
+  "final_change_note": "Matrix completed before final platform-independent UK>0 identity validation and confirmed-item selection for a reconciled download child. Neither changes target-specific code, imports or dependencies. Affected P5 native race checks are recorded separately; cross-build conclusions are unchanged.",
+  "implementation_commit": "79ec471"
 }

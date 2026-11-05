@@ -96,5 +96,6 @@
     "REC03": "controlled_only",
     "REC04": "controlled_only",
     "JOB10": "controlled_only"
-  }
+  },
+  "implementation_commit": "79ec471"
 }

@@ -1,6 +1,6 @@
 # P5 网盘写业务验收记录
 
-日期2026-11-05。P4通过后继续P5；基线d1ae687与全部P3变更保留，P4提交f5976ad，P5首个修复提交1cf0e91。契约0.5.0-p5、SQLite v6；74 implemented / 0 partial / 31 planned。操作实现、受控上游、真实百度与构建分别统计。使用与限制见[P5指南](http-api-p5-guide.md)，P4的11项独立列于[P4验收](http-api-p4-verification.md)。
+日期2026-11-05。P4通过后继续P5；基线d1ae687与全部P3变更保留，P4提交f5976ad，P5首个修复提交1cf0e91，完整实现提交79ec471。契约0.5.0-p5、SQLite v6；74 implemented / 0 partial / 31 planned。操作实现、受控上游、真实百度与构建分别统计。使用与限制见[P5指南](http-api-p5-guide.md)，P4的11项独立列于[P4验收](http-api-p4-verification.md)。
 
 ## 23项逐项核销
 
