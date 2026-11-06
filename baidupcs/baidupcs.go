@@ -285,7 +285,11 @@ func (pcs *BaiduPCS) GetBDUSS() (bduss string) {
 	if pcs.client == nil || pcs.client.Jar == nil {
 		return ""
 	}
-	cookies := pcs.client.Jar.Cookies(baiduComURL)
+	origin := *baiduComURL
+	if pcs.isHTTPS {
+		origin.Scheme = "https"
+	}
+	cookies := pcs.client.Jar.Cookies(&origin)
 	for _, cookie := range cookies {
 		if cookie.Name == "BDUSS" {
 			return cookie.Value
@@ -299,7 +303,11 @@ func (pcs *BaiduPCS) GetBAIDUID() (baiduid string) {
 	if pcs.client == nil || pcs.client.Jar == nil {
 		return ""
 	}
-	cookies := pcs.client.Jar.Cookies(baiduComURL)
+	origin := *baiduComURL
+	if pcs.isHTTPS {
+		origin.Scheme = "https"
+	}
+	cookies := pcs.client.Jar.Cookies(&origin)
 	for _, cookie := range cookies {
 		if cookie.Name == "BAIDUID" {
 			return cookie.Value

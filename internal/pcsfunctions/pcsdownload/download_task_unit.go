@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs/pcserror"
-	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsconfig"
+
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsfunctions"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcstable"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/converter"
@@ -16,11 +16,11 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/transfer"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -33,6 +33,9 @@ type (
 		taskInfo *taskframework.TaskInfo // 任务信息
 
 		Cfg                *downloader.Config
+		Client             *requester.HTTPClient
+		PanClient          *requester.HTTPClient
+		EnableHTTPS        bool
 		PCS                *baidupcs.BaiduPCS
 		ParentTaskExecutor *taskframework.TaskExecutor
 
@@ -80,11 +83,6 @@ const (
 	DownloadModeLocate DownloadMode = iota
 	DownloadModePCS
 	DownloadModeStreaming
-)
-
-var (
-    panClient     *requester.HTTPClient
-    panClientOnce sync.Once
 )
 
 func (dtu *DownloadTaskUnit) SetTaskInfo(info *taskframework.TaskInfo) {
@@ -248,22 +246,10 @@ func (dtu *DownloadTaskUnit) download(downloadURL string, client *requester.HTTP
 
 // panHTTPClient 获取包含特定User-Agent的HTTPClient
 func (dtu *DownloadTaskUnit) panHTTPClient() *requester.HTTPClient {
-    panClientOnce.Do(func() {
-        panClient = pcsconfig.Config.PanHTTPClient()
-        panClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-            // 去掉 Referer
-            if !pcsconfig.Config.EnableHTTPS {
-                req.Header.Del("Referer")
-            }
-            if len(via) >= 10 {
-                return errors.New("stopped after 10 redirects")
-            }
-            return nil
-        }
-        panClient.SetTimeout(6 * time.Minute)
-        panClient.SetKeepAlive(true)
-    })
-    return panClient
+	if dtu.PanClient != nil {
+		return dtu.PanClient
+	}
+	return dtu.PCS.GetClient()
 }
 
 func (dtu *DownloadTaskUnit) handleError(result *taskframework.TaskUnitRunResult) {
@@ -298,10 +284,6 @@ func (dtu *DownloadTaskUnit) execPanDownload(dlink string, result *taskframework
 	dtu.verboseInfof("[%s] 获取到下载链接: %s\n", dtu.taskInfo.Id(), dlink)
 
 	client := dtu.panHTTPClient()
-	activePCS := pcsconfig.Config.ActiveUserBaiduPCS()
-	cookieJar := activePCS.GetClient().Jar
-	newCookieJar, _ := CloneJarWithDomain(cookieJar, dlink)
-	client.SetCookiejar(newCookieJar)
 	err := dtu.download(dlink, client)
 	if err != nil {
 		result.ResultMessage = StrDownloadFailed
@@ -313,7 +295,15 @@ func (dtu *DownloadTaskUnit) execPanDownload(dlink string, result *taskframework
 }
 
 func (dtu *DownloadTaskUnit) locateDownload(result *taskframework.TaskUnitRunResult) (ok bool) {
-	rawDlinks, err := GetLocateDownloadLinks(dtu.PCS, dtu.PcsPath)
+	info, err := dtu.PCS.LocateDownload(dtu.PcsPath)
+	var rawDlinks []*url.URL
+	if err == nil {
+		rawDlinks = info.URLStrings(dtu.EnableHTTPS)
+		if len(rawDlinks) == 0 {
+			result.Err = ErrDlinkNotFound
+			return
+		}
+	}
 	if err != nil {
 		result.ResultMessage = StrDownloadGetDlinkFailed
 		result.Err = err
@@ -330,7 +320,9 @@ func (dtu *DownloadTaskUnit) locateDownload(result *taskframework.TaskUnitRunRes
 	if strings.HasPrefix(raw_dlink.Host, "nb.cache") && len(rawDlinks) > dtu.DlinkPrefer+1 {
 		raw_dlink = rawDlinks[dtu.DlinkPrefer+1]
 	}
-	FixHTTPLinkURL(raw_dlink)
+	if dtu.EnableHTTPS {
+		raw_dlink.Scheme = "https"
+	}
 	dlink := raw_dlink.String()
 
 	dtu.execPanDownload(dlink, result, &ok)
@@ -339,10 +331,10 @@ func (dtu *DownloadTaskUnit) locateDownload(result *taskframework.TaskUnitRunRes
 
 func (dtu *DownloadTaskUnit) pcsOrStreamingDownload(mode DownloadMode, result *taskframework.TaskUnitRunResult) (ok bool) {
 	dfunc := func(downloadURL string, jar http.CookieJar) error {
-		client := pcsconfig.Config.PCSHTTPClient()
-		client.SetCookiejar(jar)
-		client.SetKeepAlive(true)
-		client.SetTimeout(10 * time.Minute)
+		client := dtu.Client
+		if client == nil {
+			client = dtu.PCS.GetClient()
+		}
 
 		return dtu.download(downloadURL, client)
 	}
@@ -452,6 +444,10 @@ func (dtu *DownloadTaskUnit) RetryWait() time.Duration {
 
 func (dtu *DownloadTaskUnit) Run() (result *taskframework.TaskUnitRunResult) {
 	result = &taskframework.TaskUnitRunResult{}
+	if dtu.DlinkPrefer < 0 {
+		result.Err = errors.New("下载链接序号无效")
+		return
+	}
 	// 获取文件信息
 	var err error
 	if dtu.FileInfo == nil || dtu.taskInfo.Retry() > 0 {

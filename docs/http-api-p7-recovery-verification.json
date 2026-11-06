@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "runtime": "linux/amd64",
+  "verified_at": "2026-11-05T14:32:44.425946+00:00",
+  "sqlite_schema": 7,
+  "old_binary_commit": "83f6a83",
+  "cases": [
+    {
+      "case": "build_current_and_actual_schema_v6_binary",
+      "status": "passed"
+    },
+    {
+      "case": "refuse_live_directory_lock",
+      "status": "passed"
+    },
+    {
+      "case": "copy_key_database_journals_artifacts_staging_and_identity",
+      "status": "passed"
+    },
+    {
+      "case": "reject_corruption_before_destination_creation",
+      "status": "passed"
+    },
+    {
+      "case": "reject_symlink_data_escape",
+      "status": "passed"
+    },
+    {
+      "case": "reject_fifo_journal_without_blocking",
+      "status": "passed"
+    },
+    {
+      "case": "reject_malformed_manifest_and_path_traversal",
+      "status": "passed"
+    },
+    {
+      "case": "restore_never_overwrites_existing_directory",
+      "status": "passed"
+    },
+    {
+      "case": "disk_full_cleans_new_destination_and_preserves_source",
+      "status": "passed"
+    },
+    {
+      "case": "restored_receiving_offset_resume_hash_complete_idempotency",
+      "status": "passed"
+    },
+    {
+      "case": "actual_old_binary_refuses_v7_without_database_change",
+      "status": "passed"
+    },
+    {
+      "case": "v6_backup_upgrade_then_restore_v6_and_run_old_binary",
+      "status": "passed"
+    }
+  ],
+  "external_upstream": "none; fixture only",
+  "implementation_commit": "7607dfc",
+  "source_note": "Final code sources tested immediately before committing 7607dfc; native current and actual schema-v6 binaries were built by the executable recovery harness."
+}

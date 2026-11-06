@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/cachepool"
+
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsverbose"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/rio/speeds"
@@ -29,6 +29,7 @@ type (
 		writerAt     io.WriterAt
 		writeMu      *sync.Mutex
 		execMu       sync.Mutex
+		cachePool    *sync.Pool
 
 		pauseChan              chan struct{}
 		workerCancelFunc       context.CancelFunc
@@ -65,6 +66,9 @@ func (wer *Worker) ID() int {
 }
 
 func (wer *Worker) lazyInit() {
+	if wer.cachePool == nil {
+		wer.cachePool = &sync.Pool{New: func() any { return make([]byte, 64<<10) }}
+	}
 	if wer.client == nil {
 		wer.client = requester.NewHTTPClient()
 	}
@@ -338,11 +342,11 @@ func (wer *Worker) Execute() {
 	}
 
 	var (
-		buf       = cachepool.SyncPool.Get().([]byte)
+		buf       = wer.cachePool.Get().([]byte)
 		n, nn     int
 		n64, nn64 int64
 	)
-	defer cachepool.SyncPool.Put(buf)
+	defer wer.cachePool.Put(buf)
 
 	for {
 		select {

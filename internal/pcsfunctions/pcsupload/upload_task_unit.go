@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs/pcserror"
-	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsconfig"
 	"github.com/qjfoidnh/BaiduPCS-Go/internal/pcsfunctions"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/checksum"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/converter"
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil/taskframework"
+	"github.com/qjfoidnh/BaiduPCS-Go/requester"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/rio"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester/uploader"
 	"path"
@@ -31,6 +31,9 @@ type (
 		SavePath          string // 保存路径
 		PrintFormat       string
 
+		Client            *requester.HTTPClient
+		MaxRate           int64
+		Control           *UploadGroup
 		PCS               *baidupcs.BaiduPCS
 		UploadingDatabase *UploadingDatabase // 数据库
 		Parallel          int
@@ -297,10 +300,10 @@ func (utu *UploadTaskUnit) upload() (result *taskframework.TaskUnitRunResult) {
 
 	blockSize := getBlockSize(utu.LocalFileChecksum.Length)
 
-	muer := uploader.NewMultiUploader(NewPCSUpload(utu.PCS, utu.SavePath), rio.NewFileReaderAtLen64(utu.LocalFileChecksum.GetFile()), &uploader.MultiUploaderConfig{
+	muer := uploader.NewMultiUploader(NewPCSUpload(utu.PCS, utu.SavePath, utu.Client), rio.NewFileReaderAtLen64(utu.LocalFileChecksum.GetFile()), &uploader.MultiUploaderConfig{
 		Parallel:  utu.Parallel,
 		BlockSize: blockSize,
-		MaxRate:   pcsconfig.Config.MaxUploadRate,
+		MaxRate:   utu.MaxRate,
 		Policy:    utu.Policy,
 	}, utu.SavePath)
 
@@ -310,8 +313,10 @@ func (utu *UploadTaskUnit) upload() (result *taskframework.TaskUnitRunResult) {
 	}
 
 	// 注册上传器, 供优雅退出时停止; 函数结束时注销
-	RegisterActiveUploader(muer)
-	defer UnregisterActiveUploader(muer)
+	if utu.Control != nil {
+		utu.Control.Register(muer)
+		defer utu.Control.Unregister(muer)
+	}
 
 	muer.OnUploadStatusEvent(func(status uploader.Status, updateChan <-chan struct{}) {
 		select {
@@ -472,6 +477,9 @@ func (utu *UploadTaskUnit) runPreparedStep() *taskframework.TaskUnitRunResult {
 }
 
 func (utu *UploadTaskUnit) Run() (result *taskframework.TaskUnitRunResult) {
+	if utu.NoSplitFile {
+		return &taskframework.TaskUnitRunResult{Err: errors.New("NoSplitFile尚无有效实现")}
+	}
 	fmt.Printf("[%s] 准备上传: %s\n", utu.taskInfo.Id(), utu.LocalFileChecksum.Path)
 
 	if utu.LocalFileChecksum.Length > baidupcs.MaxUploadSize {

@@ -1,0 +1,108 @@
+{
+  "verified_at": "2026-11-05T07:44:53.205675652Z",
+  "base_commit": "4fc00ce",
+  "contract_version": "0.3.0-p3",
+  "schema_version": 4,
+  "platform": "linux/amd64",
+  "go_version": "go1.23.12",
+  "operations": {
+    "implemented": 40,
+    "planned": 62,
+    "partial": 3
+  },
+  "p3_phase_operations": [
+    "ACC04",
+    "ACC05",
+    "ACC06",
+    "ACC08",
+    "ACC09",
+    "ART01",
+    "ART02",
+    "ART03",
+    "ART04",
+    "FIL01",
+    "FIL02",
+    "FIL03",
+    "FIL04",
+    "FIL05",
+    "FIL06",
+    "JOB01",
+    "JOB02",
+    "JOB03",
+    "JOB04",
+    "JOB05",
+    "JOB06",
+    "JOB09",
+    "JOB11",
+    "LOC01"
+  ],
+  "complete_account_operations": [
+    "ACC01",
+    "ACC02",
+    "ACC03",
+    "ACC04",
+    "ACC05",
+    "ACC06",
+    "ACC07",
+    "ACC08",
+    "ACC09"
+  ],
+  "offline_verification": {
+    "race_and_related_packages": "passed",
+    "p2_transfer_cancellation_restart_regression": "passed",
+    "p2_http_sigkill_windows": 4,
+    "legacy_cli_offline_packages": 14,
+    "legacy_cli_read_flows": [
+      "ls",
+      "search",
+      "meta",
+      "tree",
+      "aggregate pagination"
+    ],
+    "actual_http_responses": 102,
+    "response_groups": {
+      "baidupcs-p1-responses.json": 18,
+      "baidupcs-p2-responses.json": 21,
+      "baidupcs-p3-accounts.json": 17,
+      "baidupcs-p3-responses.json": 46
+    },
+    "openapi_operations": 105,
+    "openapi_paths": 89,
+    "openapi_schemas": 190,
+    "source_mappings": 616,
+    "schema_boundary_cases": 67,
+    "behavior_specs_with_offline_evidence": [
+      "PAGE-01",
+      "PAGE-02",
+      "SSE-01",
+      "COOKIE-01",
+      "CAP-01"
+    ],
+    "cgo_disabled_build_targets": 13,
+    "sqlite_service_targets": 5,
+    "build_evidence": "docs/http-api-p3-build-verification.json",
+    "native_server_build_and_help": "passed",
+    "diff_check": "passed",
+    "legacy_v3_upgrade_and_initial_receipt": "passed",
+    "queued_unknown_commit_cancel_revoke": "passed",
+    "job_visibility_and_nanosecond_filters": "passed"
+  },
+  "p3_upstream_verification": {
+    "status": "passed",
+    "allowed_remote_root": "/BaiduPCS-Go-P2-Verification/",
+    "test_entrypoint": "TestP3UpstreamDedicatedAccount",
+    "evidence": "docs/http-api-p3-upstream-verification.json",
+    "started_at": "2026-11-05T07:44:23.797044655Z",
+    "finished_at": "2026-11-05T07:44:53.205675652Z",
+    "passed_stages": 33,
+    "credential_scope": "one QR cookie session",
+    "cleanup": "passed",
+    "credentials_retained_by_user_request": {
+      "file": ".env",
+      "mode": "0600",
+      "git_ignored": true,
+      "git_tracked": false
+    }
+  },
+  "p2_upstream_evidence_preserved": "docs/http-api-p2-upstream-verification.json"
+}

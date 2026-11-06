@@ -1,0 +1,22 @@
+package main
+import (
+ "database/sql"
+ "fmt"
+ "os"
+ _ "modernc.org/sqlite"
+)
+func must(err error) { if err != nil { panic(err) } }
+func main() {
+ f,err:=os.CreateTemp("","baidupcs-p0-sqlite-*.db");must(err);p:=f.Name();must(f.Close());defer os.Remove(p);defer os.Remove(p+"-wal");defer os.Remove(p+"-shm")
+ db,err:=sql.Open("sqlite",p);must(err);db.SetMaxOpenConns(1)
+ _,err=db.Exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");must(err)
+ _,err=db.Exec("CREATE TABLE jobs(id TEXT PRIMARY KEY, state TEXT NOT NULL); CREATE TABLE events(job_id TEXT REFERENCES jobs(id), seq INTEGER); CREATE TABLE idempotency(key TEXT PRIMARY KEY, job_id TEXT REFERENCES jobs(id));");must(err)
+ tx,err:=db.Begin();must(err)
+ _,err=tx.Exec("INSERT INTO jobs VALUES('job_1','queued'); INSERT INTO events VALUES('job_1',1); INSERT INTO idempotency VALUES('key_1','job_1');");must(err);must(tx.Commit())
+ tx,err=db.Begin();must(err);_,err=tx.Exec("INSERT INTO jobs VALUES('rolled_back','queued')");must(err);must(tx.Rollback())
+ must(db.Close());db,err=sql.Open("sqlite",p);must(err);defer db.Close()
+ var jobs,events,keys int;must(db.QueryRow("SELECT count(*) FROM jobs").Scan(&jobs));must(db.QueryRow("SELECT count(*) FROM events").Scan(&events));must(db.QueryRow("SELECT count(*) FROM idempotency").Scan(&keys))
+ if jobs!=1||events!=1||keys!=1 {panic("transaction/reopen mismatch")}
+ var integrity,version string;must(db.QueryRow("PRAGMA integrity_check").Scan(&integrity));must(db.QueryRow("SELECT sqlite_version()").Scan(&version));if integrity!="ok" {panic(integrity)}
+ fmt.Printf("sqlite=%s cgo=0 transaction+rollback+reopen+integrity=ok\n",version)
+}

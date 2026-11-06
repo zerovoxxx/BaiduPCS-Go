@@ -1,0 +1,3956 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-05T14:35:01.567481+00:00",
+  "contract_version": "0.7.0-p7",
+  "sqlite_schema": 7,
+  "operations_count": 105,
+  "implemented": 105,
+  "partial": 0,
+  "planned": 0,
+  "source_inventory": {
+    "path": "../api/openapi/source-inventory.json",
+    "mapped": 622,
+    "total": 622,
+    "counts": {
+      "command": 47,
+      "command_group": 5,
+      "configuration_field": 24,
+      "flag": 90,
+      "function": 410,
+      "global_flag": 1,
+      "option_field": 45
+    },
+    "status": "complete; original CLI-only/internal-adapter exclusions preserved"
+  },
+  "controlled_http": {
+    "response_groups": [
+      {
+        "environment": "BAIDUPCS_P1_CONTRACT_RESPONSES",
+        "artifact_name": "baidupcs-p1-responses.json",
+        "responses": 18,
+        "sha256": "61ac1745dbcf579693cda6fc48ed5d43aa0ea0ad8942a09819a97c7b6119d8cd"
+      },
+      {
+        "environment": "BAIDUPCS_P2_CONTRACT_RESPONSES",
+        "artifact_name": "baidupcs-p2-responses.json",
+        "responses": 21,
+        "sha256": "c5ff16305ddecc38a89214d19a17d172463fcdc9294eb2add7b9c5e223e73c8a"
+      },
+      {
+        "environment": "BAIDUPCS_P3_ACCOUNT_RESPONSES",
+        "artifact_name": "baidupcs-p3-accounts.json",
+        "responses": 17,
+        "sha256": "0e107bb5196323c4dbe1f9ccee5b9e2ff211e4cac692012b53f6e7afe889bca2"
+      },
+      {
+        "environment": "BAIDUPCS_P3_CONTRACT_RESPONSES",
+        "artifact_name": "baidupcs-p3-responses.json",
+        "responses": 46,
+        "sha256": "26d3cd64af83cffa122483f6471c4aa1b6026c6efcbc89a49b42a9222e463c7d"
+      },
+      {
+        "environment": "BAIDUPCS_P4_CONTRACT_RESPONSES",
+        "artifact_name": "baidupcs-p4-responses.json",
+        "responses": 15,
+        "sha256": "805b7f9579ba57d68bda51e71928cac371b598de988272877d82255368f91b62"
+      },
+      {
+        "environment": "BAIDUPCS_P5_FILE_RESPONSES",
+        "artifact_name": "baidupcs-p5-files.json",
+        "responses": 9,
+        "sha256": "17c5ba2a60b5e9e83f3b3d69586a08699347881d8fb9cabf2c3f4d2a758f3e6b"
+      },
+      {
+        "environment": "BAIDUPCS_P5_SHARE_RESPONSES",
+        "artifact_name": "baidupcs-p5-shares.json",
+        "responses": 8,
+        "sha256": "14ef727179f9e04cc6467f40aaf7791b1e95e470e97d99f45c2855d40a38d59b"
+      },
+      {
+        "environment": "BAIDUPCS_P5_BUSINESS_RESPONSES",
+        "artifact_name": "baidupcs-p5-business.json",
+        "responses": 14,
+        "sha256": "2b9d00f84ba9cf798179f8a5f8363231803f7c44fe3a08d8855ef8406f1ed820"
+      },
+      {
+        "environment": "BAIDUPCS_P5_RECONCILE_RESPONSES",
+        "artifact_name": "baidupcs-p5-reconcile.json",
+        "responses": 3,
+        "sha256": "7c85eb854971c3b4e7f3af963cb5dd83fb02ea51031e065e67517d9de766aeed"
+      },
+      {
+        "environment": "BAIDUPCS_P6_TOOL_RESPONSES",
+        "artifact_name": "baidupcs-p6-tools.json",
+        "responses": 16,
+        "sha256": "95525f45ccf5be7351adbe24909b1f9955096486e34c6dac1359c13106b26d24"
+      },
+      {
+        "environment": "BAIDUPCS_P6_LOGIN_RESPONSES",
+        "artifact_name": "baidupcs-p6-login.json",
+        "responses": 32,
+        "sha256": "7f372dbc851a5c5b2fe9dcff8842d5b489f050f718fb67dfe08696803ca2eedf"
+      },
+      {
+        "environment": "BAIDUPCS_P6_MANAGEMENT_RESPONSES",
+        "artifact_name": "baidupcs-p6-management.json",
+        "responses": 11,
+        "sha256": "c14cecd1071be5d79664f68773c1bb8e791683807303f0e87a8b99c0d3e81816"
+      },
+      {
+        "environment": "BAIDUPCS_P6_RECEPTION_RESPONSES",
+        "artifact_name": "baidupcs-p6-receptions.json",
+        "responses": 6,
+        "sha256": "6e2684559d29fb2a1c5a56b2dbcf0ec4c6c21471c507537ac499df57ca1729db"
+      },
+      {
+        "environment": "BAIDUPCS_P7_METRICS_RESPONSES",
+        "artifact_name": "baidupcs-p7-metrics.json",
+        "responses": 1,
+        "sha256": "f2e8c49e8da8c7139c22a422f777a6a409bd1b1a521d92f6d50faf807c1b40f1"
+      }
+    ],
+    "total_responses": 217,
+    "operations_executed": 105,
+    "permanent_unavailable_operation": "INT06: validated 503, retryable=false"
+  },
+  "behavior_cases": {
+    "total": 25,
+    "offline_linked": 25
+  },
+  "upstream_status_counts": {
+    "observed_scoped_workflow": 19,
+    "passed_scoped_upstream_sample": 14,
+    "local_service_fixture_no_baidu_step": 15,
+    "controlled_only": 25,
+    "succeeded_in_dedicated_cookie_sample": 9,
+    "succeeded": 9,
+    "upstream_rejected_with_strict_status_parser": 1,
+    "local_operation_no_baidu_step": 8,
+    "implemented_permanent_upstream_unavailable_contract": 1,
+    "historical_p2_single_file_slice_only": 2,
+    "observed_scoped_partial_failure_retry_workflow": 1,
+    "upstream_rejected_own_account_sample": 1
+  },
+  "upstream_boundary": "Historical scoped reports, one authorized cookie account and approved round directories; not a global 105-operation Baidu success rate. Local workflow observations do not imply remote IO. P5 TRF02 and P6 INT02 explicit rejection remain; LOG/FIL12/offline/recycle controlled only. No new P7 Baidu login or remote writes.",
+  "operations": [
+    {
+      "operation_id": "ACC01",
+      "method": "POST",
+      "path": "/api/v1/accounts",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+        "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey",
+        "internal/domain/account/import_test.go#TestCredentialImportCanonicalization",
+        "internal/domain/account/patch_test.go#TestP3CanonicalCredentialPatchPresenceAndRevocation",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 17,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_import": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC02",
+      "method": "GET",
+      "path": "/api/v1/accounts",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 8,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_list": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC03",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 4,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 404
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 404
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_read": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC04",
+      "method": "PATCH",
+      "path": "/api/v1/accounts/{account_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 428
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 412
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_patch": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC05",
+      "method": "DELETE",
+      "path": "/api/v1/accounts/{account_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 7,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_delete": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC06",
+      "method": "PATCH",
+      "path": "/api/v1/accounts/{account_id}/credentials",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 5,
+        "responses": [
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "PATCH",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/server_test.go#TestRuntimeHTTPConfigurationAndAuth",
+        "internal/domain/account/import_test.go#TestCredentialImportCanonicalization",
+        "internal/domain/account/patch_test.go#TestP3CanonicalCredentialPatchPresenceAndRevocation",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 12,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "credential_update": "passed",
+          "credential_clear": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC07",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/validate",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 7,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "account_validation": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC08",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/quota",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "quota": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ACC09",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/capabilities",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p2_test.go#TestP2RuntimeAccountsCapabilitiesAndPersistence",
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "capabilities": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ART01",
+      "method": "GET",
+      "path": "/api/v1/artifacts/{artifact_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 410
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "artifact_metadata": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ART02",
+      "method": "GET",
+      "path": "/api/v1/artifacts/{artifact_id}/content",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 6,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 206
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 416
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 403
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 3,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "artifact_range": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ART03",
+      "method": "HEAD",
+      "path": "/api/v1/artifacts/{artifact_id}/content",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "HEAD",
+            "status": 206
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "HEAD",
+            "status": 416
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "artifact_head": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "ART04",
+      "method": "DELETE",
+      "path": "/api/v1/artifacts/{artifact_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "artifact_delete": "passed",
+          "artifact_deleted": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG01",
+      "method": "GET",
+      "path": "/api/v1/configuration",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 401
+          },
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 403
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 46,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG02",
+      "method": "PATCH",
+      "path": "/api/v1/configuration",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 4,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "PATCH",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "PATCH",
+            "status": 428
+          },
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "PATCH",
+            "status": 412
+          },
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "PATCH",
+            "status": 400
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/server_test.go",
+        "internal/bootstrap/server_test.go#TestRuntimeHTTPConfigurationAndAuth",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery"
+      ],
+      "original_source_mapping_entries": 73,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG03",
+      "method": "GET",
+      "path": "/api/v1/configuration/schema",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG04",
+      "method": "POST",
+      "path": "/api/v1/configuration/validate",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 19,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG05",
+      "method": "POST",
+      "path": "/api/v1/configuration/reset",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 9,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG06",
+      "method": "POST",
+      "path": "/api/v1/configuration/reload",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 7,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG07",
+      "method": "GET",
+      "path": "/api/v1/configuration/defaults",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 9,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG08",
+      "method": "GET",
+      "path": "/api/v1/configuration/cli-defaults",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CFG09",
+      "method": "PATCH",
+      "path": "/api/v1/configuration/cli-defaults",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "PATCH",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CTX01",
+      "method": "POST",
+      "path": "/api/v1/contexts",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CTX02",
+      "method": "GET",
+      "path": "/api/v1/contexts/{context_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CTX03",
+      "method": "PATCH",
+      "path": "/api/v1/contexts/{context_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "PATCH",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/server_test.go#TestRuntimeHTTPConfigurationAndAuth",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 7,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "CTX04",
+      "method": "DELETE",
+      "path": "/api/v1/contexts/{context_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "DWN01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/downloads",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 422
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/baidu/p4_test.go#TestP4DirectoryHierarchyEmptyFilesAndOptions",
+        "internal/infrastructure/baidu/p4_test.go#TestP4NoOverwriteConcurrentCommit",
+        "internal/infrastructure/baidu/p7_test.go#TestP7RsyncComparesSizeAndDryRunHasNoTransfer",
+        "internal/infrastructure/localfs/p6_unix_test.go#TestP6ToolsRejectSymlinkAndFIFO",
+        "internal/infrastructure/localfs/roots_test.go#TestRootBoundaryAndServiceSecrets"
+      ],
+      "original_source_mapping_entries": 160,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "directory_download": "passed",
+          "mode_locate": "succeeded",
+          "mode_stream": "succeeded",
+          "download_sha256": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "DWN02",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/download-links",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md"
+      ],
+      "original_source_mapping_entries": 18,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "download_links": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "DWN03",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/content",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "GET",
+            "status": 206
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "GET",
+            "status": 416
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "GET",
+            "status": 400
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p7_test.go#TestP7SettledJobCountersAndExpiredCredentialBoundary",
+        "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
+        "internal/infrastructure/baidu/factory_test.go#TestFactoryBindsCancellationAndRejectsUnsafeRedirect",
+        "internal/infrastructure/baidu/p4_test.go#TestP4ContentSlowStreamDisconnectReleasesUpstream",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "proxy_range": "passed",
+          "ticket_redeem": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "DWN04",
+      "method": "HEAD",
+      "path": "/api/v1/accounts/{account_id}/content",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "HEAD",
+            "status": 206
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "HEAD",
+            "status": 416
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
+        "internal/infrastructure/baidu/factory_test.go#TestFactoryBindsCancellationAndRejectsUnsafeRedirect",
+        "internal/infrastructure/baidu/p4_test.go#TestP4ContentSlowStreamDisconnectReleasesUpstream",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "proxy_head": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "DWN05",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/download-tickets",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "ticket_create": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "EXP01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/exports",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 18,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL01",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/files",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 16,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 404
+          },
+          {
+            "group": "baidupcs-p3-accounts.json",
+            "method": "GET",
+            "status": 422
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 422
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/p7_test.go#TestP7SettledJobCountersAndExpiredCredentialBoundary",
+        "internal/infrastructure/localfs/p6_unix_test.go#TestP6ToolsRejectSymlinkAndFIFO",
+        "internal/infrastructure/localfs/roots_test.go#TestRootBoundaryAndServiceSecrets",
+        "internal/infrastructure/persistence/p3_test.go",
+        "internal/pcscommand/reads_test.go#TestP3CLISharedReadsPreserveAggregationOrderingAndOutput"
+      ],
+      "original_source_mapping_entries": 20,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "list_page": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL02",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/files/metadata",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 13,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "metadata": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL03",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/files/metadata",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "metadata_partial": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL04",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/files/search",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 5,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 413
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/infrastructure/persistence/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go#TestP3SnapshotBindingExpirationAndEncryptedCursors"
+      ],
+      "original_source_mapping_entries": 13,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "search": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL05",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-scans",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 14,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "scan": "passed",
+          "partial_scan": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL06",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/path-matches",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/infrastructure/localfs/p6_unix_test.go#TestP6ToolsRejectSymlinkAndFIFO",
+        "internal/infrastructure/localfs/roots_test.go#TestRootBoundaryAndServiceSecrets",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "path_matches": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL07",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/directories",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL08",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-deletions",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 9,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL09",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-copies",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
+      ],
+      "original_source_mapping_entries": 10,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL10",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-moves",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
+      ],
+      "original_source_mapping_entries": 10,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL11",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-renames",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "FIL12",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/file-changes",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-checksums/inspect",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT02",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-checksums/fix",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "upstream_rejected_with_strict_status_parser",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT03",
+      "method": "POST",
+      "path": "/api/v1/local/checksums",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT04",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-verifications",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT05",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/file-checksums/from-link",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "INT06",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/legacy/rapid-uploads",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 503
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/rapid_status_test.go#TestP6RapidRepairRequiresExplicitSuccessStatus",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "implemented_permanent_upstream_unavailable_contract",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB01",
+      "method": "GET",
+      "path": "/api/v1/jobs",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "job_list": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB02",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 404
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 194,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "job_query": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB03",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/items",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 196,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "items": "passed",
+          "partial_items": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB04",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/result",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 12,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 404
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "GET",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "scan_result": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB05",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/events",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 4,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 400
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 409
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p3_test.go#TestP3SSEHeartbeatIsCommentWithoutID",
+        "internal/bootstrap/p3_test.go#TestP3SSESlowConsumerDisconnectsWithoutBlockingJob",
+        "internal/bootstrap/p3_test.go#TestP3SSESnapshotFollowsThroughTerminalCommit",
+        "internal/infrastructure/persistence/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go#TestP3EventCountRetentionNeverReusesSequence",
+        "internal/infrastructure/persistence/p3_test.go#TestP3JobEventTransactionsAndRestartSequence"
+      ],
+      "original_source_mapping_entries": 195,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "sse_snapshot": "passed",
+          "sse_replay": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB06",
+      "method": "POST",
+      "path": "/api/v1/jobs/{job_id}/cancel",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 4,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p5-reconcile.json",
+            "method": "POST",
+            "status": 409
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 198,
+      "upstream": {
+        "status": "historical_p2_single_file_slice_only",
+        "report": "http-api-p2-upstream-verification.json",
+        "stages": {
+          "cancel_terminal_state": "cancelled"
+        },
+        "boundary": "does not verify every P4/P5/P6 kind or option"
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB07",
+      "method": "POST",
+      "path": "/api/v1/jobs/{job_id}/pause",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "controlled_only",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB08",
+      "method": "POST",
+      "path": "/api/v1/jobs/{job_id}/resume",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource"
+      ],
+      "original_source_mapping_entries": 194,
+      "upstream": {
+        "status": "historical_p2_single_file_slice_only",
+        "report": "http-api-p2-upstream-verification.json",
+        "stages": {
+          "resume": "passed"
+        },
+        "boundary": "does not verify every P4/P5/P6 kind or option"
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB09",
+      "method": "POST",
+      "path": "/api/v1/jobs/{job_id}/retry",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p5-files.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/bootstrap/p3_test.go",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "observed_scoped_partial_failure_retry_workflow",
+        "report": "http-api-p3-upstream-verification.json",
+        "stages": {
+          "retry": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB10",
+      "method": "POST",
+      "path": "/api/v1/jobs/{job_id}/reconcile",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p5-reconcile.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p5-reconcile.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md",
+        "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
+        "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "JOB11",
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/artifacts",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 193,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOC01",
+      "method": "GET",
+      "path": "/api/v1/local/roots",
+      "delivery_phase": "P3",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p3-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p3_test.go",
+        "internal/infrastructure/persistence/p3_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOC02",
+      "method": "POST",
+      "path": "/api/v1/local/encryptions",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_edges_test.go#TestP6RestartLosesKeyExplicitlyAndCleansUncommittedPlaintext",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go#TestP6CryptoDiskFullCancellationAndCommitReceipt",
+        "internal/infrastructure/localfs/p6_test.go#TestP6CryptoModesLegacyCompatibilityAndFailureCleanup"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOC03",
+      "method": "POST",
+      "path": "/api/v1/local/decryptions",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-tools.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_edges_test.go#TestP6RestartLosesKeyExplicitlyAndCleansUncommittedPlaintext",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6IntegrityExportAndLocalCryptoHTTP",
+        "internal/infrastructure/localfs/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go#TestP6CryptoDiskFullCancellationAndCommitReceipt",
+        "internal/infrastructure/localfs/p6_test.go#TestP6CryptoModesLegacyCompatibilityAndFailureCleanup"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG01",
+      "method": "POST",
+      "path": "/api/v1/account-login-sessions",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 7,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG02",
+      "method": "GET",
+      "path": "/api/v1/account-login-sessions/{session_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG03",
+      "method": "GET",
+      "path": "/api/v1/account-login-sessions/{session_id}/qrcode",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG04",
+      "method": "POST",
+      "path": "/api/v1/account-login-sessions/{session_id}/responses",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 9,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG05",
+      "method": "POST",
+      "path": "/api/v1/account-login-sessions/{session_id}/complete",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 7,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "LOG06",
+      "method": "DELETE",
+      "path": "/api/v1/account-login-sessions/{session_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 6,
+        "responses": [
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          },
+          {
+            "group": "baidupcs-p6-login.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+        "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+        "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF02",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 8,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF03",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks/query",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 413
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF04",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks/cancellations",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF05",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks/deletions",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF06",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks/clear",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "OFF07",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/offline-tasks/{offline_task_id}",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 3,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "REC01",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/recycle",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "REC02",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/recycle/restorations",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "REC03",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/recycle/deletions",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "REC04",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/recycle/clear",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-business.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SHR01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/shares",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+        "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild",
+        "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery"
+      ],
+      "original_source_mapping_entries": 12,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SHR02",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/shares",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 6,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SHR03",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/shares/{share_id}",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SHR04",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/share-cancellations",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p5-verification.md"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS01",
+      "method": "GET",
+      "path": "/healthz",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS02",
+      "method": "GET",
+      "path": "/readyz",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS03",
+      "method": "GET",
+      "path": "/api/v1/system",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 5,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS04",
+      "method": "GET",
+      "path": "/api/v1/capabilities",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p2_test.go#TestP2RuntimeAccountsCapabilitiesAndPersistence",
+        "internal/bootstrap/p3_test.go#TestP3AccountsCredentialsQuotaAndVersions",
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS05",
+      "method": "GET",
+      "path": "/api/v1/diagnostics/network",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "GET",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 2,
+      "upstream": {
+        "status": "controlled_only",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS06",
+      "method": "GET",
+      "path": "/api/v1/accounts/{account_id}/diagnostics/pcs-servers",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-management.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 4,
+      "upstream": {
+        "status": "succeeded_in_dedicated_cookie_sample",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS07",
+      "method": "GET",
+      "path": "/metrics",
+      "delivery_phase": "P7",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p7-metrics.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/application/transfers/metrics_test.go",
+        "internal/bootstrap/p7_test.go",
+        "internal/domain/metrics/metrics_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS08",
+      "method": "GET",
+      "path": "/api/v1/openapi.json",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "SYS09",
+      "method": "GET",
+      "path": "/docs",
+      "delivery_phase": "P1",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p1-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/server_test.go"
+      ],
+      "original_source_mapping_entries": 1,
+      "upstream": {
+        "status": "local_service_fixture_no_baidu_step",
+        "report": null,
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "TRF01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/share-inspections",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
+      ],
+      "original_source_mapping_entries": 10,
+      "upstream": {
+        "status": "succeeded",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "TRF02",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/share-transfers",
+      "delivery_phase": "P5",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p5-shares.json",
+            "method": "POST",
+            "status": 202
+          }
+        ]
+      },
+      "offline_evidence": [
+        "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
+        "docs/http-api-p5-verification.md",
+        "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
+      ],
+      "original_source_mapping_entries": 20,
+      "upstream": {
+        "status": "upstream_rejected_own_account_sample",
+        "report": "http-api-p5-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL01",
+      "method": "POST",
+      "path": "/api/v1/accounts/{account_id}/uploads",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 202
+          },
+          {
+            "group": "baidupcs-p2-responses.json",
+            "method": "POST",
+            "status": 422
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
+        "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
+        "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
+        "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
+        "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
+        "internal/bootstrap/p6_edges_test.go#TestP6ContextFreezesSelectionAndIdempotentReplay",
+        "internal/bootstrap/p6_edges_test.go#TestP6CryptoIdempotencySurvivesRestartWithoutPersistingKey",
+        "internal/infrastructure/baidu/http_test.go#TestP2LiveHTTPTransfersAndRecovery",
+        "internal/infrastructure/baidu/p4_test.go#TestP4DirectoryHierarchyEmptyFilesAndOptions",
+        "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource",
+        "internal/infrastructure/baidu/p7_test.go#TestP7RsyncComparesSizeAndDryRunHasNoTransfer",
+        "internal/infrastructure/baidu/transfer_test.go#TestSingleFileTransferRejectsChangedSourceAndCheckpointBinding",
+        "internal/infrastructure/localfs/p6_unix_test.go#TestP6ToolsRejectSymlinkAndFIFO",
+        "internal/infrastructure/localfs/roots_test.go#TestRootBoundaryAndServiceSecrets"
+      ],
+      "original_source_mapping_entries": 106,
+      "upstream": {
+        "status": "passed_scoped_upstream_sample",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "directory_upload": "passed",
+          "rsync_policy": "passed",
+          "overwrite_policy": "passed",
+          "rapid_handshake": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL02",
+      "method": "POST",
+      "path": "/api/v1/staging-files",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 3,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 201
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "staging_receive": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL03",
+      "method": "GET",
+      "path": "/api/v1/staging-files/{file_id}",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "staging_read": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL04",
+      "method": "DELETE",
+      "path": "/api/v1/staging-files/{file_id}",
+      "delivery_phase": "P4",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "DELETE",
+            "status": 409
+          },
+          {
+            "group": "baidupcs-p4-responses.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "docs/http-api-p4-verification.md",
+        "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "observed_scoped_workflow",
+        "report": "http-api-p4-upstream-verification.json",
+        "stages": {
+          "staging_delete": "passed"
+        }
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL05",
+      "method": "POST",
+      "path": "/api/v1/staging-upload-sessions",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_process_test.go#TestP6ReceptionSIGKILLHTTP",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6ReceptionOffsetRecoveryAndHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL06",
+      "method": "GET",
+      "path": "/api/v1/staging-upload-sessions/{session_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "GET",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_process_test.go#TestP6ReceptionSIGKILLHTTP",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6ReceptionOffsetRecoveryAndHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL07",
+      "method": "PATCH",
+      "path": "/api/v1/staging-upload-sessions/{session_id}/content",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 2,
+        "responses": [
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "PATCH",
+            "status": 200
+          },
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "PATCH",
+            "status": 200
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_process_test.go#TestP6ReceptionSIGKILLHTTP",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6ReceptionOffsetRecoveryAndHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL08",
+      "method": "POST",
+      "path": "/api/v1/staging-upload-sessions/{session_id}/complete",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "POST",
+            "status": 201
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_process_test.go#TestP6ReceptionSIGKILLHTTP",
+        "internal/bootstrap/p6_test.go",
+        "internal/bootstrap/p6_test.go#TestP6ReceptionOffsetRecoveryAndHTTP",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    },
+    {
+      "operation_id": "UPL09",
+      "method": "DELETE",
+      "path": "/api/v1/staging-upload-sessions/{session_id}",
+      "delivery_phase": "P6",
+      "implementation": "implemented",
+      "controlled_http": {
+        "status": "passed",
+        "response_count": 1,
+        "responses": [
+          {
+            "group": "baidupcs-p6-receptions.json",
+            "method": "DELETE",
+            "status": 204
+          }
+        ]
+      },
+      "offline_evidence": [
+        "internal/bootstrap/p6_test.go",
+        "internal/infrastructure/localfs/p6_test.go"
+      ],
+      "original_source_mapping_entries": 0,
+      "upstream": {
+        "status": "local_operation_no_baidu_step",
+        "report": "http-api-p6-upstream-verification.json",
+        "stages": {}
+      },
+      "verified_implementation_commit": "7607dfc"
+    }
+  ],
+  "implementation_commits": {
+    "p6": "0273055",
+    "p7": "e3a00f6",
+    "handoff": "83f6a83",
+    "p7_final_fix": "7607dfc"
+  }
+}

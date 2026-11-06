@@ -24,9 +24,12 @@ func (pcs *BaiduPCS) Move(cpmvJSON ...*CpMvJSON) (pcsError pcserror.Error) {
 }
 
 func (pcs *BaiduPCS) cpmvOp(op string, cpmvJSON ...*CpMvJSON) (pcsError pcserror.Error) {
-	dataReadCloser, err := pcs.prepareCpMvOp(op, cpmvJSON...)
+	return pcs.cpmvPolicy(op, "fail", cpmvJSON...)
+}
+func (pcs *BaiduPCS) cpmvPolicy(op, policy string, cpmvJSON ...*CpMvJSON) (pcsError pcserror.Error) {
+	dataReadCloser, err := pcs.prepareCpMvPolicy(op, policy, cpmvJSON...)
 	if err != nil {
-		return
+		return err
 	}
 
 	defer dataReadCloser.Close()
@@ -39,4 +42,10 @@ func (pcs *BaiduPCS) cpmvOp(op string, cpmvJSON ...*CpMvJSON) (pcsError pcserror
 	// 更新缓存
 	pcs.deleteCache((*CpMvJSONList)(unsafe.Pointer(&cpmvJSON)).AllRelatedDir())
 	return nil
+}
+
+// CopyMovePolicy keeps the existing PCS parser/cache invalidation while selecting
+// the upstream's explicit conflict policy. skip is resolved by the caller.
+func (pcs *BaiduPCS) CopyMovePolicy(op, policy, from, to string) pcserror.Error {
+	return pcs.cpmvPolicy(op, policy, &CpMvJSON{From: from, To: to})
 }

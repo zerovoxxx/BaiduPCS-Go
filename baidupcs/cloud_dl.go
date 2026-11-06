@@ -147,7 +147,9 @@ func (pcs *BaiduPCS) cloudDlQueryTask(op string, taskIDs []int64) (cl CloudDlTas
 
 	// TODO: 支持100条以上的task_id查询
 	if len(taskIDs) > 100 {
-		taskIDs = taskIDs[:100]
+		errInfo.ErrType = pcserror.ErrTypeOthers
+		errInfo.Err = errors.New("offline query accepts at most 100 task IDs")
+		return nil, errInfo
 	}
 
 	taskStrIDs := make([]string, len(taskIDs))

@@ -211,46 +211,67 @@ func (pcs *BaiduPCS) FilesDirectoriesList(path string, options *OrderOptions) (d
 	seen := make(map[int64]struct{}, maxListNum)
 
 	for page := 1; page <= maxPage; page++ {
-		dataReadCloser, err := pcs.PrepareFilesDirectoriesList(path, options, maxListNum, page)
+		pageData, err := pcs.FilesDirectoriesListPage(path, options, maxListNum, page)
 		if err != nil {
-			pcsError = err
-			return
+			return data, err
 		}
 
-		jsonData := fdPanListJSON{
-			PanErrorInfo: pcserror.NewPanErrorInfo(OperationFilesDirectoriesList),
-		}
-
-		err = pcserror.HandleJSONParse(OperationFilesDirectoriesList, dataReadCloser, &jsonData)
-		dataReadCloser.Close()
-		if err != nil {
-			pcsError = err
-			return
-		}
-
-		if len(jsonData.List) == 0 {
+		if len(pageData) == 0 {
 			break
 		}
 
 		// 转换为 FileDirectory 并按 fs_id 去重
-		pageList := make(FileDirectoryList, 0, len(jsonData.List))
-		for _, j := range jsonData.List {
+		pageList := make(FileDirectoryList, 0, len(pageData))
+		for _, j := range pageData {
 			if _, ok := seen[j.FsID]; ok {
-				// 重复 fs_id 说明分页未继续推进 (或已绕回), 终止遍历
-				return
+				// Incomplete aggregation is an error, including a repeated page.
+				return data, &pcserror.PCSErrInfo{Operation: OperationFilesDirectoriesList, ErrType: pcserror.ErrTypeOthers, Err: errors.New("directory pagination repeated an fs_id")}
 			}
 			seen[j.FsID] = struct{}{}
-			pageList = append(pageList, j.toFileDirectory())
+			pageList = append(pageList, j)
 		}
-		// 修复MD5
-		pageList.fixMD5()
+		// The page reader already applied the shared MD5 normalization.
 		data = append(data, pageList...)
 
-		if len(jsonData.List) < maxListNum {
-			break // 已取完最后一页
+		if len(pageData) < maxListNum {
+			break
+		}
+		if page == maxPage {
+			return data, &pcserror.PCSErrInfo{Operation: OperationFilesDirectoriesList, ErrType: pcserror.ErrTypeOthers, Err: errors.New("directory pagination exceeded safety limit")}
 		}
 	}
 	return
+}
+
+// FilesDirectoriesListPage reads one upstream page with the same parser used
+// by the CLI aggregate reader. It does not infer a total from a full page.
+func (pcs *BaiduPCS) FilesDirectoriesListPage(path string, options *OrderOptions, pageSize, page int) (FileDirectoryList, pcserror.Error) {
+	if pageSize < 1 || pageSize > maxListNum || page < 1 {
+		return nil, &pcserror.PCSErrInfo{Operation: OperationFilesDirectoriesList, ErrType: pcserror.ErrTypeOthers, Err: errors.New("invalid directory page")}
+	}
+	body, err := pcs.PrepareFilesDirectoriesList(path, options, pageSize, page)
+	if err != nil {
+		return nil, err
+	}
+	defer body.Close()
+	decoded := fdPanListJSON{PanErrorInfo: pcserror.NewPanErrorInfo(OperationFilesDirectoriesList)}
+	if err = pcserror.HandleJSONParse(OperationFilesDirectoriesList, body, &decoded); err != nil {
+		return nil, err
+	}
+	if decoded.List == nil {
+		return nil, &pcserror.PCSErrInfo{Operation: OperationFilesDirectoriesList, ErrType: pcserror.ErrTypeJSONParseError, Err: errors.New("directory response missing list")}
+	}
+	out := make(FileDirectoryList, 0, len(decoded.List))
+	seen := map[int64]bool{}
+	for _, v := range decoded.List {
+		if v == nil || seen[v.FsID] {
+			return nil, &pcserror.PCSErrInfo{Operation: OperationFilesDirectoriesList, ErrType: pcserror.ErrTypeOthers, Err: errors.New("invalid or duplicate directory entry")}
+		}
+		seen[v.FsID] = true
+		out = append(out, v.toFileDirectory())
+	}
+	out.fixMD5()
+	return out, nil
 }
 
 // Search 按文件名搜索文件, 不支持查找目录
@@ -333,7 +354,7 @@ func (pcs *BaiduPCS) FilesDirectoriesRecurseList(path string, options *OrderOpti
 // 服务器返回的MD5字段不一定正确了, 即是BlockList只有一个md5
 // MD5字段使用BlockList中的md5
 func (f *FileDirectory) fixMD5() {
-	if len(f.BlockList) != 1 {
+	if f == nil || len(f.BlockList) != 1 {
 		return
 	}
 	f.MD5 = f.BlockList[0]
@@ -383,6 +404,9 @@ func (f *FileDirectory) String() string {
 
 func (fl FileDirectoryList) fixMD5() {
 	for _, v := range fl {
+		if v == nil {
+			continue
+		}
 		v.fixMD5()
 		v.MD5 = DecryptMD5(v.MD5)
 	}

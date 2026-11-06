@@ -12,9 +12,12 @@ func RunGetMeta(targetPaths ...string) {
 		return
 	}
 
+	runGetMeta(GetBaiduPCS(), targetPaths...)
+}
+func runGetMeta(client fileReadClient, targetPaths ...string) {
 	for k, targetPath := range targetPaths {
 		fmt.Printf("[%d] - [%s] --------------\n", k, targetPath)
-		data, err := GetBaiduPCS().FilesDirectoriesMeta(targetPath)
+		data, err := client.FilesDirectoriesMeta(targetPath)
 		if err != nil {
 			fmt.Println(err)
 			return

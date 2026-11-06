@@ -1,0 +1,111 @@
+{
+  "go_version": "go1.23.12",
+  "CGO_ENABLED": "0",
+  "targets": [
+    {
+      "target": "darwin/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "darwin/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mipsle",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64le",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    }
+  ],
+  "scope": "CLI compile/dependency matrix; runtime verified only linux/amd64"
+}

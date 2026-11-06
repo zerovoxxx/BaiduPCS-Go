@@ -1,0 +1,206 @@
+# P1—P5共74 implemented；31个P6/P7操作仍鉴权后501。
+# {{api_token}} 为服务身份；EXAMPLE_ONLY仅用于展示，不能登录百度。
+@base_url = http://127.0.0.1:5299
+@api_token = EXAMPLE_ONLY
+@account_id = acct_example
+@job_id = job_example
+
+### FIL01 分页读取；total/has_more允许null
+GET {{base_url}}/api/v1/accounts/{{account_id}}/files?path=%2F%E8%B5%84%E6%96%99&page=1&page_size=100&fields=all
+Authorization: Bearer {{api_token}}
+
+### UPL01：单文件示例；也支持目录、空文件和暂存来源
+POST {{base_url}}/api/v1/accounts/{{account_id}}/uploads
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-upload-001
+Content-Type: application/json
+
+{"sources":[{"type":"local","root_id":"test","relative_path":"input.bin"}],"target_dir":"/BaiduPCS-Go-P2-Verification","options":{"file_concurrency":1,"parallel_per_file":1,"max_retries":0,"policy":"skip","skip_rapid_check":true,"check_filename":false,"no_split_file":false,"max_rate_bytes_per_second":"0"}}
+
+### DWN01：单文件PCS示例；也支持目录、locate/stream和并发预算
+POST {{base_url}}/api/v1/accounts/{{account_id}}/downloads
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-download-001
+Content-Type: application/json
+
+{"selector":{"kind":"paths","values":["/BaiduPCS-Go-P2-Verification/input.bin"]},"destination":{"root_id":"test","directory":"out"},"options":{"mode":"pcs","path_mode":"relative","parallel":1,"file_concurrency":1,"max_retries":0,"overwrite":false,"verify_checksum":true,"preserve_mtime":false,"executable":false,"link_index":0,"test":false,"report_workers":false,"max_rate_bytes_per_second":"0"}}
+
+### JOB05 SSE重连；无游标先快照；过期返回410
+GET {{base_url}}/api/v1/jobs/job_example/events
+Authorization: Bearer {{api_token}}
+Accept: text/event-stream
+Last-Event-ID: evt_{{job_id}}_1
+
+### CFG02 强ETag；缺少If-Match=428，旧版本=412
+PATCH {{base_url}}/api/v1/configuration
+Authorization: Bearer {{api_token}}
+If-Match: "7"
+Content-Type: application/json
+
+{"max_download_rate":"0","no_check":false,"proxy":""}
+
+### DWN03 Range代理；无百度Cookie参数
+GET {{base_url}}/api/v1/accounts/{{account_id}}/content?path=%2Freport.txt
+Authorization: Bearer {{api_token}}
+Range: bytes=0-3
+
+### DWN04 HEAD即使失败也无body，业务错误在X-Error-Code
+HEAD {{base_url}}/api/v1/accounts/{{account_id}}/content?path=%2Freport.txt
+Authorization: Bearer {{api_token}}
+Range: bytes=99-
+
+### DWN05 短期票据；返回URL只可用于DWN03/DWN04
+POST {{base_url}}/api/v1/accounts/{{account_id}}/download-tickets
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{"path":"/report.txt","expires_in_seconds":60}
+
+### 票据兑换不需要长期token；过期410，错误绑定403
+GET {{base_url}}/api/v1/accounts/{{account_id}}/content?path=%2Freport.txt&ticket=EXAMPLE_ONLY
+Range: bytes=0-3
+
+### OFF01 批量创建返回202 job；百度ID由JOB04 result.items返回
+POST {{base_url}}/api/v1/accounts/{{account_id}}/offline-tasks
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-offline-001
+Content-Type: application/json
+
+{"source_urls":["https://example.invalid/archive.zip"],"save_path":"/离线"}
+
+### TRF01 分享检查支持后续目录展开和cursor分页
+POST {{base_url}}/api/v1/accounts/{{account_id}}/share-inspections
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{"input":"通过网盘分享的文件: 链接: https://pan.baidu.com/s/1EXAMPLE?pwd=a1B2"}
+
+### UPL07 接收断点与到百度的上传断点独立
+PATCH {{base_url}}/api/v1/staging-upload-sessions/session_example/content
+Authorization: Bearer {{api_token}}
+Content-Type: application/octet-stream
+Upload-Offset: 0
+
+BaiduPCS example
+
+### ACC01 P3：导入只保存凭据，不表示已在线验证
+POST {{base_url}}/api/v1/accounts
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-account-001
+
+{"label":"dedicated-test","credentials":{"kind":"bduss","bduss":"EXAMPLE_ONLY"}}
+
+### ACC02 P3：allowlist过滤后的账号列表
+GET {{base_url}}/api/v1/accounts
+Authorization: Bearer {{api_token}}
+
+### ACC03 P3：脱敏读取
+GET {{base_url}}/api/v1/accounts/{{account_id}}
+Authorization: Bearer {{api_token}}
+
+### ACC07 P3：HTTPS在线验证；不接受请求body
+POST {{base_url}}/api/v1/accounts/{{account_id}}/validate
+Authorization: Bearer {{api_token}}
+
+### JOB02 P2：轮询任务
+GET {{base_url}}/api/v1/jobs/{{job_id}}
+Authorization: Bearer {{api_token}}
+
+### JOB04 P2：未终结时409
+GET {{base_url}}/api/v1/jobs/{{job_id}}/result
+Authorization: Bearer {{api_token}}
+
+### JOB06 P2：按任务取消，控制key与提交key独立
+POST {{base_url}}/api/v1/jobs/{{job_id}}/cancel
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-cancel-001
+
+{}
+
+### JOB08 P2：仅恢复interrupted，先核验已提交结果
+POST {{base_url}}/api/v1/jobs/{{job_id}}/resume
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+Idempotency-Key: example-resume-001
+
+{}
+
+
+### ACC06 P3：只写字段null清除，If-Match使用账号ETag
+PATCH {{base_url}}/api/v1/accounts/{{account_id}}/credentials
+Authorization: Bearer {{api_token}}
+If-Match: "3"
+Idempotency-Key: example-credentials-001
+Content-Type: application/json
+
+{"stoken":null}
+
+### FIL05 P3：专用目录扫描，截断时complete=false
+POST {{base_url}}/api/v1/accounts/{{account_id}}/file-scans
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-scan-001
+Content-Type: application/json
+
+{"paths":["/BaiduPCS-Go-P2-Verification"],"options":{"mode":"tree","depth":0,"include_ids":true,"max_nodes":"100000","max_duration_seconds":3600}}
+
+### JOB03 P3：逐项高水位分页
+GET {{base_url}}/api/v1/jobs/{{job_id}}/items?page_size=100
+Authorization: Bearer {{api_token}}
+
+### JOB09 P3：只选失败项创建新任务
+POST {{base_url}}/api/v1/jobs/{{job_id}}/retry
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-retry-001
+Content-Type: application/json
+
+{"scope":"failed"}
+
+### ART02 P3：结果文件单Range读取
+GET {{base_url}}/api/v1/artifacts/artifact_example/content
+Authorization: Bearer {{api_token}}
+Range: bytes=0-99
+
+### FIL09 逐项复制，冲突明确失败，返回job
+POST {{base_url}}/api/v1/accounts/{{account_id}}/file-copies
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-copy-001
+Content-Type: application/json
+
+{"items":[{"from":"/test/source","to":"/test/copy"}],"conflict_policy":"fail"}
+
+### SHR01 任意有效period由百度决定，显式密码和带码链接
+POST {{base_url}}/api/v1/accounts/{{account_id}}/shares
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-share-001
+Content-Type: application/json
+
+{"paths":["/test/source"],"password":"a1B2","period_days":37,"combined_link":true}
+
+### TRF02 可使用完整检查后的fs_ids；collect及下载依赖明确指定
+POST {{base_url}}/api/v1/accounts/{{account_id}}/share-transfers
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-transfer-001
+Content-Type: application/json
+
+{"share":{"inspection_id":"inspection_example"},"target_dir":"/test/collected","fs_ids":["9007199254740993"],"options":{"collect":true,"randomize_name":false,"download_after":false}}
+
+### OFF02 cursor只遍历当前最多1000项窗口，meta.upstream_window明确说明
+GET {{base_url}}/api/v1/accounts/{{account_id}}/offline-tasks?page_size=100
+Authorization: Bearer {{api_token}}
+
+### REC02 仅恢复已确认的测试ID，返回实际恢复ID
+POST {{base_url}}/api/v1/accounts/{{account_id}}/recycle/restorations
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{"fs_ids":["9007199254740993"]}
+
+### JOB10 只读核验未知结果，不重发原写；dry-run不改变检查点
+POST {{base_url}}/api/v1/jobs/{{job_id}}/reconcile
+Authorization: Bearer {{api_token}}
+Idempotency-Key: example-reconcile-001
+Content-Type: application/json
+
+{"dry_run":true}

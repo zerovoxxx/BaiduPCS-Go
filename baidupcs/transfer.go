@@ -5,6 +5,7 @@ import (
 	"github.com/qjfoidnh/BaiduPCS-Go/pcsutil"
 	"github.com/qjfoidnh/BaiduPCS-Go/requester"
 	"github.com/tidwall/gjson"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,9 +19,9 @@ import (
 type (
 	// ShareOption 分享可选项
 	TransferOption struct {
-		Download bool // 是否直接开始下载
-		Collect  bool // 多文件整合
-		Rname    bool // 随机改文件名
+		Download bool   // 是否直接开始下载
+		Collect  bool   // 多文件整合
+		Rname    bool   // 随机改文件名
 		FsID     string // 指定fs_id转存
 	}
 )
@@ -42,31 +43,57 @@ func (pcs *BaiduPCS) GenerateShareQueryURL(subPath string, params map[string]str
 
 func (pcs *BaiduPCS) ExtractShareInfo(shareURL, shardID, shareUK, bdstoken string) (res map[string]string) {
 	res = make(map[string]string)
-	dataReadCloser, panError := pcs.sendReqReturnReadCloser(reqTypePan, OperationShareFileSavetoLocal, http.MethodGet, shareURL, nil, map[string]string{
-		"User-Agent":   requester.UserAgent,
-		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-	})
-	if panError != nil {
-		res["ErrMsg"] = "提交分享项查询请求时发生错误"
-		return
-	}
-	defer dataReadCloser.Close()
-	body, _ := ioutil.ReadAll(dataReadCloser)
-	errno := gjson.Get(string(body), `errno`).Int()
-	if errno != 0 {
-		res["ErrMsg"] = fmt.Sprintf("未知错误, 错误码%d", errno)
-		if errno == 8001 {
-			res["ErrMsg"] = "已触发验证, 请稍后再试"
-		}
-		return
-	}
-	res["filename"] = gjson.Get(string(body), `list.0.server_filename`).String()
-	fsidList := gjson.Get(string(body), `list.#.fs_id`).Array()
-	var fidsStr string = "["
-	for _, sid := range fsidList {
-		fidsStr += sid.String() + ","
-	}
 
+	parsed, err := url.Parse(shareURL)
+	if err != nil {
+		res["ErrMsg"] = "分享查询URL无效"
+		return
+	}
+	ids := []string{}
+	seen := map[string]bool{}
+	firstName := ""
+	for page := 1; ; page++ {
+		q := parsed.Query()
+		q.Set("page", strconv.Itoa(page))
+		q.Set("num", "100")
+		parsed.RawQuery = q.Encode()
+		body, panError := pcs.sendReqReturnReadCloser(reqTypePan, OperationShareFileSavetoLocal, http.MethodGet, parsed.String(), nil, map[string]string{"User-Agent": NetdiskUA, "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
+		if panError != nil {
+			res["ErrMsg"] = "提交分享项查询请求时发生错误"
+			return
+		}
+		raw, readErr := ioutil.ReadAll(io.LimitReader(body, 32<<20))
+		body.Close()
+		if readErr != nil || !gjson.ValidBytes(raw) {
+			res["ErrMsg"] = "分享查询响应无效"
+			return
+		}
+		if gjson.GetBytes(raw, "errno").Int() != 0 {
+			res["ErrMsg"] = "分享项查询被上游拒绝"
+			return
+		}
+		list := gjson.GetBytes(raw, "list").Array()
+		for _, entry := range list {
+			id := entry.Get("fs_id").String()
+			if id == "" || seen[id] || len(ids) >= 10000 {
+				res["ErrMsg"] = "分享分页重复或超过10000项"
+				return
+			}
+			seen[id] = true
+			ids = append(ids, id)
+			if firstName == "" {
+				firstName = entry.Get("server_filename").String()
+			}
+		}
+		if len(list) < 100 {
+			break
+		}
+	}
+	if len(ids) == 0 {
+		res["ErrMsg"] = "分享文件列表为空"
+		return
+	}
+	res["filename"] = firstName
 	res["shareid"] = shardID
 	res["from"] = shareUK
 	res["bdstoken"] = bdstoken
@@ -83,9 +110,9 @@ func (pcs *BaiduPCS) ExtractShareInfo(shareURL, shardID, shareUK, bdstoken strin
 	for key, value := range res {
 		uv.Set(key, value)
 	}
-	res["item_num"] = strconv.Itoa(len(fsidList))
+	res["item_num"] = strconv.Itoa(len(ids))
 	res["ErrMsg"] = "success"
-	res["fs_id"] = fidsStr[:len(fidsStr)-1] + "]"
+	res["fs_id"] = "[" + strings.Join(ids, ",") + "]"
 	shareUrl.RawQuery = uv.Encode()
 	res["shareUrl"] = shareUrl.String()
 	return

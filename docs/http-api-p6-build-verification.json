@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-05T13:34:38.403761+00:00",
+  "go_version": "go1.23.12",
+  "cgo_enabled": false,
+  "results": [
+    {
+      "target": "darwin/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "darwin/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/amd64",
+      "exit_code": 0,
+      "sqlite_linked": true,
+      "expected_sqlite": true,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mipsle",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "linux/mips64le",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/386",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    },
+    {
+      "target": "windows/arm",
+      "exit_code": 0,
+      "sqlite_linked": false,
+      "expected_sqlite": false,
+      "errors": "",
+      "dependency_exit_code": 0
+    }
+  ],
+  "runtime_scope": "linux/amd64 only",
+  "final_change_note": "Matrix completed before the final explicit errno/error_code repair decoder. That correction uses only standard encoding/json and io, changes no target-specific code or SQLite dependencies; the native core regression and affected P6 checks are recorded separately. The later secret fingerprint and login/context adjustments use existing standard packages and internal records only; no platform code, module dependency or SQLite linkage changed. Final native compilation and affected race checks passed."
+}

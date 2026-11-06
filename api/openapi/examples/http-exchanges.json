@@ -1,0 +1,5545 @@
+[
+  {
+    "operation_id": "SYS01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/healthz",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "status": "ok"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/readyz",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "status": "ok"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/system",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "api_version": "v1",
+          "program_version": "v4.0.2-dev",
+          "source_baseline": "1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73",
+          "started_at": "2026-11-02T08:00:00Z",
+          "now": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/capabilities",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [
+          {
+            "availability": "upstream_unavailable",
+            "enabled": true,
+            "id": "INT06",
+            "implementation": "implemented",
+            "limits": [],
+            "reason": "旧式秒传上游能力不可用",
+            "required_credentials": [
+              "bduss"
+            ],
+            "supported_options": [
+              "context_id",
+              "base_path"
+            ],
+            "verified_at": null
+          },
+          {
+            "availability": "unverified",
+            "enabled": true,
+            "id": "UPL01",
+            "implementation": "implemented",
+            "limits": [
+              {
+                "name": "max_files_per_request",
+                "source": "service",
+                "unit": "count",
+                "value": "100",
+                "verified_at": null
+              },
+              {
+                "name": "max_plan_items",
+                "source": "service",
+                "unit": "count",
+                "value": "10000",
+                "verified_at": null
+              },
+              {
+                "name": "min_file_size",
+                "source": "service",
+                "unit": "bytes",
+                "value": "0",
+                "verified_at": null
+              },
+              {
+                "name": "max_file_size",
+                "source": "service",
+                "unit": "bytes",
+                "value": "137438953472",
+                "verified_at": null
+              },
+              {
+                "name": "file_concurrency_max",
+                "source": "service",
+                "unit": "count",
+                "value": "16",
+                "verified_at": null
+              },
+              {
+                "name": "parallel_per_file_max",
+                "source": "service",
+                "unit": "count",
+                "value": "32",
+                "verified_at": null
+              },
+              {
+                "name": "thread_budget_max",
+                "source": "service",
+                "unit": "count",
+                "value": "256",
+                "verified_at": null
+              },
+              {
+                "name": "running_jobs",
+                "source": "service",
+                "unit": "count",
+                "value": "2",
+                "verified_at": null
+              },
+              {
+                "name": "waiting_jobs",
+                "source": "service",
+                "unit": "count",
+                "value": "16",
+                "verified_at": null
+              }
+            ],
+            "reason": "本地实现已验收，上游能力须按账号、环境和时间验证",
+            "required_credentials": [
+              "bduss"
+            ],
+            "supported_option_values": {
+              "no_split_file": [
+                "false"
+              ],
+              "policy": [
+                "skip",
+                "overwrite",
+                "rsync"
+              ],
+              "source_type": [
+                "local",
+                "staged"
+              ]
+            },
+            "supported_options": [
+              "file_concurrency",
+              "parallel_per_file",
+              "max_retries",
+              "policy",
+              "skip_rapid_check",
+              "check_filename",
+              "max_rate_bytes_per_second",
+              "dry_run",
+              "context_id",
+              "base_path"
+            ],
+            "verified_at": null
+          }
+        ],
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/diagnostics/network",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "local_addresses": [],
+          "outbound_address": null,
+          "active_probe": false,
+          "checked_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/diagnostics/pcs-servers",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "servers": [],
+          "expires_at": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SYS07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/metrics",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "text/plain; version=0.0.4",
+      "body": "baidupcs_jobs_queued 0\n"
+    }
+  },
+  {
+    "operation_id": "SYS08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/openapi.json",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body_source": "../openapi.yaml (转换为JSON原样返回)"
+    }
+  },
+  {
+    "operation_id": "SYS09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/docs",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "text/html",
+      "body": "<!doctype html><title>BaiduPCS API</title>"
+    }
+  },
+  {
+    "operation_id": "ACC01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "credentials": {
+          "kind": "bduss",
+          "bduss": "example"
+        }
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/accounts/acct_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account_id": "acct_example",
+          "label": "example",
+          "baidu_uid": null,
+          "baidu_uk": null,
+          "username": null,
+          "sex": null,
+          "age": null,
+          "identity_verified": false,
+          "login_state": "unverified",
+          "revision": "7",
+          "credential_revision": "7",
+          "credentials_present": {
+            "bduss": true,
+            "ptoken": false,
+            "stoken": false,
+            "sboxtkn": false,
+            "baiduid": false,
+            "cookies": true,
+            "access_token": false
+          },
+          "created_at": "2026-11-02T08:00:00Z",
+          "updated_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account_id": "acct_example",
+          "label": "example",
+          "baidu_uid": null,
+          "baidu_uk": null,
+          "username": null,
+          "sex": null,
+          "age": null,
+          "identity_verified": false,
+          "login_state": "unverified",
+          "revision": "7",
+          "credential_revision": "7",
+          "credentials_present": {
+            "bduss": false,
+            "ptoken": false,
+            "stoken": false,
+            "sboxtkn": false,
+            "baiduid": false,
+            "cookies": false,
+            "access_token": false
+          },
+          "created_at": "2026-11-02T08:00:00Z",
+          "updated_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/accounts/acct_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "label": "example"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account_id": "acct_example",
+          "label": "example",
+          "baidu_uid": null,
+          "baidu_uk": null,
+          "username": null,
+          "sex": null,
+          "age": null,
+          "identity_verified": false,
+          "login_state": "unverified",
+          "revision": "7",
+          "credential_revision": "7",
+          "credentials_present": {
+            "bduss": false,
+            "ptoken": false,
+            "stoken": false,
+            "sboxtkn": false,
+            "baiduid": false,
+            "cookies": false,
+            "access_token": false
+          },
+          "created_at": "2026-11-02T08:00:00Z",
+          "updated_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/accounts/acct_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "ACC06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/accounts/acct_example/credentials",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "stoken": "EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account_id": "acct_example",
+          "label": "example",
+          "baidu_uid": null,
+          "baidu_uk": null,
+          "username": null,
+          "sex": null,
+          "age": null,
+          "identity_verified": false,
+          "login_state": "unverified",
+          "revision": "7",
+          "credential_revision": "7",
+          "credentials_present": {
+            "bduss": false,
+            "ptoken": false,
+            "stoken": true,
+            "sboxtkn": false,
+            "baiduid": false,
+            "cookies": true,
+            "access_token": false
+          },
+          "created_at": "2026-11-02T08:00:00Z",
+          "updated_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/validate",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account": {
+            "account_id": "acct_example",
+            "label": "example",
+            "baidu_uid": null,
+            "baidu_uk": null,
+            "username": null,
+            "sex": null,
+            "age": null,
+            "identity_verified": false,
+            "login_state": "unverified",
+            "revision": "7",
+            "credential_revision": "7",
+            "credentials_present": {
+              "bduss": false,
+              "ptoken": false,
+              "stoken": false,
+              "sboxtkn": false,
+              "baiduid": false,
+              "cookies": false,
+              "access_token": false
+            },
+            "created_at": "2026-11-02T08:00:00Z",
+            "updated_at": "2026-11-02T08:00:00Z"
+          },
+          "valid": false,
+          "checked_at": "2026-11-02T08:00:00Z",
+          "problem": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/quota",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "total_bytes": "0",
+          "used_bytes": "0",
+          "free_bytes": "0",
+          "collected_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ACC09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/capabilities",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [
+          {
+            "id": "INT06",
+            "implementation": "planned",
+            "availability": "upstream_unavailable",
+            "enabled": false,
+            "reason": "旧式秒传未获上游可用验证",
+            "required_credentials": [
+              "bduss"
+            ],
+            "supported_options": [],
+            "limits": [],
+            "verified_at": null
+          },
+          {
+            "id": "UPL01",
+            "implementation": "partial",
+            "availability": "unverified",
+            "enabled": true,
+            "reason": "P2受限HTTP已通过离线验收；上游能力按账号和环境单独验证",
+            "required_credentials": [
+              "bduss"
+            ],
+            "supported_options": [],
+            "limits": [
+              {
+                "name": "max_file_size",
+                "value": "33554432",
+                "unit": "bytes",
+                "source": "service",
+                "verified_at": null
+              }
+            ],
+            "verified_at": null,
+            "supported_option_values": {
+              "file_concurrency": [
+                "1"
+              ],
+              "parallel_per_file": [
+                "1"
+              ],
+              "max_retries": [
+                "0"
+              ],
+              "policy": [
+                "skip"
+              ],
+              "skip_rapid_check": [
+                "true"
+              ],
+              "check_filename": [
+                "false"
+              ],
+              "no_split_file": [
+                "false"
+              ],
+              "max_rate_bytes_per_second": [
+                "0"
+              ]
+            }
+          }
+        ],
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOG01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/account-login-sessions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "method": "password",
+        "username": "example",
+        "password": "example"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/account-login-sessions/session_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "method": "password",
+          "state": "waiting",
+          "challenge": null,
+          "qrcode_url": null,
+          "account_id": null,
+          "expires_at": "2026-11-02T08:05:00Z",
+          "problem": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOG02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/account-login-sessions/session_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "method": "password",
+          "state": "waiting",
+          "challenge": null,
+          "qrcode_url": null,
+          "account_id": null,
+          "expires_at": "2026-11-02T08:05:00Z",
+          "problem": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOG06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/account-login-sessions/session_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "LOG03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/account-login-sessions/session_example/qrcode",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "image/png",
+      "body_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1kAAAAASUVORK5CYII=",
+      "body_note": "1x1 PNG媒体类型占位，不是登录二维码"
+    }
+  },
+  {
+    "operation_id": "LOG04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/account-login-sessions/session_example/responses",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "challenge_id": "acct_example",
+        "response": "example"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "method": "password",
+          "state": "waiting",
+          "challenge": null,
+          "qrcode_url": null,
+          "account_id": null,
+          "expires_at": "2026-11-02T08:05:00Z",
+          "problem": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOG05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/account-login-sessions/session_example/complete",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\"",
+        "Location": "/api/v1/accounts/acct_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "account_id": "acct_example",
+          "label": "example",
+          "baidu_uid": null,
+          "baidu_uk": null,
+          "username": null,
+          "sex": null,
+          "age": null,
+          "identity_verified": true,
+          "login_state": "valid",
+          "revision": "7",
+          "credential_revision": "7",
+          "credentials_present": {
+            "bduss": true,
+            "ptoken": false,
+            "stoken": false,
+            "sboxtkn": false,
+            "baiduid": false,
+            "cookies": true,
+            "access_token": false
+          },
+          "created_at": "2026-11-02T08:00:00Z",
+          "updated_at": "2026-11-02T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CTX01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/contexts",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "account_id": "acct_example"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/contexts/ctx_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "context_id": "ctx_example",
+          "account_id": "acct_example",
+          "cwd": "/资料",
+          "revision": "7",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CTX02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/contexts/ctx_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "context_id": "ctx_example",
+          "account_id": "acct_example",
+          "cwd": "/资料",
+          "revision": "7",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CTX03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/contexts/ctx_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "cwd": "/资料",
+        "include_listing": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "context_id": "ctx_example",
+          "account_id": "acct_example",
+          "cwd": "/资料",
+          "revision": "7",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CTX04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/contexts/ctx_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "FIL01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/files?path=%2F%E8%B5%84%E6%96%99&page=1&page_size=100",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "entries": [
+            {
+              "fs_id": "9007199254740993",
+              "app_id": "266719",
+              "path": "/资料/report.txt",
+              "name": "report.txt",
+              "is_dir": false,
+              "size_bytes": "17",
+              "created_at": "2026-11-02T08:00:00Z",
+              "modified_at": "2026-11-02T08:00:00Z",
+              "md5": "a806a01e4cca880f76c7b8a50283bea6",
+              "md5_status": "reported",
+              "block_list": [],
+              "has_subdirectories": null
+            }
+          ],
+          "summary": {
+            "returned_items": "1",
+            "returned_files": "1",
+            "returned_directories": "0",
+            "returned_bytes": "17"
+          }
+        },
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "page": 1,
+            "page_size": 100,
+            "total": null,
+            "has_more": null,
+            "consistency": "upstream_live"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/files/metadata?path=%2F%E8%B5%84%E6%96%99%2Freport.txt",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "fs_id": "9007199254740993",
+          "app_id": "266719",
+          "path": "/资料/report.txt",
+          "name": "report.txt",
+          "is_dir": false,
+          "size_bytes": "17",
+          "created_at": "2026-11-02T08:00:00Z",
+          "modified_at": "2026-11-02T08:00:00Z",
+          "md5": "a806a01e4cca880f76c7b8a50283bea6",
+          "md5_status": "reported",
+          "block_list": [],
+          "has_subdirectories": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/files/metadata",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料/report.txt",
+          "/missing"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "items": [
+            {
+              "status": "succeeded",
+              "input": "/资料/report.txt",
+              "file": {
+                "fs_id": "9007199254740993",
+                "app_id": "266719",
+                "path": "/资料/report.txt",
+                "name": "report.txt",
+                "is_dir": false,
+                "size_bytes": "17",
+                "created_at": "2026-11-02T08:00:00Z",
+                "modified_at": "2026-11-02T08:00:00Z",
+                "md5": "a806a01e4cca880f76c7b8a50283bea6",
+                "md5_status": "reported",
+                "block_list": [],
+                "has_subdirectories": null
+              }
+            },
+            {
+              "status": "failed",
+              "input": "/missing",
+              "problem": {
+                "type": "urn:baidupcs:error:path-not-found",
+                "title": "路径不存在",
+                "status": 404,
+                "code": "REMOTE_PATH_NOT_FOUND",
+                "request_id": "req_example",
+                "retryable": false
+              }
+            }
+          ],
+          "summary": {
+            "total": "2",
+            "processed": "2",
+            "succeeded": "1",
+            "failed": "1",
+            "skipped": "0",
+            "cancelled": "0"
+          },
+          "complete": true
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/files/search?keyword=report",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "entries": [
+            {
+              "fs_id": "9007199254740993",
+              "app_id": "266719",
+              "path": "/资料/report.txt",
+              "name": "report.txt",
+              "is_dir": false,
+              "size_bytes": "17",
+              "created_at": "2026-11-02T08:00:00Z",
+              "modified_at": "2026-11-02T08:00:00Z",
+              "md5": "a806a01e4cca880f76c7b8a50283bea6",
+              "md5_status": "reported",
+              "block_list": [],
+              "has_subdirectories": null
+            }
+          ],
+          "summary": {
+            "returned_items": "1",
+            "returned_files": "1",
+            "returned_directories": "0",
+            "returned_bytes": "17"
+          }
+        },
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "next_cursor": null,
+            "has_more": false,
+            "consistency": "snapshot",
+            "expires_at": "2026-11-02T08:10:00Z"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-scans",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/资料"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_scan",
+          "effective_options": {
+            "mode": "recursive",
+            "depth": -1,
+            "include_ids": true,
+            "max_nodes": "100000",
+            "max_duration_seconds": 3600
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/path-matches",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "patterns": [
+          "example"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "items": [
+            {
+              "pattern": "example",
+              "paths": [],
+              "problem": null
+            }
+          ],
+          "complete": true
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/directories",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/资料"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "mkdir",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-deletions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "selector": {
+          "kind": "paths",
+          "values": [
+            "/资料"
+          ]
+        }
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/资料"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_delete",
+          "effective_options": {
+            "ignore_missing": false
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-copies",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "from": "/资料",
+            "to": "/资料"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_copy",
+          "effective_options": {
+            "conflict_policy": "fail"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL10",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-moves",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "from": "/资料",
+            "to": "/资料"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_move",
+          "effective_options": {
+            "conflict_policy": "fail"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL11",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-renames",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "path": "/资料",
+        "target_path": "/资料"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": "/资料",
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_rename",
+          "effective_options": {
+            "conflict_policy": "fail"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "FIL12",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/file-changes",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "entries": [],
+          "cursor": "example",
+          "has_more": false,
+          "reset_required": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/uploads",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "sources": [
+          {
+            "type": "local",
+            "root_id": "test",
+            "relative_path": "input.bin"
+          }
+        ],
+        "target_dir": "/BaiduPCS-Go-P2-Verification",
+        "options": {
+          "file_concurrency": 1,
+          "parallel_per_file": 1,
+          "max_retries": 0,
+          "policy": "skip",
+          "skip_rapid_check": true,
+          "check_filename": false,
+          "no_split_file": false,
+          "max_rate_bytes_per_second": "0"
+        }
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [
+            {
+              "type": "local",
+              "root_id": "test",
+              "relative_path": "input.bin"
+            }
+          ],
+          "local_files": [],
+          "destination": null,
+          "target_path": "/BaiduPCS-Go-P2-Verification/input.bin",
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 1,
+            "parallel_per_file": 1,
+            "max_retries": 0,
+            "policy": "skip",
+            "skip_rapid_check": true,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/staging-files",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "multipart/form-data; boundary=ExampleBoundary"
+      },
+      "body": {
+        "file": "BaiduPCS example\n",
+        "filename": "example.txt"
+      },
+      "body_text": "--ExampleBoundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"example.txt\"\r\nContent-Type: application/octet-stream\r\n\r\nBaiduPCS example\n\r\n--ExampleBoundary\r\nContent-Disposition: form-data; name=\"filename\"\r\n\r\nexample.txt\r\n--ExampleBoundary--\r\n"
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/staging-files/staged_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "staged_file_id": "staged_example",
+          "filename": "example.txt",
+          "size_bytes": "17",
+          "state": "ready",
+          "reference_count": "0",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/staging-files/staged_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "staged_file_id": "staged_example",
+          "filename": "example",
+          "size_bytes": "0",
+          "state": "ready",
+          "reference_count": "0",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/staging-files/staged_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "UPL05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/staging-upload-sessions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "filename": "example",
+        "size_bytes": "0"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/staging-upload-sessions/session_example",
+        "Upload-Offset": "0"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "filename": "example",
+          "size_bytes": "0",
+          "offset_bytes": "0",
+          "state": "receiving",
+          "staged_file_id": null,
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/staging-upload-sessions/session_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Upload-Offset": "0"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "filename": "example",
+          "size_bytes": "0",
+          "offset_bytes": "0",
+          "state": "receiving",
+          "staged_file_id": null,
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/staging-upload-sessions/session_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "UPL07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/staging-upload-sessions/session_example/content",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Upload-Offset": "0",
+        "Content-Type": "application/octet-stream"
+      },
+      "body_base64": "QmFpZHVQQ1MgZXhhbXBsZQo="
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Upload-Offset": "17"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "session_id": "session_example",
+          "filename": "example",
+          "size_bytes": "17",
+          "offset_bytes": "17",
+          "state": "receiving",
+          "staged_file_id": null,
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "UPL08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/staging-upload-sessions/session_example/complete",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/staging-files/staged_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "staged_file_id": "staged_example",
+          "filename": "example",
+          "size_bytes": "0",
+          "state": "ready",
+          "reference_count": "0",
+          "expires_at": "2026-11-03T08:00:00Z"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "DWN01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/downloads",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "selector": {
+          "kind": "paths",
+          "values": [
+            "/BaiduPCS-Go-P2-Verification/input.bin"
+          ]
+        },
+        "destination": {
+          "root_id": "test",
+          "directory": "out"
+        },
+        "options": {
+          "mode": "pcs",
+          "path_mode": "relative",
+          "parallel": 1,
+          "file_concurrency": 1,
+          "max_retries": 0,
+          "overwrite": false,
+          "verify_checksum": true,
+          "preserve_mtime": false,
+          "executable": false,
+          "link_index": 0,
+          "test": false,
+          "report_workers": false,
+          "max_rate_bytes_per_second": "0"
+        }
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/BaiduPCS-Go-P2-Verification/input.bin"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": {
+            "root_id": "test",
+            "directory": "out"
+          },
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "download",
+          "effective_options": {
+            "mode": "pcs",
+            "path_mode": "relative",
+            "parallel": 1,
+            "file_concurrency": 1,
+            "max_retries": 0,
+            "overwrite": false,
+            "verify_checksum": true,
+            "preserve_mtime": false,
+            "executable": false,
+            "link_index": 0,
+            "test": false,
+            "report_workers": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "DWN02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/download-links",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "selector": {
+          "kind": "paths",
+          "values": [
+            "/report.txt"
+          ]
+        }
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "items": [
+            {
+              "status": "succeeded",
+              "input": "/report.txt",
+              "links": [
+                {
+                  "url": "https://example.invalid/download",
+                  "link_ref": "link_example",
+                  "expires_at": "2026-11-02T08:10:00Z",
+                  "required_user_agent": "netdisk",
+                  "requires_baidu_cookie": false,
+                  "usable_without_baidu_cookie": true
+                }
+              ]
+            }
+          ],
+          "summary": {
+            "total": "1",
+            "processed": "1",
+            "succeeded": "1",
+            "failed": "0",
+            "skipped": "0",
+            "cancelled": "0"
+          },
+          "complete": true
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "DWN03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/content?path=%2Freport.txt",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Accept-Ranges": "bytes",
+        "Content-Length": "17",
+        "Content-Disposition": "attachment; filename=\"example.txt\"",
+        "Last-Modified": "Mon, 02 Nov 2026 08:00:00 GMT",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/octet-stream",
+      "body_base64": "QmFpZHVQQ1MgZXhhbXBsZQo="
+    }
+  },
+  {
+    "operation_id": "DWN04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "HEAD",
+      "url": "/api/v1/accounts/acct_example/content?path=%2Freport.txt",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Accept-Ranges": "bytes",
+        "Content-Length": "17",
+        "Content-Disposition": "attachment; filename=\"example.txt\"",
+        "Last-Modified": "Mon, 02 Nov 2026 08:00:00 GMT",
+        "ETag": "\"7\""
+      }
+    }
+  },
+  {
+    "operation_id": "DWN05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/download-tickets",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "path": "/资料"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/accounts/acct_example/content?path=%2Freport.txt&ticket=EXAMPLE_ONLY"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "url": "/api/v1/accounts/acct_example/content?path=%2Freport.txt&ticket=EXAMPLE_ONLY",
+          "expires_at": "2026-11-02T08:01:00Z",
+          "path": "/report.txt",
+          "account_id": "acct_example"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "next_cursor": null,
+            "has_more": false,
+            "consistency": "snapshot",
+            "expires_at": null
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs/job_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs/job_example/items",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "next_cursor": null,
+            "has_more": false,
+            "consistency": "snapshot",
+            "expires_at": null
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs/job_example/result",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "kind": "upload",
+          "result": {
+            "summary": {
+              "total": "0",
+              "processed": "0",
+              "succeeded": "0",
+              "failed": "0",
+              "skipped": "0",
+              "cancelled": "0"
+            },
+            "complete": false,
+            "artifact_ids": [],
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "child_job_ids": []
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs/job_example/events",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Cache-Control": "no-cache"
+      },
+      "content_type": "text/event-stream",
+      "body": ": heartbeat\n\nid: evt_job_example_1\nevent: job.snapshot\ndata: {\"event_id\":\"evt_job_example_1\",\"job_id\":\"job_example\",\"occurred_at\":\"2026-11-02T08:00:00Z\",\"type\":\"job.snapshot\",\"payload\":{\"job_id\":\"job_example\",\"owner\":\"principal_example\",\"account_id\":\"acct_example\",\"state\":\"queued\",\"phase\":\"pending\",\"created_at\":\"2026-11-02T08:00:00Z\",\"dry_run\":false,\"started_at\":null,\"finished_at\":null,\"config_revision\":\"7\",\"credential_revision\":\"3\",\"parent_job_id\":null,\"child_job_ids\":[],\"retry_of_job_id\":null,\"resolved_paths\":[\"/资料\"],\"resolved_sources\":[],\"local_files\":[],\"destination\":{\"root_id\":\"root_example\",\"directory\":\"archive\"},\"target_path\":null,\"progress\":{\"total_items\":null,\"processed_items\":\"0\",\"succeeded_items\":\"0\",\"failed_items\":\"0\",\"skipped_items\":\"0\",\"cancelled_items\":\"0\",\"total_bytes\":null,\"transferred_bytes\":\"0\",\"written_bytes\":\"0\",\"bytes_per_second\":\"0\",\"eta_seconds\":null},\"available_actions\":[\"cancel\"],\"problem\":null,\"links\":{\"self\":\"/api/v1/jobs/job_example\",\"events\":\"/api/v1/jobs/job_example/events\",\"result\":\"/api/v1/jobs/job_example/result\"},\"kind\":\"download\",\"effective_options\":{\"mode\":\"locate\",\"path_mode\":\"relative\",\"parallel\":1,\"file_concurrency\":1,\"max_retries\":3,\"overwrite\":false,\"verify_checksum\":false,\"preserve_mtime\":false,\"executable\":false,\"link_index\":0,\"test\":false,\"report_workers\":false,\"max_rate_bytes_per_second\":\"0\"}}}\n\nid: evt_job_example_2\nevent: job.progress\ndata: {\"event_id\":\"evt_job_example_2\",\"job_id\":\"job_example\",\"occurred_at\":\"2026-11-02T08:00:00Z\",\"type\":\"job.progress\",\"payload\":{\"total_items\":null,\"processed_items\":\"0\",\"succeeded_items\":\"0\",\"failed_items\":\"0\",\"skipped_items\":\"0\",\"cancelled_items\":\"0\",\"total_bytes\":null,\"transferred_bytes\":\"0\",\"written_bytes\":\"0\",\"bytes_per_second\":\"0\",\"eta_seconds\":null}}\n\nid: evt_job_example_3\nevent: job.finished\ndata: {\"event_id\":\"evt_job_example_3\",\"job_id\":\"job_example\",\"occurred_at\":\"2026-11-02T08:00:00Z\",\"type\":\"job.finished\",\"payload\":{\"job_id\":\"job_example\",\"kind\":\"download\",\"result\":{\"summary\":{\"total\":\"1\",\"processed\":\"1\",\"succeeded\":\"1\",\"failed\":\"0\",\"skipped\":\"0\",\"cancelled\":\"0\"},\"complete\":true,\"artifact_ids\":[],\"transferred_bytes\":\"1024\",\"written_bytes\":\"1024\",\"child_job_ids\":[]}}}\n\n"
+    }
+  },
+  {
+    "operation_id": "JOB06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/jobs/job_example/cancel",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/jobs/job_example/pause",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/jobs/job_example/resume",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/jobs/job_example/retry",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB10",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/jobs/job_example/reconcile",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "upload",
+          "effective_options": {
+            "file_concurrency": 4,
+            "parallel_per_file": 4,
+            "max_retries": 3,
+            "policy": "skip",
+            "skip_rapid_check": false,
+            "check_filename": false,
+            "no_split_file": false,
+            "max_rate_bytes_per_second": "0"
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "JOB11",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/jobs/job_example/artifacts",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SHR01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/shares",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料"
+        ],
+        "period_days": 7,
+        "combined_link": true
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/accounts/acct_example/shares/9007199254740993"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "share_id": "9007199254740993",
+          "link": "https://example.invalid/resource",
+          "password": null,
+          "combined_link": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SHR02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/shares",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "page": 1,
+            "page_size": null,
+            "total": null,
+            "has_more": null,
+            "consistency": "upstream_live"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SHR03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/shares/9007199254740993",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "share_id": "9007199254740993",
+          "link": "https://example.invalid/resource",
+          "password": null,
+          "combined_link": null
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "SHR04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/share-cancellations",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "share_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "share_cancel",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "TRF01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/share-inspections",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "input": "https://pan.baidu.com/s/1EXAMPLE?pwd=a1B2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "inspection_id": "inspect_example",
+          "account_id": "acct_example",
+          "share_id": "9007199254740993",
+          "entries": [
+            {
+              "fs_id": "9007199254740993",
+              "app_id": "266719",
+              "path": "/资料/report.txt",
+              "name": "report.txt",
+              "is_dir": false,
+              "size_bytes": "17",
+              "created_at": "2026-11-02T08:00:00Z",
+              "modified_at": "2026-11-02T08:00:00Z",
+              "md5": "a806a01e4cca880f76c7b8a50283bea6",
+              "md5_status": "reported",
+              "block_list": [],
+              "has_subdirectories": null
+            }
+          ],
+          "expires_at": "2026-11-02T08:10:00Z",
+          "directory_fs_id": null,
+          "selection_complete": true
+        },
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "next_cursor": null,
+            "has_more": false,
+            "consistency": "snapshot",
+            "expires_at": "2026-11-02T08:10:00Z"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "TRF02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/share-transfers",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "share": {
+          "input": "example"
+        },
+        "target_dir": "/资料"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": "/资料",
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "share_transfer",
+          "effective_options": {
+            "collect": false,
+            "randomize_name": false,
+            "download_after": false
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/offline-tasks",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "source_urls": [
+          "example"
+        ],
+        "save_path": "/资料"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": "/资料",
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "offline_add",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/offline-tasks",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "next_cursor": null,
+            "has_more": false,
+            "consistency": "snapshot",
+            "expires_at": null
+          },
+          "upstream_window": {
+            "start": 0,
+            "limit": 1000,
+            "complete_history": false
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/offline-tasks/query",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "offline_task_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "items": [],
+          "summary": {
+            "total": "0",
+            "processed": "0",
+            "succeeded": "0",
+            "failed": "0",
+            "skipped": "0",
+            "cancelled": "0"
+          },
+          "complete": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/offline-tasks/cancellations",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "offline_task_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "offline_cancel",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/offline-tasks/deletions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "offline_task_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "offline_delete",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/offline-tasks/clear",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "offline_clear",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "OFF07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/offline-tasks/9007199254740993",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "offline_task_id": "9007199254740993",
+          "status": 0,
+          "status_text": "example",
+          "size_bytes": "0",
+          "finished_bytes": "0",
+          "created_at": null,
+          "started_at": null,
+          "finished_at": null,
+          "save_path": "/资料",
+          "source_url": "example",
+          "name": "example",
+          "od_type": 0,
+          "files": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "REC01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/accounts/acct_example/recycle",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example",
+          "pagination": {
+            "page": 1,
+            "page_size": 100,
+            "total": null,
+            "has_more": null,
+            "consistency": "upstream_live"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "REC02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/recycle/restorations",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fs_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "recycle_restore",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "REC03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/recycle/deletions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fs_ids": [
+          "9007199254740993"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "recycle_delete",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "REC04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/recycle/clear",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "recycle_clear",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-checksums/inspect",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料/report.txt"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "items": [],
+          "summary": {
+            "total": "0",
+            "processed": "0",
+            "succeeded": "0",
+            "failed": "0",
+            "skipped": "0",
+            "cancelled": "0"
+          },
+          "complete": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-checksums/fix",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料/report.txt"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/资料/report.txt"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "checksum_fix",
+          "effective_options": {}
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/local/checksums",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "root_id": "root_example",
+        "paths": [
+          "archive"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": null,
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": null,
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [
+            {
+              "root_id": "root_example",
+              "relative_path": "archive"
+            }
+          ],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "local_checksum",
+          "effective_options": {
+            "algorithms": [
+              "md5",
+              "slice_md5",
+              "crc32"
+            ]
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-verifications",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "path": "/资料",
+            "local_file": {
+              "root_id": "root_example",
+              "relative_path": "archive"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [
+            {
+              "root_id": "root_example",
+              "relative_path": "archive"
+            }
+          ],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "file_verification",
+          "effective_options": {
+            "algorithms": [
+              "size",
+              "md5"
+            ]
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/file-checksums/from-link",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "link_ref": "acct_example"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "size_bytes": "0",
+          "md5": null,
+          "slice_md5": null,
+          "crc32": null,
+          "md5_status": "reported"
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "INT06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/legacy/rapid-uploads",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "path": "/资料",
+        "size_bytes": "0",
+        "md5": "d41d8cd98f00b204e9800998ecf8427e",
+        "slice_md5": "d41d8cd98f00b204e9800998ecf8427e",
+        "crc32": "1"
+      }
+    },
+    "response": {
+      "status": 503,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/problem+json",
+      "body": {
+        "type": "urn:baidupcs:error:upstream-capability-unavailable",
+        "title": "旧式秒传上游能力不可用",
+        "status": 503,
+        "code": "UPSTREAM_CAPABILITY_UNAVAILABLE",
+        "request_id": "req_example",
+        "retryable": false
+      }
+    }
+  },
+  {
+    "operation_id": "EXP01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/accounts/acct_example/exports",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "paths": [
+          "/资料"
+        ]
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": "acct_example",
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": "3",
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [
+            "/资料"
+          ],
+          "resolved_sources": [],
+          "local_files": [],
+          "destination": null,
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "export",
+          "effective_options": {
+            "recursive": false,
+            "root_path": "",
+            "format": "jsonl",
+            "max_retries": 3
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/configuration",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "revision": "7",
+          "client": {
+            "appid": 266719,
+            "cache_size": "65536",
+            "max_parallel": 1,
+            "max_upload_parallel": 4,
+            "max_download_load": 1,
+            "max_upload_load": 4,
+            "max_download_rate": "0",
+            "max_upload_rate": "0",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+            "pcs_ua": "",
+            "pcs_addr": "pcs.baidu.com",
+            "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+            "savedir": null,
+            "enable_https": true,
+            "fix_pcs_addr": false,
+            "force_login_username": "",
+            "proxy": {
+              "configured": false,
+              "redacted_url": null
+            },
+            "proxy_hostnames": [],
+            "local_addrs": [],
+            "no_check": true,
+            "ignore_illegal": true,
+            "upload_policy": "skip"
+          },
+          "pending_restart_fields": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/configuration",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "max_parallel": 4,
+        "no_check": false,
+        "proxy": ""
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "configuration": {
+            "revision": "7",
+            "client": {
+              "appid": 266719,
+              "cache_size": "65536",
+              "max_parallel": 4,
+              "max_upload_parallel": 4,
+              "max_download_load": 1,
+              "max_upload_load": 4,
+              "max_download_rate": "0",
+              "max_upload_rate": "0",
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+              "pcs_ua": "",
+              "pcs_addr": "pcs.baidu.com",
+              "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+              "savedir": null,
+              "enable_https": true,
+              "fix_pcs_addr": false,
+              "force_login_username": "",
+              "proxy": {
+                "configured": false,
+                "redacted_url": null
+              },
+              "proxy_hostnames": [],
+              "local_addrs": [],
+              "no_check": false,
+              "ignore_illegal": true,
+              "upload_policy": "skip"
+            },
+            "pending_restart_fields": []
+          },
+          "immediate_fields": [],
+          "new_job_fields": [
+            "max_parallel",
+            "no_check",
+            "proxy"
+          ],
+          "restart_required_fields": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/configuration/schema",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "name": "appid",
+              "type": "integer",
+              "unit": null,
+              "default_value": 266719,
+              "minimum": "1",
+              "maximum": "2147483647",
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "cache_size",
+              "type": "decimal_string",
+              "unit": "bytes",
+              "default_value": "65536",
+              "minimum": "1024",
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "字节，应用层校验 >=1024，<=平台 int 与服务上限。"
+            },
+            {
+              "name": "max_parallel",
+              "type": "integer",
+              "unit": null,
+              "default_value": 1,
+              "minimum": "1",
+              "maximum": "256",
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "max_upload_parallel",
+              "type": "integer",
+              "unit": null,
+              "default_value": 4,
+              "minimum": "1",
+              "maximum": "256",
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "max_download_load",
+              "type": "integer",
+              "unit": null,
+              "default_value": 1,
+              "minimum": "1",
+              "maximum": "256",
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "max_upload_load",
+              "type": "integer",
+              "unit": null,
+              "default_value": 4,
+              "minimum": "1",
+              "maximum": "256",
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "max_download_rate",
+              "type": "decimal_string",
+              "unit": "bytes_per_second",
+              "default_value": "0",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "max_upload_rate",
+              "type": "decimal_string",
+              "unit": "bytes_per_second",
+              "default_value": "0",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "user_agent",
+              "type": "string",
+              "unit": null,
+              "default_value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "pcs_ua",
+              "type": "string",
+              "unit": null,
+              "default_value": "",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "pcs_addr",
+              "type": "string",
+              "unit": null,
+              "default_value": "pcs.baidu.com",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "pan_ua",
+              "type": "string",
+              "unit": null,
+              "default_value": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "savedir",
+              "type": "local_directory",
+              "unit": null,
+              "default_value": null,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "enable_https",
+              "type": "boolean",
+              "unit": null,
+              "default_value": true,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "fix_pcs_addr",
+              "type": "boolean",
+              "unit": null,
+              "default_value": false,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "force_login_username",
+              "type": "string",
+              "unit": null,
+              "default_value": "",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "proxy",
+              "type": "write_only_url",
+              "unit": null,
+              "default_value": null,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": true,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "proxy_hostnames",
+              "type": "string_array",
+              "unit": null,
+              "default_value": null,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "local_addrs",
+              "type": "string_array",
+              "unit": null,
+              "default_value": null,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "no_check",
+              "type": "boolean",
+              "unit": null,
+              "default_value": true,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "ignore_illegal",
+              "type": "boolean",
+              "unit": null,
+              "default_value": true,
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            },
+            {
+              "name": "upload_policy",
+              "type": "string",
+              "unit": null,
+              "default_value": "skip",
+              "minimum": null,
+              "maximum": null,
+              "enum_values": [
+                "skip",
+                "overwrite",
+                "rsync"
+              ],
+              "effect": "new_job",
+              "secret": false,
+              "nullable": false,
+              "description": "提交时固定的客户端默认值"
+            }
+          ],
+          "additional_properties": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/configuration/validate",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "max_parallel": 4,
+        "no_check": false,
+        "proxy": ""
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "valid": true,
+          "normalized": {
+            "appid": 266719,
+            "cache_size": "65536",
+            "max_parallel": 4,
+            "max_upload_parallel": 4,
+            "max_download_load": 1,
+            "max_upload_load": 4,
+            "max_download_rate": "0",
+            "max_upload_rate": "0",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+            "pcs_ua": "",
+            "pcs_addr": "pcs.baidu.com",
+            "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+            "savedir": null,
+            "enable_https": true,
+            "fix_pcs_addr": false,
+            "force_login_username": "",
+            "proxy": {
+              "configured": false,
+              "redacted_url": null
+            },
+            "proxy_hostnames": [],
+            "local_addrs": [],
+            "no_check": false,
+            "ignore_illegal": true,
+            "upload_policy": "skip"
+          },
+          "errors": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG05",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/configuration/reset",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fields": [
+          "appid"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "configuration": {
+            "revision": "7",
+            "client": {
+              "appid": 266719,
+              "cache_size": "65536",
+              "max_parallel": 1,
+              "max_upload_parallel": 4,
+              "max_download_load": 1,
+              "max_upload_load": 4,
+              "max_download_rate": "0",
+              "max_upload_rate": "0",
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+              "pcs_ua": "",
+              "pcs_addr": "pcs.baidu.com",
+              "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+              "savedir": null,
+              "enable_https": true,
+              "fix_pcs_addr": false,
+              "force_login_username": "",
+              "proxy": {
+                "configured": false,
+                "redacted_url": null
+              },
+              "proxy_hostnames": [],
+              "local_addrs": [],
+              "no_check": true,
+              "ignore_illegal": true,
+              "upload_policy": "skip"
+            },
+            "pending_restart_fields": []
+          },
+          "immediate_fields": [],
+          "new_job_fields": [],
+          "restart_required_fields": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG06",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/configuration/reload",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "source": "service"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "configuration": {
+            "revision": "7",
+            "client": {
+              "appid": 266719,
+              "cache_size": "65536",
+              "max_parallel": 1,
+              "max_upload_parallel": 4,
+              "max_download_load": 1,
+              "max_upload_load": 4,
+              "max_download_rate": "0",
+              "max_upload_rate": "0",
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+              "pcs_ua": "",
+              "pcs_addr": "pcs.baidu.com",
+              "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+              "savedir": null,
+              "enable_https": true,
+              "fix_pcs_addr": false,
+              "force_login_username": "",
+              "proxy": {
+                "configured": false,
+                "redacted_url": null
+              },
+              "proxy_hostnames": [],
+              "local_addrs": [],
+              "no_check": true,
+              "ignore_illegal": true,
+              "upload_policy": "skip"
+            },
+            "pending_restart_fields": []
+          },
+          "immediate_fields": [],
+          "new_job_fields": [],
+          "restart_required_fields": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG07",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/configuration/defaults",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "client": {
+            "appid": 266719,
+            "cache_size": "65536",
+            "max_parallel": 1,
+            "max_upload_parallel": 4,
+            "max_download_load": 1,
+            "max_upload_load": 4,
+            "max_download_rate": "0",
+            "max_upload_rate": "0",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+            "pcs_ua": "",
+            "pcs_addr": "pcs.baidu.com",
+            "pan_ua": "netdisk;P2SP;3.0.0.8;netdisk;11.12.3;ANG-AN00;android-android;10.0;JSbridge4.4.0;jointBridge;1.1.0;",
+            "savedir": null,
+            "enable_https": true,
+            "fix_pcs_addr": false,
+            "force_login_username": "",
+            "proxy": {
+              "configured": false,
+              "redacted_url": null
+            },
+            "proxy_hostnames": [],
+            "local_addrs": [],
+            "no_check": true,
+            "ignore_illegal": true,
+            "upload_policy": "skip"
+          },
+          "platform": "darwin/arm64",
+          "savedir_origin": "home_downloads",
+          "source_savedir_template": "<HOME>/Downloads",
+          "effective_root_configured": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG08",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/configuration/cli-defaults",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "revision": "7",
+          "default_account_id": null,
+          "accounts": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "CFG09",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "PATCH",
+      "url": "/api/v1/configuration/cli-defaults",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "If-Match": "\"7\"",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "default_account_id": "acct_example"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "revision": "7",
+          "default_account_id": null,
+          "accounts": []
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOC01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/local/roots",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": [],
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOC02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/local/encryptions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "sources": [
+          {
+            "root_id": "root_example",
+            "relative_path": "archive"
+          }
+        ],
+        "destination": {
+          "root_id": "root_example",
+          "directory": "archive"
+        },
+        "options": {
+          "method": "aes-128-ctr"
+        },
+        "key": "example"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": null,
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": null,
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [
+            {
+              "root_id": "root_example",
+              "relative_path": "archive"
+            }
+          ],
+          "destination": {
+            "root_id": "root_example",
+            "directory": "archive"
+          },
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "local_encryption",
+          "effective_options": {
+            "method": "aes-128-ctr",
+            "gzip": true,
+            "remove_source": false
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "LOC03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "POST",
+      "url": "/api/v1/local/decryptions",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "sources": [
+          {
+            "root_id": "root_example",
+            "relative_path": "archive"
+          }
+        ],
+        "destination": {
+          "root_id": "root_example",
+          "directory": "archive"
+        },
+        "options": {
+          "method": "aes-128-ctr"
+        },
+        "key": "example"
+      }
+    },
+    "response": {
+      "status": 202,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Location": "/api/v1/jobs/job_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "job_id": "job_example",
+          "owner": "principal_example",
+          "account_id": null,
+          "state": "queued",
+          "phase": "pending",
+          "created_at": "2026-11-02T08:00:00Z",
+          "dry_run": false,
+          "started_at": null,
+          "finished_at": null,
+          "config_revision": "7",
+          "credential_revision": null,
+          "parent_job_id": null,
+          "child_job_ids": [],
+          "retry_of_job_id": null,
+          "resolved_paths": [],
+          "resolved_sources": [],
+          "local_files": [
+            {
+              "root_id": "root_example",
+              "relative_path": "archive"
+            }
+          ],
+          "destination": {
+            "root_id": "root_example",
+            "directory": "archive"
+          },
+          "target_path": null,
+          "progress": {
+            "total_items": null,
+            "processed_items": "0",
+            "succeeded_items": "0",
+            "failed_items": "0",
+            "skipped_items": "0",
+            "cancelled_items": "0",
+            "total_bytes": null,
+            "transferred_bytes": "0",
+            "written_bytes": "0",
+            "bytes_per_second": "0",
+            "eta_seconds": null
+          },
+          "available_actions": [
+            "cancel"
+          ],
+          "problem": null,
+          "links": {
+            "self": "/api/v1/jobs/job_example",
+            "events": "/api/v1/jobs/job_example/events",
+            "result": "/api/v1/jobs/job_example/result"
+          },
+          "kind": "local_decryption",
+          "effective_options": {
+            "method": "aes-128-ctr",
+            "gzip": true,
+            "remove_source": false
+          }
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ART01",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/artifacts/artifact_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example"
+      },
+      "content_type": "application/json",
+      "body": {
+        "data": {
+          "artifact_id": "artifact_example",
+          "job_id": "job_example",
+          "filename": "example",
+          "media_type": "example",
+          "size_bytes": "0",
+          "created_at": "2026-11-02T08:00:00Z",
+          "expires_at": "2026-11-03T08:00:00Z",
+          "content_url": "/api/v1/jobs/job_example",
+          "complete": false
+        },
+        "meta": {
+          "request_id": "req_example"
+        }
+      }
+    }
+  },
+  {
+    "operation_id": "ART04",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "DELETE",
+      "url": "/api/v1/artifacts/artifact_example",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 204,
+      "headers": {
+        "X-Request-ID": "req_example"
+      }
+    }
+  },
+  {
+    "operation_id": "ART02",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "GET",
+      "url": "/api/v1/artifacts/artifact_example/content",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Accept-Ranges": "bytes",
+        "Content-Length": "17",
+        "Content-Disposition": "attachment; filename=\"example.txt\"",
+        "Last-Modified": "Mon, 02 Nov 2026 08:00:00 GMT",
+        "ETag": "\"7\""
+      },
+      "content_type": "application/octet-stream",
+      "body_base64": "QmFpZHVQQ1MgZXhhbXBsZQo="
+    }
+  },
+  {
+    "operation_id": "ART03",
+    "note": "契约示例；EXAMPLE_ONLY不是有效凭据。实现状态与逐项受控/真实上游证据见P7操作报告。",
+    "request": {
+      "method": "HEAD",
+      "url": "/api/v1/artifacts/artifact_example/content",
+      "headers": {
+        "Authorization": "Bearer EXAMPLE_ONLY"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "X-Request-ID": "req_example",
+        "Accept-Ranges": "bytes",
+        "Content-Length": "17",
+        "Content-Disposition": "attachment; filename=\"example.txt\"",
+        "Last-Modified": "Mon, 02 Nov 2026 08:00:00 GMT",
+        "ETag": "\"7\""
+      }
+    }
+  }
+]

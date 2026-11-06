@@ -3,9 +3,7 @@ package pcscommand
 import (
 	"fmt"
 	"github.com/qjfoidnh/BaiduPCS-Go/baidupcs"
-	"net/url"
 	"path"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -13,42 +11,27 @@ import (
 
 // RunShareTransfer 执行分享链接转存到网盘
 func RunShareTransfer(params []string, opt *baidupcs.TransferOption) {
-	var link = params[0]
-	// 支持整段分享文本(如 "通过网盘分享的文件: 链接: https://... 提取码: xxxx ..."),
-	// 先从中提取出规范的分享链接, 再交给 net/url 解析
-	if shareLinkRe := regexp.MustCompile(`(https?://pan\.baidu\.com/s/[0-9A-Za-z_-]+)(?:\?pwd=([0-9A-Za-z]{4}))?`); shareLinkRe.MatchString(link) {
-		if m := shareLinkRe.FindStringSubmatch(link); len(m) >= 2 {
-			link = m[1]
-			if len(params) == 1 && len(m) == 3 && m[2] != "" {
-				params = append(params, m[2])
-			}
-		}
+	if len(params) == 0 {
+		fmt.Println("分享输入不能为空")
+		return
 	}
-	parsedURL, err := url.Parse(link)
+	if opt == nil {
+		opt = &baidupcs.TransferOption{}
+	}
+	if opt.Rname {
+		fmt.Println("Rname/randomize_name尚无有效实现")
+		return
+	}
+	password := ""
+	if len(params) > 1 {
+		password = params[1]
+	}
+	featureStr, extraCode, err := baidupcs.ParseShareInput(params[0], password)
 	if err != nil {
-		fmt.Printf("%s失败: %s\n", baidupcs.OperationShareFileSavetoLocal, "链接格式非法")
+		fmt.Printf("%s失败: %s\n", baidupcs.OperationShareFileSavetoLocal, err)
 		return
 	}
-	queryParams := parsedURL.Query()
-	extraCode := queryParams.Get("pwd")
-	if len(params) == 1 {
-		if strings.Contains(link, "bdlink=") || !strings.Contains(link, "pan.baidu.com/") {
-			//RunRapidTransfer(link, opt.Rname)
-			fmt.Printf("%s失败: %s\n", baidupcs.OperationShareFileSavetoLocal, "秒传已不再被支持")
-			return
-		}
-	} else if len(params) == 2 {
-		extraCode = params[1]
-	}
-
-	featureStr := path.Base(strings.TrimSuffix(parsedURL.Path, "/"))
-	if featureStr == "init" {
-		featureStr = "1" + queryParams.Get("surl")
-	}
-	if len(featureStr) > 23 || featureStr[0:1] != "1" || len(extraCode) != 4 {
-		fmt.Printf("%s失败: %s\n", baidupcs.OperationShareFileSavetoLocal, "链接地址或提取码非法")
-		return
-	}
+	link := "https://pan.baidu.com/s/" + featureStr
 	pcs := GetBaiduPCS()
 	tokens := pcs.AccessSharePage(featureStr, true)
 	if tokens["ErrMsg"] != "0" {

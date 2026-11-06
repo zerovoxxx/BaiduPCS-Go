@@ -1,0 +1,28 @@
+{
+  "appid": 266719,
+  "finished_at": "2026-11-04T17:28:49.47237475Z",
+  "go_version": "go1.23.12",
+  "passed": true,
+  "platform": "linux/amd64",
+  "scope": "dedicated single-file P2 verification only",
+  "stages": {
+    "account_validation": "passed",
+    "after_cancel_upload": "passed",
+    "cancel_terminal_state": "cancelled",
+    "cleanup": "passed",
+    "download_bytes": "passed",
+    "request_count_policy": "only dedicated paths; no normal drive listing",
+    "restart_observed_state": "interrupted",
+    "restart_result": "passed",
+    "resume": "passed",
+    "setup": "passed",
+    "upload": "passed"
+  },
+  "started_at": "2026-11-04T17:28:21.194021871Z",
+  "account_type": "not_queried",
+  "credential_kind": "bduss",
+  "tls_certificate_verification": true,
+  "authorization": "user-confirmed QR session; isolated verification directory only",
+  "local_credentials_removed": true,
+  "repository_secret_scan_clean": true
+}

@@ -3,6 +3,8 @@
 
 仿 Linux shell 文件处理命令的百度网盘命令行客户端.
 
+HTTP服务已完成P4完整传输及P5网盘写业务：74个操作完整实现，契约0.5.0-p5、SQLite v6。使用见[服务指南](docs/http-api-server.md)、[P4指南](docs/http-api-p4-guide.md)和[P5指南](docs/http-api-p5-guide.md)，逐项验收见[P4记录](docs/http-api-p4-verification.md)、[P5记录](docs/http-api-p5-verification.md)，升级边界见[P5发布说明](docs/http-api-p5-release-notes.md)。离线与实际百度范围分别报告，后续从[工程交接](docs/http-api-handoff.md)进入P6/P7。
+
 iikira/BaiduPCS-Go was largely inspired by [GangZhuo/BaiduPCS](https://github.com/GangZhuo/BaiduPCS) and this project was largely based on iikira/BaiduPCS-Go
 
 ## 注意

@@ -91,6 +91,9 @@ func (muer *MultiUploader) upload() (uperr error) {
 				select {
 				case <-muer.canceled:
 					cancel()
+					// Drain the provider before returning: callers may close the
+					// source file or persist its final checkpoint after Execute.
+					<-doneChan
 					return
 				case <-doneChan:
 					// continue
@@ -103,7 +106,9 @@ func (muer *MultiUploader) upload() (uperr error) {
 							muer.closeCanceledOnce.Do(func() { // 只关闭一次
 								close(muer.canceled)
 							})
+							mu.Lock()
 							uperr = me.Err
+							mu.Unlock()
 							return
 						}
 					}
