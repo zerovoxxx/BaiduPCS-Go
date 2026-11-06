@@ -16,7 +16,7 @@
 | 聚焦测试 | `go test ./internal/pcslogin ./internal/pcsconfig ./internal/pcscommand ./requester` | 登录与会话相关变更；其他模块选择对应包，上传任务用 `go test ./internal/pcsfunctions/pcsupload` |
 | 完整测试 | `go test ./...` | 跨模块契约、共享代码或高风险变更；结果需结合下方历史基线判断 |
 | 构建 | `CGO_ENABLED=0 go build -trimpath -ldflags '-w -s' -o /tmp/BaiduPCS-Go .` | 产品代码或依赖变更；参数依据 `.github/workflows/main.yml`，产物放仓库外 |
-| HTTP 服务 | 按 `.github/workflows/http-api.yml` 执行 race、14 组实际响应契约、CLI 回归、恢复演练和平台构建 | HTTP 或共享客户端变更；命令和范围见 `docs/http-api-p7-verification.md` |
+| HTTP 服务 | 按 `.github/workflows/http-api.yml` 执行 race、14 组实际响应契约、CLI 回归、恢复演练和平台构建 | HTTP 或共享客户端变更；命令和范围见 `asset/http-api-p7-verification.md` |
 | 文档 / Harness | `git diff --check`；`python3 .claude/skills/spec/scripts/spec_workflow.py list --root . --all` | 文档、治理入口或 SPEC / PLAN 变更 |
 
 CLI 构建 CI（`.github/workflows/main.yml`）的 Go 版本取自 `go.mod`；HTTP CI（`.github/workflows/http-api.yml`）另行执行服务测试与契约检查。上述 CLI 聚焦检查的历史证据见「知识导航」中的原生扫码验证记录；全量测试的历史问题包括 `requester/downloader` 测试引用不存在的 `Monitor.ShowWorkers`、`pcsutil` 和 `pcsutil/checksum` 依赖开发者绝对路径，以及 `pcsutil/getip` 依赖外网服务。验证时分别报告本次结果与历史问题，不把聚焦检查通过写成全量通过。
@@ -35,7 +35,7 @@ CLI 构建 CI（`.github/workflows/main.yml`）的 Go 版本取自 `go.mod`；HT
 
 ## 项目红线
 
-- [禁止] 将扫码状态返回的临时票据直接保存为正式 BDUSS；正式登录需完成会话交换、身份与网盘访问验证及配置持久化（依据 `docs/qr-login-design.md`）。
+- [禁止] 将扫码状态返回的临时票据直接保存为正式 BDUSS；正式登录需完成会话交换、身份与网盘访问验证及配置持久化（依据 `asset/qr-login-design.md`）。
 - [禁止] 扫码登录链路降级为 HTTP、关闭证书校验，或将登录重定向放宽到未经允许的域（依据同上）。
 - [禁止] 在日志或验证记录中写入真实 Cookie 值、临时票据、完整认证 URL 或原始登录响应（依据同上）。
 
@@ -52,10 +52,10 @@ CLI 构建 CI（`.github/workflows/main.yml`）的 Go 版本取自 `go.mod`；HT
 ## 知识导航
 
 - [README.md](README.md)：用户命令、配置项与跨平台编译说明；修改 CLI 行为前读对应章节。
-- [docs/README.md](docs/README.md)：百度 PCS API、错误码与客户端功能文档索引；排查网盘接口前定位对应资料。
-- [扫码登录方案](docs/qr-login-design.md)：协议、账号兼容语义、持久化与退出码；修改登录或会话恢复前读。
-- [原生扫码验证记录](docs/qr-login-native-verification-2026-11-02.json)：2026-11-02 的检查范围、平台结果和全量测试历史问题，用作基线参考。
-- [HTTP 服务验收](docs/http-api-p7-verification.md)：P1—P7 的实现、契约、离线测试、真实上游范围及 CI 复现入口；修改服务或共享客户端前读。
+- [asset/README.md](asset/README.md)：百度 PCS API、错误码与客户端功能文档索引；排查网盘接口前定位对应资料。
+- [扫码登录方案](asset/qr-login-design.md)：协议、账号兼容语义、持久化与退出码；修改登录或会话恢复前读。
+- [原生扫码验证记录](asset/qr-login-native-verification-2026-11-02.json)：2026-11-02 的检查范围、平台结果和全量测试历史问题，用作基线参考。
+- [HTTP 服务验收](asset/http-api-p7-verification.md)：P1—P7 的实现、契约、离线测试、真实上游范围及 CI 复现入口；修改服务或共享客户端前读。
 - [harness-init](../astack/astack-marketplace/plugins/astack-coding/skills/harness-init/SKILL.md)：本次初始化的技能来源；修复或升级 Harness 时使用，其他技能按具体任务选用。
 
 <!-- astack:workflow:start -->

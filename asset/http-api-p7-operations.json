@@ -1098,7 +1098,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
         "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
         "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
@@ -1143,7 +1143,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md"
+        "asset/http-api-p4-verification.md"
       ],
       "original_source_mapping_entries": 18,
       "upstream": {
@@ -1183,7 +1183,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
         "internal/bootstrap/p7_test.go#TestP7SettledJobCountersAndExpiredCredentialBoundary",
         "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
@@ -1225,7 +1225,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
         "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
         "internal/infrastructure/baidu/factory_test.go#TestFactoryBindsCancellationAndRejectsUnsafeRedirect",
@@ -1260,7 +1260,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/bootstrap/p7_test.go#TestP7TicketExpiryCurrentPermissionsAndCredentialRevocation",
         "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
       ],
@@ -1617,7 +1617,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -1645,7 +1645,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 9,
       "upstream": {
@@ -1674,7 +1674,7 @@
       },
       "offline_evidence": [
         "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
       ],
@@ -1705,7 +1705,7 @@
       },
       "offline_evidence": [
         "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
       ],
@@ -1736,7 +1736,7 @@
       },
       "offline_evidence": [
         "baidupcs/cp_mv_rename_test.go#TestCpMvPrepareErrorIsReturnedInsteadOfSuccess",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5FileWritesPartialConflictsAndRetry",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials"
       ],
@@ -2289,7 +2289,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
         "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
@@ -2332,7 +2332,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
         "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
@@ -2412,7 +2412,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/application/transfers/service_test.go#TestInterruptedCommitCannotBeReportedCancelled",
         "internal/bootstrap/p5_test.go#TestP5UnknownWriteReconciliationRestartAndNewCredentials",
         "internal/infrastructure/baidu/p4_test.go#TestP4PauseResumeIsolationAndChangedSource"
@@ -2871,7 +2871,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
         "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
         "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
@@ -2904,7 +2904,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 8,
       "upstream": {
@@ -2937,7 +2937,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
         "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs"
       ],
@@ -2967,7 +2967,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -2995,7 +2995,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -3023,7 +3023,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_edges_test.go#TestP5Offline1000WindowAndNeverFetchSource",
         "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs"
       ],
@@ -3053,7 +3053,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 3,
       "upstream": {
@@ -3081,7 +3081,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 6,
       "upstream": {
@@ -3109,7 +3109,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -3137,7 +3137,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -3165,7 +3165,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 6,
       "upstream": {
@@ -3194,7 +3194,7 @@
       },
       "offline_evidence": [
         "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_edges_test.go#TestP5IdempotencySurvivesDynamicInspectionAndDeletedPattern",
         "internal/bootstrap/p5_test.go#TestP5OfflineWindowIDsAndRecycleActualRestoreIDs",
         "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild",
@@ -3227,7 +3227,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 6,
       "upstream": {
@@ -3256,7 +3256,7 @@
       },
       "offline_evidence": [
         "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
       ],
       "original_source_mapping_entries": 4,
@@ -3285,7 +3285,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p5-verification.md"
+        "asset/http-api-p5-verification.md"
       ],
       "original_source_mapping_entries": 5,
       "upstream": {
@@ -3587,7 +3587,7 @@
       },
       "offline_evidence": [
         "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
       ],
       "original_source_mapping_entries": 10,
@@ -3617,7 +3617,7 @@
       },
       "offline_evidence": [
         "baidupcs/share_input_test.go#TestP5SharedTextPasswordPrecedenceAndLegacyRejection",
-        "docs/http-api-p5-verification.md",
+        "asset/http-api-p5-verification.md",
         "internal/bootstrap/p5_test.go#TestP5SharesInspectionPaginationCollectAndDownloadChild"
       ],
       "original_source_mapping_entries": 20,
@@ -3651,7 +3651,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/application/transfers/options_test.go#TestExplicitZeroAndInverseOptionsOverrideConfiguration",
         "internal/application/transfers/service_test.go#TestQueueBoundAndConcurrentSubmissionReplay",
         "internal/bootstrap/p3_test.go#TestP3FileReadingSnapshotsScansJobsAndArtifacts",
@@ -3708,7 +3708,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
       ],
       "original_source_mapping_entries": 0,
@@ -3739,7 +3739,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
       ],
       "original_source_mapping_entries": 0,
@@ -3775,7 +3775,7 @@
         ]
       },
       "offline_evidence": [
-        "docs/http-api-p4-verification.md",
+        "asset/http-api-p4-verification.md",
         "internal/infrastructure/baidu/p4_test.go#TestP4MultipartReferencesAndContentHTTP"
       ],
       "original_source_mapping_entries": 0,

@@ -80,7 +80,7 @@
     ],
     "cgo_disabled_build_targets": 13,
     "sqlite_service_targets": 5,
-    "build_evidence": "docs/http-api-p3-build-verification.json",
+    "build_evidence": "asset/http-api-p3-build-verification.json",
     "native_server_build_and_help": "passed",
     "diff_check": "passed",
     "legacy_v3_upgrade_and_initial_receipt": "passed",
@@ -91,7 +91,7 @@
     "status": "passed",
     "allowed_remote_root": "/BaiduPCS-Go-P2-Verification/",
     "test_entrypoint": "TestP3UpstreamDedicatedAccount",
-    "evidence": "docs/http-api-p3-upstream-verification.json",
+    "evidence": "asset/http-api-p3-upstream-verification.json",
     "started_at": "2026-11-05T07:44:23.797044655Z",
     "finished_at": "2026-11-05T07:44:53.205675652Z",
     "passed_stages": 33,
@@ -104,5 +104,5 @@
       "git_tracked": false
     }
   },
-  "p2_upstream_evidence_preserved": "docs/http-api-p2-upstream-verification.json"
+  "p2_upstream_evidence_preserved": "asset/http-api-p2-upstream-verification.json"
 }

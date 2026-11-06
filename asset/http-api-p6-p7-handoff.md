@@ -13,13 +13,13 @@
 
 先检查实际工作目录及祖先中的AGENTS.md，存在则遵循。必须阅读：
 
-1. `docs/http-api-handoff.md`
-2. `docs/http-api-implementation-plan.md`
-3. `docs/http-api-design.md`
-4. `docs/http-api-coverage.md`
-5. `docs/http-api-p3-guide.md`、`docs/http-api-p3-verification.md`
-6. `docs/http-api-p4-guide.md`、`docs/http-api-p4-verification.md`
-7. `docs/http-api-p5-guide.md`、`docs/http-api-p5-verification.md`、`docs/http-api-p5-verification.json`
+1. `asset/http-api-handoff.md`
+2. `asset/http-api-implementation-plan.md`
+3. `asset/http-api-design.md`
+4. `asset/http-api-coverage.md`
+5. `asset/http-api-p3-guide.md`、`asset/http-api-p3-verification.md`
+6. `asset/http-api-p4-guide.md`、`asset/http-api-p4-verification.md`
+7. `asset/http-api-p5-guide.md`、`asset/http-api-p5-verification.md`、`asset/http-api-p5-verification.json`
 8. P2—P5各阶段脱敏上游报告及P4/P5构建报告；P2指南/验收中的原检查点兼容与HTTP SIGKILL入口。
 9. `api/openapi/README.md`、`api/openapi/openapi.yaml`、`.github/workflows/http-api.yml`
 

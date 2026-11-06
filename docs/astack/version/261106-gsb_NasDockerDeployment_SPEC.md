@@ -69,7 +69,7 @@
 |---|---|
 | `Dockerfile`、`.dockerignore`（新增） | 按已有 Go 构建方式产出服务和终端登录辅助程序；运行镜像提供可信 CA；排除凭据、私有配置、验证资源与开发缓存 |
 | `deploy/nas/compose.yaml`、启动配置与非秘密参数示例（新增） | 独立服务、共享网络、持久目录、媒体目录、运行身份、健康检查与重启策略；不定义 `ports` |
-| `docs/nas-docker-deployment.md`（新增）、`README.md`、`docs/README.md` | 给出构建、首次配置、终端扫码、HTTP 下载、任务目录、取消、恢复、升级和停机操作；仅增加相关导航 |
+| `docs/nas-docker-deployment.md`（新增）、`README.md`、`asset/README.md` | 给出构建、首次配置、终端扫码、HTTP 下载、任务目录、取消、恢复、升级和停机操作；仅增加相关导航 |
 | `cmd/baidupcs-http-login/`（新增） | 容器内终端扫码客户端，只调用现有 HTTP 登录接口和复用二维码展示能力；不实现另一套百度登录协议 |
 | `internal/bootstrap/server.go` 及对应测试 | 新启动字段、参数验证、依赖装配、恢复所需当前权限、实际能力信息；不让 CFG02 修改服务边界 |
 | `internal/application/transfers/` 及对应测试 | 可配置执行位、固定等待位、有界恢复、取消与幂等兼容 |

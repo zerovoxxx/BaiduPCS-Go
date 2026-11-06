@@ -31,7 +31,7 @@
 
 接口覆盖率、实现率、测试通过率和百度上游实测通过率分别统计。把导出方法归到内部适配不等于该业务已经实现；历史能力有明确处理结论也不等于可以成功调用。
 
-现有 `docs/file_data_apis_list.md` 等文件描述百度上游接口，不作为本服务的 HTTP 契约。此方案也不承诺实现原项目没有实现的结构化数据 API。
+现有 `asset/file_data_apis_list.md` 等文件描述百度上游接口，不作为本服务的 HTTP 契约。此方案也不承诺实现原项目没有实现的结构化数据 API。
 
 ### 1.1 实施取舍与契约成熟度
 
@@ -137,7 +137,7 @@ internal/infrastructure/
 internal/pcscommand/                   # 逐步变成应用服务的 CLI 适配
 baidupcs/ requester/                    # 保留主项目核心，按需要做小范围兼容扩展
 api/openapi/                           # P0 起维护的契约和示例
-docs/http-api-*.md                      # 设计、覆盖和实施资料
+asset/http-api-*.md                      # 设计、覆盖和实施资料
 ```
 
 不拆多个 Go module，也不复制主项目核心到独立 API 仓库。保留现有 module 路径，以便合法使用 `internal` 包并持续跟进上游。后续若要独立 SDK，SDK 仅依赖公开 HTTP 契约。

@@ -3400,7 +3400,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3538,7 +3538,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3679,7 +3679,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3818,7 +3818,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -3957,7 +3957,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4188,7 +4188,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4368,7 +4368,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -4487,7 +4487,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -4571,7 +4571,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -5100,7 +5100,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -5295,7 +5295,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5409,7 +5409,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5530,7 +5530,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -5769,7 +5769,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6549,7 +6549,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6689,7 +6689,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p4-verification.md
+      - asset/http-api-p4-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -6975,7 +6975,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7193,7 +7193,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7294,7 +7294,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7386,7 +7386,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7468,7 +7468,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7607,7 +7607,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -7728,7 +7728,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -7871,7 +7871,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8008,7 +8008,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8098,7 +8098,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8200,7 +8200,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8337,7 +8337,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8474,7 +8474,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8595,7 +8595,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8686,7 +8686,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: false
         required: false
@@ -8770,7 +8770,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -8907,7 +8907,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
@@ -9044,7 +9044,7 @@ paths:
         implementation: implemented
         conditional_upstream_capability: false
       x-offline-evidence:
-      - docs/http-api-p5-verification.md
+      - asset/http-api-p5-verification.md
       x-idempotency:
         supported: true
         required: false
