@@ -124,7 +124,7 @@ var (
 	baiduPCSVerbose = pcsverbose.New("BAIDUPCS")
 
 	baiduComURL = &url.URL{
-		Scheme: "http",
+		Scheme: "https",
 		Host:   "pan.baidu.com",
 	}
 
@@ -168,6 +168,11 @@ type (
 
 // UpdatePCSCookies 去除重名Cookies, 同名cookeis只保留最新的
 func (pcs *BaiduPCS) UpdatePCSCookies(reverse bool) {
+	if _, ok := pcs.GetClient().Jar.(*requester.CookieJar); ok {
+		// Structured sessions legitimately have same-name cookies in different
+		// domains/paths. Flattening them destroys the QR login's scope boundaries.
+		return
+	}
 	cookies := pcs.GetClient().Jar.Cookies(baiduComURL)
 	new_cookies := make([]*http.Cookie, 0)
 	usedKeys := make(map[string]string)

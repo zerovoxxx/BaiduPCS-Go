@@ -96,6 +96,10 @@ func initializeCLI() {
 }
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	serverMode := bootstrap.IsServerInvocation(os.Args[1:])
 	if !serverMode {
 		initializeCLI()
@@ -103,6 +107,10 @@ func main() {
 	}
 
 	app := cli.NewApp()
+	app.ErrWriter = os.Stderr
+	// Handle errors after command defers run, so Ctrl+C/timeouts also remove QR
+	// images and close configuration files instead of cli calling os.Exit early.
+	app.ExitErrHandler = func(*cli.Context, error) {}
 	app.Name = "BaiduPCS-Go"
 	app.Version = Version
 	app.Author = "qjfoidnh/BaiduPCS-Go: https://github.com/qjfoidnh/BaiduPCS-Go"
@@ -329,12 +337,19 @@ func main() {
 			// 恢复原始终端状态
 			// 防止运行命令时程序被结束, 终端出现异常
 			line.Pause()
-			c.App.Run(s)
+			runErr := c.App.Run(s)
 			line.Resume()
+			if cmdArgs[0] == "quit" || cmdArgs[0] == "exit" {
+				return
+			}
+			if runErr != nil {
+				fmt.Fprintln(c.App.ErrWriter, runErr)
+			}
 		}
 	}
 
 	app.Commands = []cli.Command{
+		pcscommand.QRLoginCommand(),
 		{
 			Name:     "server",
 			Usage:    "启动隔离的HTTP API服务",
@@ -2205,9 +2220,18 @@ func main() {
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
-	err := app.Run(os.Args)
-	if serverMode && err != nil {
-		fmt.Fprintln(os.Stderr, "server:", err)
-		os.Exit(1)
+	if err := app.Run(os.Args); err != nil {
+		if err.Error() != "" {
+			if serverMode {
+				fmt.Fprintln(app.ErrWriter, "server:", err)
+			} else {
+				fmt.Fprintln(app.ErrWriter, err)
+			}
+		}
+		if exit, ok := err.(cli.ExitCoder); ok {
+			return exit.ExitCode()
+		}
+		return 1
 	}
+	return 0
 }

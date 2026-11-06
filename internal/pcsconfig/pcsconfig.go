@@ -98,40 +98,46 @@ func (c *PCSConfig) Close() error {
 
 // Save 保存配置信息到配置文件
 func (c *PCSConfig) Save() error {
-	// 检测配置项是否合法, 不合法则自动修复
-	c.fix()
-
-	err := c.lazyOpenConfigFile()
-	if err != nil {
-		return err
-	}
-
 	c.fileMu.Lock()
 	defer c.fileMu.Unlock()
-
+	c.fix()
+	c.syncActiveCookies()
+	if c.configFilePath == "" {
+		return ErrConfigFileNotExist
+	}
+	dir := filepath.Dir(c.configFilePath)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
 	data, err := jsoniter.MarshalIndent(c, "", " ")
 	if err != nil {
-		// json数据生成失败
-		panic(err)
+		return err
 	}
-
-	// 减掉多余的部分
-	err = c.configFile.Truncate(int64(len(data)))
+	// Write and sync a private sibling before replacing the old configuration.
+	// A write failure must not truncate the user's existing account credentials.
+	file, err := os.CreateTemp(dir, ".pcs-config-*")
 	if err != nil {
 		return err
 	}
-
-	_, err = c.configFile.Seek(0, os.SEEK_SET)
-	if err != nil {
+	tempName := file.Name()
+	defer os.Remove(tempName)
+	if _, err = file.Write(data); err != nil {
+		file.Close()
 		return err
 	}
-
-	_, err = c.configFile.Write(data)
-	if err != nil {
+	if err = file.Sync(); err != nil {
+		file.Close()
 		return err
 	}
-
-	return nil
+	if err = file.Close(); err != nil {
+		return err
+	}
+	// Windows cannot replace a configuration which this process still holds open.
+	if c.configFile != nil {
+		c.configFile.Close()
+		c.configFile = nil
+	}
+	return os.Rename(tempName, c.configFilePath)
 }
 
 func (c *PCSConfig) init() error {
@@ -149,19 +155,15 @@ func (c *PCSConfig) init() error {
 		return err
 	}
 
-	// 载入配置
-	// 如果 activeUser 已初始化, 则跳过
-	if c.activeUser != nil && c.activeUser.UID == c.BaiduActiveUID {
-		return nil
-	}
-
+	// Same UID can have fresh credentials after another CLI process logs in.
+	// Rebuild from the loaded record instead of retaining the previous session.
 	c.activeUser, err = c.GetBaiduUser(&BaiduBase{
 		UID: c.BaiduActiveUID,
 	})
 	if err != nil {
 		return err
 	}
-	c.pcs = c.activeUser.BaiduPCS()
+	c.pcs = c.activeUser.newPCS(c)
 	c.pcs.SetPCSAddr(c.PCSAddr)
 
 	// 设置全局User-Agent
@@ -183,7 +185,10 @@ func (c *PCSConfig) lazyOpenConfigFile() (err error) {
 	}
 
 	c.fileMu.Lock()
-	os.MkdirAll(filepath.Dir(c.configFilePath), 0700)
+	if err = os.MkdirAll(filepath.Dir(c.configFilePath), 0700); err != nil {
+		c.fileMu.Unlock()
+		return err
+	}
 	c.configFile, err = os.OpenFile(c.configFilePath, os.O_CREATE|os.O_RDWR, 0600)
 	c.fileMu.Unlock()
 
@@ -228,6 +233,13 @@ func (c *PCSConfig) loadConfigFromFile() (err error) {
 	err = jsonhelper.UnmarshalData(c.configFile, c)
 	if err != nil {
 		return ErrConfigContentsParseError
+	}
+	for _, user := range c.BaiduUserList {
+		if user != nil && user.CookieEntries != nil {
+			if _, err := requester.NewCookieJar(user.CookieEntries); err != nil {
+				return ErrConfigContentsParseError
+			}
+		}
 	}
 	return nil
 }

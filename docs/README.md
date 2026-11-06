@@ -1,5 +1,10 @@
 # 文档目录
 
+## 客户端功能
+
+- [百度网盘官方 App 扫码登录技术方案](qr-login-design.md)
+- [原生扫码登录验证记录](qr-login-native-verification-2026-11-02.json)
+
 ## 百度PCS文档
 
 ### 文件API

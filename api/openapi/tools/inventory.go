@@ -97,8 +97,42 @@ func flags(e ast.Expr, command string) {
 		if command == "" {
 			kind = "global_flag"
 		}
-		entries = append(entries, entry{Kind: kind, Name: strings.TrimSpace(command + " --" + names[0]), File: "main.go", Line: fset.Position(c.Pos()).Line, Type: syntax(c.Type), Aliases: aliases})
+		position := fset.Position(c.Pos())
+		entries = append(entries, entry{Kind: kind, Name: strings.TrimSpace(command + " --" + names[0]), File: position.Filename, Line: position.Line, Type: syntax(c.Type), Aliases: aliases})
 	}
+}
+
+func commandLiteral(e ast.Expr) *ast.CompositeLit {
+	if c, ok := e.(*ast.CompositeLit); ok {
+		return c
+	}
+	// The native QR command is registered through a constructor. Inspect its
+	// literal rather than executing the CLI or silently omitting its flags.
+	call, ok := e.(*ast.CallExpr)
+	if !ok || len(call.Args) != 0 {
+		panic("non-literal command")
+	}
+	selector, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || syntax(selector) != "pcscommand.QRLoginCommand" {
+		panic("unsupported command constructor")
+	}
+	f := parse("internal/pcscommand/qrlogin.go")
+	for _, declaration := range f.Decls {
+		fn, ok := declaration.(*ast.FuncDecl)
+		if !ok || fn.Name.Name != "qrLoginCommand" || fn.Body == nil {
+			continue
+		}
+		for _, statement := range fn.Body.List {
+			ret, ok := statement.(*ast.ReturnStmt)
+			if !ok || len(ret.Results) != 1 {
+				continue
+			}
+			if c, ok := ret.Results[0].(*ast.CompositeLit); ok && syntax(c.Type) == "cli.Command" {
+				return c
+			}
+		}
+	}
+	panic("QR command literal not found")
 }
 
 func commands(e ast.Expr, parent string) {
@@ -107,10 +141,7 @@ func commands(e ast.Expr, parent string) {
 		panic("non-literal commands")
 	}
 	for _, e := range c.Elts {
-		c, ok := e.(*ast.CompositeLit)
-		if !ok {
-			panic("non-literal command")
-		}
+		c := commandLiteral(e)
 		name := strings.TrimSpace(parent + " " + lit(kv(c, "Name")))
 		if name == parent {
 			panic("unnamed command")
@@ -125,7 +156,8 @@ func commands(e ast.Expr, parent string) {
 		if kv(c, "Subcommands") != nil {
 			kind = "command_group"
 		}
-		entries = append(entries, entry{Kind: kind, Name: name, File: "main.go", Line: fset.Position(kv(c, "Name").Pos()).Line, Aliases: aliases})
+		position := fset.Position(kv(c, "Name").Pos())
+		entries = append(entries, entry{Kind: kind, Name: name, File: position.Filename, Line: position.Line, Aliases: aliases})
 		flags(kv(c, "Flags"), name)
 		if e := kv(c, "Subcommands"); e != nil {
 			commands(e, name)

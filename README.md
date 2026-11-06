@@ -369,6 +369,29 @@ BaiduPCS-Go update
 
 ## 登录百度帐号
 
+### 使用百度网盘官方 App 扫码登录（推荐）
+
+```bash
+BaiduPCS-Go qrlogin
+```
+
+使用百度网盘官方 App 的“扫一扫”扫描终端中的二维码，并在手机上确认登录。
+程序自动验证账号和网盘访问并保存登录状态，之后可直接运行 `who`、`quota`、`ls` 等命令，无需手动复制 Cookie。
+
+```bash
+# 等待时间，单位秒，默认 300 秒
+BaiduPCS-Go qrlogin --timeout 600
+
+# 终端显示不清晰时，打开图片扫码；指定的图片文件必须尚不存在
+BaiduPCS-Go qrlogin --no-qr --qr-file /tmp/baidu-login.png
+```
+
+支持 Linux、macOS 和 Windows。按 `Ctrl+C` 取消登录；二维码图片在成功、失败或取消后自动删除。
+登录失败或配置保存失败时，原有账号保持可用。扫码账号的网盘请求使用 HTTPS，配置文件包含登录凭证，请勿上传或分享。
+Linux 最小容器需要可用的系统 CA 证书。
+
+`qrlogin` 的退出码：成功为 `0`，参数错误为 `2`，超时为 `124`，取消为 `130`，其他登录或保存错误为 `1`。
+
 ### 常规登录百度帐号
 
 支持在线验证绑定的手机号或邮箱,
@@ -386,7 +409,7 @@ STOKEN是cookie中的一个字段, 注意不是bdstoken, 如果拿到的STOKEN�
 BaiduPCS-Go login -bduss=<BDUSS> -stoken=<STOKEN>
 ```
 
-### 使用百度 Cookies 来登录百度账号(推荐)
+### 使用百度 Cookies 来登录百度账号
 
 [关于 获取百度 Cookies](https://jingyan.baidu.com/article/5553fa829a6a9e65a23934b0.html)
 教程中为百度经验的Cookies获取, 这里换成百度网盘首页即可.

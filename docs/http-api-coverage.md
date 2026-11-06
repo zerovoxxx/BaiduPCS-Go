@@ -32,6 +32,7 @@
 | env | SYS03、CFG01 | 只返回本服务运行信息和有效配置，不暴露任意环境变量 | [main.go:352](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L352) |
 | update | CLI 专属；SYS03 | 自更新保留在 CLI；HTTP 可查询当前版本 | [main.go:379](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L379) |
 | login | ACC01、LOG01 至 LOG06 | 凭据导入、密码与 QR 登录会话；支持状态以 capabilities 为准 | [main.go:399](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L399) |
+| qrlogin | LOG02 至 LOG06、ACC01 | 原生 CLI 扫码授权与保存；HTTP 由独立登录会话和账号库实现等价流程 | [internal/pcscommand/qrlogin.go:34](../internal/pcscommand/qrlogin.go#L34) |
 | su | CTX03、CFG09 | 调用方切换账号与管理 CLI 默认账号分开 | [main.go:477](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L477) |
 | logout | ACC05、CTX04 | 删除本地保存账号或仅关闭浏览上下文；不是百度全局注销 | [main.go:551](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L551) |
 | loglist | ACC02 | 返回调用方可访问的账号清单 | [main.go:594](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/main.go#L594) |
@@ -95,6 +96,9 @@
 | login | -ptoken | ACC01 credentials.ptoken；按原项目保留可选输入 |
 | login | -stoken | ACC01 credentials.stoken |
 | login | -cookies | ACC01 credentials.cookies，完整 Cookie 解析 |
+| qrlogin | -timeout | CLI 专属等待总时限；HTTP 登录会话由 LOG02 至 LOG06 管理有效期 |
+| qrlogin | -qr-file | CLI 专属二维码临时文件；LOG03 返回图片，不接受服务端任意写入路径 |
+| qrlogin | -no-qr | CLI 专属终端展示开关；HTTP 二维码图片由 LOG03 获取 |
 | logout | -y | ACC05 明确 DELETE 已表达删除意图；无终端交互确认 |
 | cd | -l | CTX03 include_listing |
 | ls | -l | FIL01 fields=all 和当前页 summary；全量统计走 FIL05 |
@@ -589,6 +593,7 @@
 | RunFixMD5 | INT02 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/fixmd5.go:9](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/fixmd5.go#L9) |
 | RunLocateDownload | DWN02 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/locatedonwload.go:13](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/locatedonwload.go#L13) |
 | RunLogin | LOG01 至 LOG06 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/login.go:33](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/login.go#L33) |
+| QRLoginCommand | CLI 专属；LOG02 至 LOG06 | 仅组装本地扫码命令；HTTP 使用独立登录会话 | [internal/pcscommand/qrlogin.go:21](../internal/pcscommand/qrlogin.go#L21) |
 | RunLs | FIL01 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/ls_search.go:33](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/ls_search.go#L33) |
 | RunSearch | FIL04 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/ls_search.go:57](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/ls_search.go#L57) |
 | RunGetMeta | FIL02、FIL03 | 抽出业务结果，CLI 保留打印；登录输入和上传信号归入口 | [internal/pcscommand/meta.go:8](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcscommand/meta.go#L8) |
@@ -656,6 +661,7 @@
 | *PCSConfig.Reload | Bootstrap、CFG05、CFG06、CFG07 | 生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写 | [internal/pcsconfig/pcsconfig.go:85](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/pcsconfig.go#L85) |
 | *PCSConfig.Close | Bootstrap、CFG05、CFG06、CFG07 | 生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写 | [internal/pcsconfig/pcsconfig.go:90](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/pcsconfig.go#L90) |
 | *PCSConfig.Save | Bootstrap、CFG05、CFG06、CFG07 | 生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写 | [internal/pcsconfig/pcsconfig.go:100](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/pcsconfig.go#L100) |
+| *PCSConfig.SaveQRSession | CLI 专属；ACC01、LOG05 | CLI 账号配置事务保存；HTTP 使用独立账号库 | [internal/pcsconfig/qrlogin.go:14](../internal/pcsconfig/qrlogin.go#L14) |
 | *PCSConfig.InitDefaultConfig | Bootstrap、CFG05、CFG06、CFG07 | 生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写 | [internal/pcsconfig/pcsconfig.go:231](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/pcsconfig.go#L231) |
 | GetConfigDir | Bootstrap、CFG05、CFG06、CFG07 | 生命周期、固定配置来源、锁和原子持久化；不提供任意文件读写 | [internal/pcsconfig/pcsconfig.go:270](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/pcsconfig.go#L270) |
 | AverageParallel | DWN01 | 下载总并发预算分配；内部策略 | [internal/pcsconfig/util.go:9](https://github.com/qjfoidnh/BaiduPCS-Go/blob/1b9131817aaf8ca7dee24bc00e33ebc4c7a5cc73/internal/pcsconfig/util.go#L9) |

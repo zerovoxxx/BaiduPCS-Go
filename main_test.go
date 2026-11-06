@@ -25,7 +25,9 @@ func TestCLIHelper(t *testing.T) {
 	}
 	os.Args = append([]string{"BaiduPCS-Go"}, os.Args[separator+1:]...)
 	before, _ := os.Getwd()
-	main()
+	if code := run(); code != 0 {
+		os.Exit(code)
+	}
 	after, _ := os.Getwd()
 	if os.Getenv("BAIDUPCS_P1_EXPECT_LEGACY") == "1" {
 		if pcsconfig.Config.MaxParallel != 7 {
@@ -95,5 +97,18 @@ func TestLegacyCLIStillInitializesAndUsesItsConfiguration(t *testing.T) {
 	output, err = cliChild(t, directory, legacy, false, "--version")
 	if err == nil || !strings.Contains(string(output), "FATAL ERROR: config file error") {
 		t.Fatalf("legacy invalid-config behavior changed: %v %s", err, output)
+	}
+}
+
+func TestQRLoginAndServerCommandsRemainAvailable(t *testing.T) {
+	directory, legacy := t.TempDir(), t.TempDir()
+	output, err := cliChild(t, directory, legacy, false, "--help")
+	if err != nil || !bytes.Contains(output, []byte("qrlogin")) || !bytes.Contains(output, []byte("server")) {
+		t.Fatalf("integrated commands unavailable: %v %s", err, output)
+	}
+	output, err = cliChild(t, directory, legacy, false, "qrlogin", "--timeout", "0", "--no-qr")
+	exit, ok := err.(*exec.ExitError)
+	if !ok || exit.ExitCode() != 2 || !bytes.Contains(output, []byte("--timeout")) {
+		t.Fatalf("QR argument error lost its exit code: %v %s", err, output)
 	}
 }

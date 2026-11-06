@@ -22,6 +22,7 @@ require (
 )
 
 require (
+	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	modernc.org/sqlite v1.38.2
@@ -48,6 +49,8 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	modernc.org/libc v1.66.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
