@@ -126,10 +126,8 @@ for_1:
 				} else {
 					vcode_raw = ""
 					vcodestr = ""
-						goto BEGIN
+					goto BEGIN
 				}
-				// 登录成功
-				return nlj.Data.BDUSS, nlj.Data.PToken, nlj.Data.SToken, nlj.Data.CookieString, nil
 			}
 			break for_1
 		case "500001", "500002": // 验证码

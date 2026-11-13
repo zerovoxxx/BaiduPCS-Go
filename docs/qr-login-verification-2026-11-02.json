@@ -1,0 +1,161 @@
+{
+  "credential_presence": {
+    "BDUSS": true,
+    "STOKEN": true,
+    "BAIDUID": true,
+    "PTOKEN": false
+  },
+  "pan_quota": {
+    "ok": true,
+    "http_status": 200,
+    "business_code": 0
+  },
+  "pan_list": {
+    "ok": true,
+    "http_status": 200,
+    "business_code": 0,
+    "entry_count": 1
+  },
+  "pan_identity": {
+    "ok": true,
+    "http_status": 200,
+    "business_code": 0
+  },
+  "reload_list": {
+    "ok": true,
+    "http_status": 200,
+    "business_code": 0,
+    "entry_count": 1
+  },
+  "cli": {
+    "available": true,
+    "login": {
+      "ok": true,
+      "returncode": 0
+    },
+    "who": {
+      "ok": true,
+      "returncode": 0
+    },
+    "quota": {
+      "ok": true,
+      "returncode": 0
+    }
+  },
+  "read_only_auth_verified": true,
+  "pcs_quota_app_id_250528": {
+    "ok": false,
+    "http_status": 400,
+    "business_code": 31030
+  },
+  "pcs_quota_app_id_266719": {
+    "ok": true,
+    "http_status": 200,
+    "business_code": null
+  },
+  "official_app_confirmation": true,
+  "scope": "Read-only QR authentication and existing CLI compatibility; no upload/download/share mutation tests",
+  "credential_values_in_report": false,
+  "verified_at": "2026-11-02T16:03:32+08:00",
+  "project_default_app_id": 266719,
+  "source_revision_at_report": "bf76d65b2f37e0e4460d836ca75b76246f4d06dc",
+  "observed_cookie_scopes": [
+    {
+      "name": "BDUSS",
+      "domain": ".baidu.com"
+    },
+    {
+      "name": "BAIDUID",
+      "domain": ".baidu.com"
+    },
+    {
+      "name": "STOKEN",
+      "domain": ".passport.baidu.com",
+      "secure": true
+    },
+    {
+      "name": "STOKEN",
+      "domain": ".pan.baidu.com",
+      "secure": true
+    },
+    {
+      "name": "PTOKEN",
+      "domain": ".passport.baidu.com",
+      "secure": true
+    }
+  ],
+  "production_followups": [
+    "Preserve cookie domain, path and Secure attributes",
+    "Use verified HTTPS identity lookup with compatible UID semantics",
+    "Enable TLS verification for credential requests",
+    "Use per-endpoint application parameters from the project"
+  ],
+  "default_user_configuration_modified": false,
+  "temporary_credentials_removed": true,
+  "execution_environment": "macOS arm64",
+  "linux_runtime_verified": false,
+  "linux_cross_compile_verified": false,
+  "auth_exchange": {
+    "http_status": 200,
+    "redirect_count": 0,
+    "poll_errno": 0,
+    "channel_status": 0,
+    "temporary_ticket_exchanged": true
+  },
+  "observed_session_sync": [
+    {
+      "step": "pan_landing",
+      "host": "pan.baidu.com",
+      "path": "/disk/main",
+      "http_status": 200,
+      "redirect_count": 3
+    },
+    {
+      "step": "pan_auth_sync",
+      "host": "passport.baidu.com",
+      "path": "/v3/login/api/auth/",
+      "http_status": 200,
+      "redirect_count": 2
+    }
+  ],
+  "cookie_names_for_pan": [
+    "BAIDUID",
+    "BAIDUID_BFESS",
+    "BDUSS",
+    "BDUSS_BFESS",
+    "PANPSC",
+    "STOKEN",
+    "csrfToken"
+  ],
+  "cookie_names_for_passport": [
+    "BAIDUID",
+    "BAIDUID_BFESS",
+    "BDUSS",
+    "BDUSS_BFESS",
+    "PTOKEN",
+    "PTOKEN_BFESS",
+    "STOKEN",
+    "STOKEN_BFESS",
+    "UBI",
+    "UBI_BFESS"
+  ],
+  "local_cleanup": {
+    "checked_at": "2026-11-02T16:08:12+08:00",
+    "scope": "Files and processes of this QR verification; standard CLI configuration locations were also checked",
+    "private_work_directory_absent": true,
+    "task_temp_directory_count": 0,
+    "active_verification_process_count": 0,
+    "used_qr_images_removed": [
+      "qr.png"
+    ],
+    "default_cli_config_present": false,
+    "project_cli_config_present": false,
+    "credential_value_pattern_matches_in_retained_probe_and_report": 0,
+    "raw_credentials_retained": false,
+    "server_side_logout_performed": false,
+    "last_verified_at": "2026-11-02T16:11:13+08:00",
+    "known_sensitive_file_residual_count": 0,
+    "retained_artifacts_scanned": 4,
+    "credential_value_pattern_matches_in_retained_artifacts": 0
+  }
+}
